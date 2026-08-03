@@ -1,0 +1,6 @@
+# The graph ships as a RELEASE ASSET, not in git. Git history is permanent:
+# a 688MB database committed once is 688MB forever, and every rebuild would
+# store another copy. Assets can be replaced.
+*.sqlite
+*.sqlite-*
+*.gz
