@@ -1,0 +1,86 @@
+{
+  "source_id": "crates_io",
+  "snapshot_id": "crates-index-fixture-2026-08-06",
+  "observed_at": "2026-08-06T00:30:00Z",
+  "retrieved_at": "2026-08-06T00:31:00Z",
+  "terms_revision": "https://crates.io/policies and Cargo registry-index documentation retrieved 2026-08-06",
+  "rights_state": "public_metadata",
+  "crates": [
+    {
+      "name": "vector-core",
+      "description": "Rust core for VectorForge.",
+      "license": "Apache-2.0 OR MIT",
+      "abandoned": false,
+      "metrics": {"downloads": 480000, "recent_downloads": 52000},
+      "owners": [
+        {
+          "id": 77,
+          "login": "bob-builds",
+          "role": "owner",
+          "stability": "stable",
+          "identifiers": [
+            {
+              "scheme": "github_account_id",
+              "value": "303",
+              "scope": "source",
+              "stability": "stable",
+              "uniqueness": "unique",
+              "evidence": "crates.io owner GitHub login resolved to literal GitHub account ID 303"
+            }
+          ]
+        },
+        {
+          "id": 88,
+          "login": "vector-labs-bot",
+          "role": "owner",
+          "kind": "organisation",
+          "stability": "stable",
+          "identifiers": [
+            {
+              "scheme": "github_account_id",
+              "value": "202",
+              "scope": "source",
+              "stability": "stable",
+              "uniqueness": "unique",
+              "evidence": "crates.io owner team receipt linked to GitHub organisation ID 202"
+            }
+          ]
+        }
+      ],
+      "repository": {
+        "native_id": "github:repository:1001",
+        "label": "vector-labs/vectorforge",
+        "evidence": "crates.io repository field"
+      },
+      "versions": [
+        {
+          "version": "0.4.0",
+          "published_at": "2026-07-28T10:00:00Z",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "license": "Apache-2.0 OR MIT",
+          "yanked": false,
+          "metrics": {"downloads": 52000},
+          "dependencies": [
+            {
+              "purl": "pkg:cargo/serde",
+              "name": "serde",
+              "requirement": "^1.0",
+              "kind": "runtime",
+              "optional": false,
+              "evidence": "Cargo index deps row"
+            }
+          ]
+        },
+        {
+          "version": "0.3.0",
+          "published_at": "2026-03-01T10:00:00Z",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "license": "Apache-2.0 OR MIT",
+          "yanked": true,
+          "metrics": {"downloads": 21000},
+          "dependencies": []
+        }
+      ]
+    }
+  ]
+}
