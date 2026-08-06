@@ -1,0 +1,120 @@
+{
+  "source_id": "ecosystems_packages",
+  "snapshot_id": "ecosystems-fixture-2026-08-06",
+  "observed_at": "2026-08-06T00:40:00Z",
+  "retrieved_at": "2026-08-06T00:41:00Z",
+  "terms_revision": "https://ecosyste.ms/api and https://github.com/ecosyste-ms/packages (data CC BY-SA 4.0), retrieved 2026-08-06",
+  "rights_state": "open_data",
+  "packages": [
+    {
+      "id": "npm:@vector-labs/vector-ui",
+      "ecosystem": "npm",
+      "name": "@vector-labs/vector-ui",
+      "latest_release": "3.1.0",
+      "license": "MIT",
+      "abandoned": false,
+      "metrics": {"downloads_30d": 125000, "dependent_packages": 44},
+      "maintainers": [
+        {
+          "id": "alice-ai",
+          "login": "alice-ai",
+          "role": "maintainer",
+          "stability": "mutable",
+          "identifiers": [
+            {
+              "scheme": "github_account_id",
+              "value": "101",
+              "scope": "source",
+              "stability": "stable",
+              "uniqueness": "unique",
+              "evidence": "ecosyste.ms maintainer source repository receipt links GitHub account ID 101"
+            }
+          ]
+        },
+        {
+          "id": "vector-labs",
+          "login": "vector-labs",
+          "role": "publisher",
+          "kind": "organisation",
+          "stability": "mutable",
+          "identifiers": [
+            {
+              "scheme": "github_account_id",
+              "value": "202",
+              "scope": "source",
+              "stability": "stable",
+              "uniqueness": "unique",
+              "evidence": "ecosyste.ms package repository owner receipt links GitHub organisation ID 202"
+            }
+          ]
+        }
+      ],
+      "dependencies": [
+        {
+          "purl": "pkg:npm/%40floating-ui/dom",
+          "name": "@floating-ui/dom",
+          "requirement": "^1.7.0"
+        }
+      ],
+      "repository": {
+        "native_id": "github:repository:1001",
+        "label": "vector-labs/vectorforge",
+        "evidence": "ecosyste.ms repository_url normalized to GitHub repository ID 1001 in fixture receipt"
+      }
+    },
+    {
+      "id": "pypi:vectorforge",
+      "ecosystem": "pypi",
+      "name": "vectorforge",
+      "latest_release": "2.3.0",
+      "license": "MIT",
+      "abandoned": false,
+      "metrics": {"downloads_30d": 67500, "dependent_packages": 18},
+      "maintainers": [
+        {
+          "id": "alicevf",
+          "login": "alicevf",
+          "role": "maintainer",
+          "stability": "unknown",
+          "identifiers": []
+        }
+      ],
+      "dependencies": [
+        {
+          "purl": "pkg:pypi/numpy",
+          "name": "numpy",
+          "requirement": ">=2.1"
+        }
+      ],
+      "repository": {
+        "native_id": "github:repository:1001",
+        "label": "vector-labs/vectorforge",
+        "evidence": "ecosyste.ms repository_url normalized to GitHub repository ID 1001 in fixture receipt"
+      }
+    },
+    {
+      "id": "npm:abandoned-tool",
+      "ecosystem": "npm",
+      "name": "abandoned-tool",
+      "latest_release": "0.2.0",
+      "license": null,
+      "abandoned": true,
+      "metrics": {"downloads_30d": 900, "dependent_packages": 7},
+      "maintainers": [
+        {
+          "id": "ghost-maintainer",
+          "login": "ghost-maintainer",
+          "role": "maintainer",
+          "stability": "mutable",
+          "identifiers": []
+        }
+      ],
+      "dependencies": [],
+      "repository": {
+        "native_id": "github:repository:1002",
+        "label": "alice-ai/legacy-parser",
+        "evidence": "ecosyste.ms repository_url normalized to GitHub repository ID 1002 in fixture receipt"
+      }
+    }
+  ]
+}
