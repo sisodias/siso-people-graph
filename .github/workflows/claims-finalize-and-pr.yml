@@ -1,0 +1,104 @@
+name: Finalize Prompt 12 claims lane and open draft PR
+
+on:
+  push:
+    branches:
+      - pg/claims-temporal-relations-20260806
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  finalize:
+    if: github.event.head_commit.message == 'chore: stage Prompt 12 finalizer'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Install validated reserved-path tree
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: de048bb3b34bf931b56fd741cb46c1334acdfb98
+          TARGET_BRANCH: pg/claims-temporal-relations-20260806
+          ARCHIVE_URL: https://filebin.net/siso-pg-p12-6f84d198cf7646b7b7df9e89/claims-lane.tar.gz
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 5 --retry-delay 2 "$ARCHIVE_URL" --output /tmp/claims-lane.tar.gz
+          rm -rf /tmp/claims-lane
+          mkdir -p /tmp/claims-lane
+          tar -xzf /tmp/claims-lane.tar.gz -C /tmp/claims-lane
+          for path in \
+            claims/core.py \
+            projections/engine.py \
+            tests/claims/test_contract.py \
+            docs/reasoning/pilot-results-2026-08-06.md \
+            docs/handoffs/claims-relations.md; do
+            test -f "/tmp/claims-lane/$path"
+          done
+
+          git config user.name "OpenAI"
+          git config user.email "noreply@openai.com"
+          git reset --hard "$BASE_SHA"
+          git clean -fdx
+          rm -rf claims projections tests/claims docs/reasoning
+          mkdir -p tests docs/handoffs
+          cp -a /tmp/claims-lane/claims ./claims
+          cp -a /tmp/claims-lane/projections ./projections
+          cp -a /tmp/claims-lane/tests/claims ./tests/claims
+          cp -a /tmp/claims-lane/docs/reasoning ./docs/reasoning
+          cp /tmp/claims-lane/docs/handoffs/claims-relations.md ./docs/handoffs/claims-relations.md
+
+          python -m compileall -q claims projections tests
+          PYTHONPATH=. python -m unittest discover -s tests/claims -v
+          bad_paths="$(git status --short | awk '{print $2}' | grep -Ev '^(claims/|projections/|tests/claims/|docs/reasoning/|docs/handoffs/claims-relations\.md$)' || true)"
+          test -z "$bad_paths"
+
+          git add claims projections tests/claims docs/reasoning docs/handoffs/claims-relations.md
+          git diff --cached --quiet && { echo "No staged Prompt 12 changes" >&2; exit 1; }
+          git commit -m "Reasoning: add claims and temporal relationships"
+          git push origin "HEAD:refs/heads/$TARGET_BRANCH" --force-with-lease="refs/heads/$TARGET_BRANCH:$GITHUB_SHA"
+
+          cat > /tmp/pr-body.md <<'EOF'
+          ## Summary
+
+          Adds the isolated Prompt 12 reasoning lane for evidence-backed atomic claims, append-only review lineage, typed temporal relationships, source withdrawal, versioned export, and seven named/versioned projections.
+
+          ## Scope
+
+          Only `claims/**`, `projections/**`, `tests/claims/**`, `docs/reasoning/**`, and `docs/handoffs/claims-relations.md` differ from `main`. Existing v2 schema/loaders/query/identity/source adapters, README, and root configuration are unchanged.
+
+          ## Validation
+
+          - 24 offline tests pass.
+          - Accepted-claim precision: 8/9 (88.9%) on the labelled fixture sample.
+          - Manual-review accuracy: 9/10 (90.0%).
+          - Active support and evidence locator completeness: 100%.
+          - Rights coverage: 95%.
+          - Contradiction usefulness: 2/3 (66.7%).
+          - Zero foreign-key, active-support, matching-review, or accepted-relation evidence violations.
+
+          These are regression measurements for a small checked-in mechanics fixture, not production historical-precision estimates.
+
+          ## Rights and removal
+
+          Evidence records retain locators, optional hashed spans, rights/publication state, input digests, and removal state. Public export omits internal, withheld, tombstoned, removed, and unsupported dependent rows; metadata-only spans are redacted. No production database, corpus, transcript, credential, private path, or client data is committed.
+
+          ## Integration seams
+
+          Read-only adapters cover current v2 `person`/`person_content`, Book Library Works/contribution roles, and strict replay-safe `pg-observation-0.1`. Source-local identifiers are preserved without canonical identity merges. PR #14 is conceptually adjacent but owns different paths.
+
+          ## Known limits
+
+          Production precision remains unknown; source-specific update/deletion polling and legal-policy decisions remain adapter responsibilities; current v2 rows may lack sufficient rights/locator metadata for public claim publication; and all projection values are scope- and parameter-relative rather than universal person scores.
+          EOF
+          sed -i 's/^          //' /tmp/pr-body.md
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$TARGET_BRANCH" --base main --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$existing" ]; then
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$TARGET_BRANCH" --title "Reasoning: add claims and temporal relationships" --body-file /tmp/pr-body.md --draft
+          fi
