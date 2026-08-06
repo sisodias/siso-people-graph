@@ -23,6 +23,10 @@ Read-only context:
 
 ```text
 tests/red_team/run.py
+tests/red_team/support.py
+tests/red_team/cases_build.py
+tests/red_team/cases_identity.py
+tests/red_team/cases_loaders.py
 tests/red_team/README.md
 tests/red_team/fixtures/adversarial_people.json
 tests/red_team/fixtures/book_library_export_contract.json
