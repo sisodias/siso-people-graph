@@ -17,14 +17,22 @@ alter v2 behavior or ship a production database.
 
 - `schema/v3/people_graph_v3.sql`, `schema/v3/ddl/*.sql`
 - `schema/v3/sample_data.sql`, `schema/v3/sample/*.sql`
-- `schema/v3/README.md`
-- `schema/v3/observation-envelope-mapping.md`
-- `docs/architecture/people-graph-v3.md`
-- `tests/schema_v3/run.py`, `support.py`, and `test_schema_*.py`
+- `schema/v3/README.md`, `SCHEMA_INVENTORY.md`, and `observation-envelope-mapping.md`
+- `schema/v3/PROVENANCE.json`, `design_provenance.json`, `traceability.json`, and `ARTIFACTS.sha256`
+- `docs/architecture/people-graph-v3.md` plus the complete source, decision, worklog, traceability, validation, and review packet indexed by `people-graph-v3-audit-index.md`
+- `tests/schema_v3/run.py`, `support.py`, `test_schema_*.py`, `test_design_provenance.py`, and `test_audit_package.py`
 - `docs/handoffs/schema-v3.md`
 
 No existing v2 schema, loader, query surface, root README/configuration, database,
 or release asset is changed.
+
+## Audit packet
+
+The complete reverse-engineering packet is indexed at
+`docs/architecture/people-graph-v3-audit-index.md`. It contains the exact
+assignment, pinned evidence ledger, engineering chronology, decision records,
+requirements matrix, validation transcript/hashes, independent falsification
+checklist, schema inventory, and machine-readable traceability manifest.
 
 ## Commands
 
@@ -40,14 +48,19 @@ sqlite3 /tmp/people-v3.sqlite 'PRAGMA foreign_key_check; PRAGMA integrity_check;
 
 ## Tests
 
-Latest lane-local result: **13 tests passed** using Python standard library only.
+Latest lane-local result: **26 tests passed** using Python standard library only.
 The tests also verify that the CLI manifests enumerate every ordered SQL module.
-Coverage includes clean DDL/sample application; foreign keys; envelope rejection
+Coverage includes machine-checkable source/decision/requirement provenance manifests, full-file SHA-256 receipts, and relative-link integrity; owned-path and no-payload checks; clean DDL/sample application; foreign keys; envelope rejection
 of canonical IDs; append-only observations/decisions; scoped identifier
 uniqueness; safe collision of mutable IDs; conflict-blocked identity acceptance;
 reversible redirects while sources survive; policy coverage; Unicode search;
 first-class Work/version/role/citation/dependency semantics; explicit vocabulary
 crosswalks; model provenance; and named/versioned/scoped uncertain projections.
+
+The follow-up validation environment used Python 3.13.5 and SQLite 3.46.1
+with JSON functions and FTS5 enabled. The `sqlite3` shell was not installed in
+that environment, so the Python harness applied the same ordered SQL modules and
+ran `PRAGMA foreign_key_check` and `PRAGMA integrity_check` directly.
 
 ## Assumptions
 

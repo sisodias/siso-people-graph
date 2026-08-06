@@ -1,0 +1,311 @@
+{
+  "manifest_version": "people-graph-v3-traceability-1",
+  "generated_at": "2026-08-06T16:12:45Z",
+  "repository": "sisodias/siso-people-graph",
+  "branch": "pg/v3-ontology-schema-20260806",
+  "base_commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+  "original_implementation_commit": "2f66fbe1f4523399463d9e1ff8971879a84f5b88",
+  "schema_version": "3.0.0-draft.1",
+  "observation_envelope": "pg-observation-0.1",
+  "transparency_boundary": "Public engineering rationale and reproducible evidence; no private token-by-token chain-of-thought.",
+  "sources": [
+    {
+      "id": "E-000",
+      "kind": "operator_assignment",
+      "path": "docs/architecture/people-graph-v3-assignment.md",
+      "sha256": "dd5dfe689c4b7f4e8617fcbd08d0355059ec98a2bfd7e222be952bda1932c57d"
+    },
+    {
+      "id": "E-101",
+      "repo": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "README.md",
+      "blob_sha": "3ae7738eed163cabb72ed5ea4d57d38453ec40f1"
+    },
+    {
+      "id": "E-102",
+      "repo": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "schema/people_schema_v2.sql",
+      "blob_sha": "07b70a2eaf8db48d741010d2d5f31810a0c9d0d1"
+    },
+    {
+      "id": "E-103",
+      "repo": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "loaders/build_people_graph_v2.py",
+      "blob_sha": "7983db530d242b386fcd3c8277718010b7a43034"
+    },
+    {
+      "id": "E-104",
+      "repo": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "loaders/match_identities.py",
+      "blob_sha": "541c68e7083e54327141aaed37f004579b024c4c"
+    },
+    {
+      "id": "E-105",
+      "repo": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "loaders/ask.py",
+      "blob_sha": "37e19c92d242bc979eb2ab55b4f6f6a02872083d"
+    },
+    {
+      "id": "E-201",
+      "repo": "sisodias/siso-book-library",
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "path": "scripts/build_people_graph.py",
+      "blob_sha": "08b667b448c3acbc4bc0357f378270d46892e071"
+    },
+    {
+      "id": "E-202",
+      "repo": "sisodias/siso-book-library",
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "path": "scripts/load_into_people_graph.py",
+      "blob_sha": "de4e9fd91c076fd514887c82bd334dde43271d7b"
+    },
+    {
+      "id": "E-301",
+      "repo": "sisodias/great-library-of-siso",
+      "commit": "12f4cc249b2b5dc268d05d1698fe9c5e3079327d",
+      "path": "docs/siso-knowledge-model.html",
+      "blob_sha": "dc1f74cdf77eea64f54f56c828ae996d8345a1e6"
+    }
+  ],
+  "official_sqlite_sources": [
+    "https://www.sqlite.org/foreignkeys.html",
+    "https://www.sqlite.org/fts5.html",
+    "https://www.sqlite.org/json1.html",
+    "https://www.sqlite.org/partialindex.html",
+    "https://www.sqlite.org/lang_createtrigger.html",
+    "https://www.sqlite.org/lang_transaction.html"
+  ],
+  "requirements": [
+    {
+      "id": "R-001",
+      "text": "source and source_snapshot policy/provenance",
+      "objects": [
+        "source",
+        "source_snapshot"
+      ],
+      "modules": [
+        "ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "test_schema_and_sample_apply_with_foreign_keys_clean",
+        "test_rights_privacy_and_publication_coverage"
+      ]
+    },
+    {
+      "id": "R-002",
+      "text": "append-oriented source observations",
+      "objects": [
+        "observation_envelope_receipt",
+        "source_observation",
+        "observation_status_event"
+      ],
+      "modules": [
+        "ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "test_source_observations_and_identity_decisions_are_append_only",
+        "test_foreign_keys_reject_orphan_observations"
+      ]
+    },
+    {
+      "id": "R-003",
+      "text": "opaque canonical entities across required kinds",
+      "objects": [
+        "entity"
+      ],
+      "modules": [
+        "ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "test_envelope_import_cannot_assign_a_canonical_id"
+      ]
+    },
+    {
+      "id": "R-004",
+      "text": "declared identifier semantics",
+      "objects": [
+        "identifier_scheme",
+        "observation_identifier",
+        "entity_identifier"
+      ],
+      "modules": [
+        "ddl/20_observation_semantics.sql",
+        "ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "test_unique_identifiers_are_enforced_within_scope",
+        "test_conflicting_stable_ids_block_identity_acceptance"
+      ]
+    },
+    {
+      "id": "R-005",
+      "text": "first-class Works and contribution graph",
+      "objects": [
+        "work",
+        "work_version",
+        "venue",
+        "work_venue",
+        "contribution",
+        "citation",
+        "work_dependency",
+        "work_locator"
+      ],
+      "modules": [
+        "ddl/40_works.sql"
+      ],
+      "tests": [
+        "test_work_subtypes_roles_versions_citations_and_dependencies"
+      ]
+    },
+    {
+      "id": "R-006",
+      "text": "reversible identity decisions and clusters",
+      "objects": [
+        "identity_candidate",
+        "identity_candidate_evidence",
+        "identity_conflict",
+        "identity_decision",
+        "identity_cluster",
+        "identity_cluster_membership",
+        "entity_redirect"
+      ],
+      "modules": [
+        "ddl/60_evidence_and_identity.sql"
+      ],
+      "tests": [
+        "test_conflicting_stable_ids_block_identity_acceptance",
+        "test_identity_merge_can_be_reversed_without_losing_sources"
+      ]
+    },
+    {
+      "id": "R-007",
+      "text": "evidence-backed assertions",
+      "objects": [
+        "evidence",
+        "assertion",
+        "assertion_evidence",
+        "assertion_relation"
+      ],
+      "modules": [
+        "ddl/60_evidence_and_identity.sql",
+        "ddl/70_assertions_relationships.sql"
+      ],
+      "tests": [
+        "test_model_output_is_explicit_and_not_source_evidence"
+      ]
+    },
+    {
+      "id": "R-008",
+      "text": "typed temporal relationships",
+      "objects": [
+        "relationship_type",
+        "relationship",
+        "relationship_evidence"
+      ],
+      "modules": [
+        "ddl/70_assertions_relationships.sql"
+      ],
+      "tests": [
+        "test_schema_and_sample_apply_with_foreign_keys_clean"
+      ]
+    },
+    {
+      "id": "R-009",
+      "text": "Unicode aliases and search",
+      "objects": [
+        "entity_alias",
+        "entity_search"
+      ],
+      "modules": [
+        "ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "test_unicode_and_alias_search_preserve_non_latin_text"
+      ]
+    },
+    {
+      "id": "R-010",
+      "text": "rights privacy publication coverage",
+      "objects": [
+        "rights_state_definition",
+        "privacy_state_definition",
+        "publication_state_definition"
+      ],
+      "modules": [
+        "ddl/00_metadata_policy.sql"
+      ],
+      "tests": [
+        "test_rights_privacy_and_publication_coverage"
+      ]
+    },
+    {
+      "id": "R-011",
+      "text": "namespaced vocabularies and explicit crosswalks",
+      "objects": [
+        "vocabulary",
+        "vocabulary_term",
+        "term_crosswalk"
+      ],
+      "modules": [
+        "ddl/50_vocabularies.sql"
+      ],
+      "tests": [
+        "test_vocabularies_remain_namespaced_and_crosswalks_explicit"
+      ]
+    },
+    {
+      "id": "R-012",
+      "text": "named versioned scoped projections",
+      "objects": [
+        "projection_definition",
+        "projection_run",
+        "projection_value"
+      ],
+      "modules": [
+        "ddl/80_projections.sql"
+      ],
+      "tests": [
+        "test_projections_are_named_versioned_scoped_and_uncertain"
+      ]
+    }
+  ],
+  "validation": {
+    "python": "3.13.5",
+    "sqlite_runtime": "3.46.1",
+    "fts5": true,
+    "json": true,
+    "tests_run": 26,
+    "tests_passed": 26,
+    "foreign_key_check": [],
+    "integrity_check": "ok",
+    "ddl_modules": 9,
+    "sample_modules": 4,
+    "ddl_bundle_sha256": "9f9fa374c8e0607d195858ad158a2e53b2db325bca9b4802d86bf4299b16eff7",
+    "sample_bundle_sha256": "6891a156a487fe077e5a4bca6158a6045d87d1c92377894210b39bd079c576bf",
+    "sqlite_cli_available": false,
+    "github_actions_runs_on_original_commit": 0,
+    "schema_invariant_tests": 13,
+    "provenance_audit_tests": 13
+  },
+  "known_gaps": [
+    "production-scale performance and sharding",
+    "source-specific rights adjudication",
+    "identity candidate generation and canonical selection",
+    "real source adapter conformance",
+    "query/API integration",
+    "full-build reproducibility and release packaging",
+    "locale-aware search and transliteration",
+    "final Work version subtype model"
+  ],
+  "supporting_manifests": [
+    "schema/v3/PROVENANCE.json",
+    "schema/v3/design_provenance.json",
+    "schema/v3/ARTIFACTS.sha256"
+  ],
+  "public_reasoning_index": "docs/architecture/people-graph-v3-audit-index.md"
+}

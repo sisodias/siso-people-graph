@@ -1,0 +1,718 @@
+{
+  "manifest_version": "people-graph-v3-design-provenance-1",
+  "schema_version": "3.0.0-draft.1",
+  "recorded_at": "2026-08-06T16:00:00Z",
+  "repository": {
+    "name": "sisodias/siso-people-graph",
+    "base_branch": "main",
+    "base_commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+    "work_branch": "pg/v3-ontology-schema-20260806",
+    "pull_request": 3,
+    "original_head_commit": "2f66fbe1f4523399463d9e1ff8971879a84f5b88",
+    "owned_path_prefixes": [
+      "schema/v3/",
+      "docs/architecture/",
+      "tests/schema_v3/"
+    ],
+    "owned_exact_paths": [
+      "docs/handoffs/schema-v3.md"
+    ]
+  },
+  "brief": {
+    "title": "Prompt 3 — Additive People Graph v3 ontology and schema",
+    "source_sha256": "077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d",
+    "committed_excerpt": "docs/architecture/people-graph-v3-agent-brief.md"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "kind": "user_brief",
+      "name": "Pasted text.txt",
+      "sha256": "077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d",
+      "committed_excerpt": "docs/architecture/people-graph-v3-agent-brief.md"
+    },
+    {
+      "id": "SRC-002",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "README.md",
+      "git_blob_sha": "3ae7738eed163cabb72ed5ea4d57d38453ec40f1"
+    },
+    {
+      "id": "SRC-003",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "schema/people_schema_v2.sql",
+      "git_blob_sha": "07b70a2eaf8db48d741010d2d5f31810a0c9d0d1"
+    },
+    {
+      "id": "SRC-004",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "loaders/build_people_graph_v2.py",
+      "git_blob_sha": "7983db530d242b386fcd3c8277718010b7a43034"
+    },
+    {
+      "id": "SRC-005",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "loaders/match_identities.py",
+      "git_blob_sha": "541c68e7083e54327141aaed37f004579b024c4c"
+    },
+    {
+      "id": "SRC-006",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "path": "loaders/ask.py",
+      "git_blob_sha": "37e19c92d242bc979eb2ab55b4f6f6a02872083d"
+    },
+    {
+      "id": "SRC-007",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-book-library",
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "path": "scripts/build_people_graph.py",
+      "git_blob_sha": "08b667b448c3acbc4bc0357f378270d46892e071"
+    },
+    {
+      "id": "SRC-008",
+      "kind": "repository_file",
+      "repository": "sisodias/siso-book-library",
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "path": "scripts/load_into_people_graph.py",
+      "git_blob_sha": "de4e9fd91c076fd514887c82bd334dde43271d7b"
+    },
+    {
+      "id": "SRC-009",
+      "kind": "repository_file",
+      "repository": "sisodias/great-library-of-siso",
+      "path": "docs/siso-knowledge-model.html",
+      "git_blob_sha": "dc1f74cdf77eea64f54f56c828ae996d8345a1e6",
+      "commit": "12f4cc249b2b5dc268d05d1698fe9c5e3079327d"
+    },
+    {
+      "id": "SRC-010",
+      "kind": "pull_request_state",
+      "repository": "sisodias/siso-people-graph",
+      "pull_request": 3,
+      "branch": "pg/v3-ontology-schema-20260806",
+      "base_commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "original_head_commit": "2f66fbe1f4523399463d9e1ff8971879a84f5b88"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D-001",
+      "title": "Additive rebuild beside v2",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004"
+      ],
+      "artifacts": [
+        "docs/architecture/people-graph-v3.md",
+        "schema/v3/people_graph_v3.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-002",
+      "title": "Append-oriented source receipts and observations",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-007"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-003",
+      "title": "Opaque canonical entity IDs",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-005",
+        "SRC-007"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-004",
+      "title": "Registered identifier semantics and scoped uniqueness",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-005"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/20_observation_semantics.sql",
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "D-005",
+      "title": "Reviewable and reversible identity state",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-005"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/60_evidence_and_identity.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "D-006",
+      "title": "First-class Works and contribution roles",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-007",
+        "SRC-008"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/40_works.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "D-007",
+      "title": "Separate evidence, assertions, and relationships",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-006"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/60_evidence_and_identity.sql",
+        "schema/v3/ddl/70_assertions_relationships.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "D-008",
+      "title": "Namespaced vocabularies with explicit crosswalks",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/50_vocabularies.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "D-009",
+      "title": "Unicode-preserving aliases and search",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-004",
+        "SRC-005",
+        "SRC-007"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-010",
+      "title": "Layered rights, privacy, and publication policy",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-009"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/00_metadata_policy.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-011",
+      "title": "Named projections instead of universal score",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-008"
+      ],
+      "artifacts": [
+        "schema/v3/ddl/80_projections.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "D-012",
+      "title": "Exact envelope import stops before canonicalization",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001"
+      ],
+      "artifacts": [
+        "schema/v3/observation-envelope-mapping.md",
+        "schema/v3/ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-013",
+      "title": "Reconstruct canonical state from declared sources",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-004"
+      ],
+      "artifacts": [
+        "docs/architecture/people-graph-v3.md",
+        "docs/handoffs/schema-v3.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "D-014",
+      "title": "Logical contract now, physical partitioning later",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-002"
+      ],
+      "artifacts": [
+        "docs/architecture/people-graph-v3.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "D-015",
+      "title": "Capability-detecting coexistence adapters",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-006"
+      ],
+      "artifacts": [
+        "docs/architecture/people-graph-v3.md",
+        "docs/handoffs/schema-v3.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "D-016",
+      "title": "Synthetic public-safe fixtures only",
+      "status": "accepted",
+      "evidence": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-009"
+      ],
+      "artifacts": [
+        "schema/v3/sample_data.sql",
+        "schema/v3/sample/00_observations.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "id": "R-001",
+      "text": "Source and source snapshot policy/provenance",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-002",
+      "text": "Append-oriented source observations",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-003",
+      "text": "Opaque canonical entities and required kinds",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-004",
+      "text": "Declared identifier semantics",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/20_observation_semantics.sql",
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "R-005",
+      "text": "First-class Works and versions/contributions/venues/citations/dependencies/locators",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/40_works.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "R-006",
+      "text": "Identity candidates/evidence/decisions/conflicts/clusters/redirects",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/60_evidence_and_identity.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "R-007",
+      "text": "Generic evidence-backed assertions",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/60_evidence_and_identity.sql",
+        "schema/v3/ddl/70_assertions_relationships.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "R-008",
+      "text": "Typed temporal relationships",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/70_assertions_relationships.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-009",
+      "text": "Aliases and Unicode-safe search",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-010",
+      "text": "Rights/privacy/publication coverage",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/00_metadata_policy.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-011",
+      "text": "Named projections with method/scope/uncertainty",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/80_projections.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "R-012",
+      "text": "Exact pg-observation-0.1 mapping without canonical ID",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/observation-envelope-mapping.md",
+        "schema/v3/ddl/10_source_observations.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-013",
+      "text": "No silent name merge",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/30_entities_and_search.sql",
+        "schema/v3/ddl/60_evidence_and_identity.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "R-014",
+      "text": "Handles are aliases; stable IDs are identifiers",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/20_observation_semantics.sql",
+        "schema/v3/ddl/30_entities_and_search.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "R-015",
+      "text": "Attributes never become unique IDs by default",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/20_observation_semantics.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "R-016",
+      "text": "Accepted facts carry provenance and observed time",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/40_works.sql",
+        "schema/v3/ddl/70_assertions_relationships.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_core.py"
+      ]
+    },
+    {
+      "id": "R-017",
+      "text": "Corrections and merges are reversible while sources survive",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/10_source_observations.sql",
+        "schema/v3/ddl/60_evidence_and_identity.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_identity.py"
+      ]
+    },
+    {
+      "id": "R-018",
+      "text": "Vocabularies stay namespaced; crosswalks explicit",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/50_vocabularies.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "R-019",
+      "text": "Work is not embedded only as title string",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/40_works.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "R-020",
+      "text": "Model inference is not source observation",
+      "status": "implemented",
+      "artifacts": [
+        "schema/v3/ddl/60_evidence_and_identity.sql"
+      ],
+      "tests": [
+        "tests/schema_v3/test_schema_works.py"
+      ]
+    },
+    {
+      "id": "R-021",
+      "text": "Source reconstruction, no in-place production migration",
+      "status": "documented",
+      "artifacts": [
+        "docs/architecture/people-graph-v3.md",
+        "docs/handoffs/schema-v3.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "R-022",
+      "text": "Existing v2 untouched and lane paths isolated",
+      "status": "implemented",
+      "artifacts": [
+        "docs/handoffs/schema-v3.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "R-023",
+      "text": "Offline synthetic tests",
+      "status": "implemented",
+      "artifacts": [
+        "tests/schema_v3/run.py"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "R-024",
+      "text": "Architecture diagrams/examples/rejected alternatives/scale/compatibility",
+      "status": "implemented",
+      "artifacts": [
+        "docs/architecture/people-graph-v3.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    },
+    {
+      "id": "R-025",
+      "text": "Public reasoning, source, and traceability package",
+      "status": "implemented",
+      "artifacts": [
+        "docs/architecture/people-graph-v3-design-journal.md",
+        "docs/architecture/people-graph-v3-source-ledger.md",
+        "docs/architecture/people-graph-v3-traceability.md"
+      ],
+      "tests": [
+        "tests/schema_v3/test_design_provenance.py"
+      ]
+    }
+  ],
+  "validation": {
+    "environment": {
+      "python": "3.13.5",
+      "sqlite_runtime": "3.46.1",
+      "fts5_enabled": true,
+      "json_functions_available": true,
+      "target_minimum_sqlite": "3.38"
+    },
+    "commands": [
+      "python3 tests/schema_v3/run.py",
+      "python3 -m unittest discover -s tests/schema_v3 -p 'test_*.py' -v",
+      "python3 -m py_compile tests/schema_v3/*.py"
+    ],
+    "last_result": {
+      "status": "passed",
+      "test_count": 26,
+      "foreign_key_check": "clean",
+      "integrity_check": "ok",
+      "recorded_at": "2026-08-06T16:12:45Z"
+    }
+  },
+  "non_claims": [
+    "No production database or release asset was inspected or committed.",
+    "No live external source API or bulk snapshot was used.",
+    "No full-scale performance or storage benchmark was run.",
+    "No identifier scheme is authorized for automatic identity acceptance by this DDL.",
+    "No production v2-to-v3 migration or consumer cutover is implemented.",
+    "No source-specific legal sufficiency determination is made."
+  ],
+  "public_reasoning_documents": [
+    "docs/architecture/people-graph-v3-agent-brief.md",
+    "docs/architecture/people-graph-v3-assignment.md",
+    "docs/architecture/people-graph-v3-audit-index.md",
+    "docs/architecture/people-graph-v3-source-ledger.md",
+    "docs/architecture/people-graph-v3-evidence-ledger.md",
+    "docs/architecture/people-graph-v3-design-journal.md",
+    "docs/architecture/people-graph-v3-engineering-record.md",
+    "docs/architecture/people-graph-v3-decision-log.md",
+    "docs/architecture/people-graph-v3-traceability.md",
+    "docs/architecture/people-graph-v3-requirements-traceability.md",
+    "docs/architecture/people-graph-v3-validation-record.md",
+    "docs/architecture/people-graph-v3-independent-review.md",
+    "schema/v3/SCHEMA_INVENTORY.md",
+    "docs/architecture/people-graph-v3-source-prompt.md",
+    "docs/architecture/people-graph-v3-decision-record.md",
+    "docs/architecture/people-graph-v3-worklog.md",
+    "docs/architecture/people-graph-v3-schema-inventory.md"
+  ],
+  "supporting_manifests": [
+    "schema/v3/PROVENANCE.json",
+    "schema/v3/design_provenance.json",
+    "schema/v3/traceability.json",
+    "schema/v3/ARTIFACTS.sha256"
+  ],
+  "decision_status_semantics": "accepted means adopted in this draft implementation; it does not mean merged repository policy."
+}

@@ -16,6 +16,15 @@ its source-shaped person IDs, string-embedded Works, name-driven book matching,
 and weak decision lineage make further scale unsafe. V3 keeps the useful parts
 while making every resolution and derived result explicit.
 
+## Reconstructing the proposal
+
+The complete, independently checkable engineering trail is indexed in
+[`people-graph-v3-audit-index.md`](people-graph-v3-audit-index.md). It includes
+the exact lane contract, pinned source/blobs, observed-fact versus inference
+separation, stable decision records, rejected alternatives, implementation
+chronology, requirement-to-test maps, validation transcripts, artifact hashes,
+and adversarial review checks. Machine-readable twins live in `schema/v3/`.
+
 ## Layer model
 
 ```mermaid
@@ -243,6 +252,37 @@ an explicit consumer cutover.
   determine the result; uncertainty must remain visible.
 - **Deleting losing entities after merge:** rejected because corrections would
   destroy lineage and source observations.
+
+## Audit and reverse-engineering packet
+
+The public record is indexed in
+[`people-graph-v3-audit-index.md`](people-graph-v3-audit-index.md). The principal
+reconstruction artifacts are:
+
+- [`people-graph-v3-source-prompt.md`](people-graph-v3-source-prompt.md) and
+  [`people-graph-v3-agent-brief.md`](people-graph-v3-agent-brief.md) — exact
+  shared rules, envelope, Prompt 3, and source digests;
+- [`people-graph-v3-evidence-ledger.md`](people-graph-v3-evidence-ledger.md) and
+  [`people-graph-v3-source-ledger.md`](people-graph-v3-source-ledger.md) — pinned
+  repositories, commits, blobs, observations, limits, and explicit non-sources;
+- [`people-graph-v3-decision-record.md`](people-graph-v3-decision-record.md),
+  [`people-graph-v3-design-journal.md`](people-graph-v3-design-journal.md), and
+  [`people-graph-v3-worklog.md`](people-graph-v3-worklog.md) — decisions,
+  alternatives, consequences, chronology, commands, failures, and seams;
+- [`people-graph-v3-validation-record.md`](people-graph-v3-validation-record.md)
+  and [`people-graph-v3-independent-review.md`](people-graph-v3-independent-review.md)
+  — exact local validation plus a falsification checklist;
+- [`../../schema/v3/PROVENANCE.json`](../../schema/v3/PROVENANCE.json),
+  [`../../schema/v3/design_provenance.json`](../../schema/v3/design_provenance.json),
+  [`../../schema/v3/traceability.json`](../../schema/v3/traceability.json), and
+  [`../../schema/v3/ARTIFACTS.sha256`](../../schema/v3/ARTIFACTS.sha256) —
+  machine-readable receipts and full-file SHA-256 inventory.
+
+These records publish all reproducible evidence, bounded inferences, decisions,
+workings, commands, outputs, and unresolved questions. They do not publish
+private token-by-token model chain-of-thought, credentials, authentication
+material, or unrelated scratch data; none is required to audit or reproduce the
+proposal.
 
 ## Disputed decisions for integration
 
