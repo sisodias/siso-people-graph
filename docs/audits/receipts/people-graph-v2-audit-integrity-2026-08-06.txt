@@ -1,0 +1,22 @@
+# People Graph v2 red-team audit integrity receipt
+# command: python3 tests/red_team/verify_audit.py --run
+# baseline: sisodias/siso-people-graph@de048bb3b34bf931b56fd741cb46c1334acdfb98
+# result: all cross-artifact checks and live non-volatile evidence replay passed
+
+PASS runner cases=22 unique=22
+PASS 14 supplied requirements map exactly to all 22 cases
+PASS machine-readable Prompt 2 contract preserves lane, requirements, and result
+PASS traceability mirrors runner expectations, invariants, findings, and controls
+PASS 16 unique findings with P0=8 and P1=8
+PASS prompt, runner, traceability, and findings use the same stable IDs
+PASS source-evidence ledger reconstructs all 16 finding chains
+PASS normalized receipt is 3 PASS / 19 XFAIL / no unexpected result
+PASS full supplied prompt and Prompt 2 slice match recorded SHA-256/byte counts
+PASS all 9 local production sources match pinned baseline Git blobs
+PASS cross-repository Book export contract is pinned consistently
+PASS manifest SHA-256 receipts and derived-artifact digests match committed bytes
+PASS narrative audit and forensic worklog contain every stable finding ID
+PASS handoff contains required sections, replay commands, and evidence paths
+PASS live 22-case replay matches committed non-volatile evidence
+PASS agent-generated evidence contains no private/local filesystem prefixes
+SUMMARY ok=true checks=16 errors=0
