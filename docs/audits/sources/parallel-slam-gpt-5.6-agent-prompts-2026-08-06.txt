@@ -1,0 +1,23 @@
+SISO People Graph parallel prompt bundle — archive locator
+
+The exact user-provided UTF-8 source bundle is stored losslessly at:
+
+  docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt.gz
+
+The gzip stream was produced deterministically with mtime=0. Decompress with:
+
+  python3 - <<'PY'
+  import gzip
+  from pathlib import Path
+  p = Path('docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt.gz')
+  print(gzip.decompress(p.read_bytes()).decode('utf-8'), end='')
+  PY
+
+Decompressed bytes: 54730
+Decompressed SHA-256: 077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d
+Compressed bytes: 17889
+Compressed SHA-256: 0dc1fe2059b5f3dfc2e2dfa0d9d59d534af0588d86fd8d4b9ad37a5dbeb17bd1
+
+Prompt 2 is also committed directly as readable plain text at:
+
+  docs/audits/sources/prompt-02-people-graph-red-team.txt
