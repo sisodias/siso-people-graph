@@ -1,0 +1,48 @@
+{
+  "command": "PYTHONPATH=. python -m sources.software.pilot export --fixtures tests/sources_software_ai/fixtures --out /tmp/software-ai.ndjson --metrics-out /tmp/software-ai-metrics.json",
+  "envelope_version": "pg-observation-0.1",
+  "fixtures": [
+    {
+      "bytes": 2701,
+      "path": "tests/sources_software_ai/fixtures/crates.json",
+      "sha256": "873f8c2e5291a96020ee0d5cb2afbb0a8a65bc1b85487a5b75db5c0f290ff12b"
+    },
+    {
+      "bytes": 3668,
+      "path": "tests/sources_software_ai/fixtures/ecosystems.json",
+      "sha256": "48d1ceef7890ac99b63b771ec99dcc91a671256492b3707107bbc9bcada0b0e3"
+    },
+    {
+      "bytes": 7435,
+      "path": "tests/sources_software_ai/fixtures/github.json",
+      "sha256": "6b339b92b39dc03c9f799aa2613bc892251b3954faa507dddf27f006dfb00c2a"
+    },
+    {
+      "bytes": 4210,
+      "path": "tests/sources_software_ai/fixtures/huggingface.json",
+      "sha256": "60d8c8aa21801387c446aa99aaf353efff74b33cd6a6d97725188e14f8b9e2db"
+    },
+    {
+      "bytes": 2187,
+      "path": "tests/sources_software_ai/fixtures/pypi.json",
+      "sha256": "b9cc47ff378de08d6ead94380e8c597732bcae05adaac614afad12ca812844c4"
+    },
+    {
+      "bytes": 1509,
+      "path": "tests/sources_software_ai/fixtures/software_heritage.json",
+      "sha256": "4ad46f81f0f696334fddd579a8879ca78f8cfc2c77d3e43a0e42c693f4fd2565"
+    }
+  ],
+  "generated_at": "2026-08-06T01:15:00Z",
+  "logical_ndjson_sha256": "f1e5b923f22b6e94f9102bda2abc4c33f0bfd3bd8ed03b8fc903dee745b5780e",
+  "manifest_version": "software-ai-pilot-manifest-0.1",
+  "mode": "offline_replayable_fixture",
+  "network_calls": 0,
+  "notes": [
+    "All fixture people, accounts, repositories, packages, and metrics are synthetic.",
+    "The manifest fingerprints fixture output only; it is not a production collection receipt.",
+    "No canonical People Graph IDs or universal scores are emitted."
+  ],
+  "record_count": 31,
+  "source_count": 7
+}
