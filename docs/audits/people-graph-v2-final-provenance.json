@@ -1,0 +1,88 @@
+{
+  "schema_version": "people-graph-v2-final-provenance-1",
+  "audit_date": "2026-08-06",
+  "repository": "sisodias/siso-people-graph",
+  "branch": "pg/red-team-fixtures-20260806",
+  "baseline_commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+  "draft_pull_request": 1,
+  "assignment_source": {
+    "archive_path": "docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt.gz",
+    "archive_format": "gzip",
+    "archive_bytes": 17889,
+    "archive_sha256": "aae7888a6f076588515a8b977f1d25c3508f7bfd3f43fbfaec2af5f8cdec11b1",
+    "archive_git_blob_sha": "b8750bd65324864897fa11984b938381ad227d91",
+    "decoded_bytes": 54730,
+    "decoded_sha256": "077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d",
+    "locator_path": "docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt",
+    "prompt_2_path": "docs/audits/sources/prompt-02-people-graph-red-team.txt",
+    "prompt_2_bytes": 3353,
+    "prompt_2_sha256": "5f490d41ebe26f768131ec9d1f08b8ba6c0736a316ed4336250a104a48298f00"
+  },
+  "evidence_contract": {
+    "prompt_requirements": 14,
+    "executable_cases": 22,
+    "stable_findings": 16,
+    "status_counts": {
+      "PASS": 3,
+      "XFAIL": 19,
+      "FAIL": 0,
+      "XPASS": 0,
+      "ERROR": 0
+    },
+    "severity_counts": {
+      "P0": 8,
+      "P1": 8
+    },
+    "bulk_ingestion_blockers": [
+      "PGRT-001",
+      "PGRT-002",
+      "PGRT-003",
+      "PGRT-004",
+      "PGRT-006",
+      "PGRT-009",
+      "PGRT-011",
+      "PGRT-016"
+    ],
+    "positive_controls": [
+      "PGRT-T007",
+      "PGRT-T016",
+      "PGRT-T022"
+    ]
+  },
+  "authoritative_verifier": "tests/red_team/verify_final_package.py",
+  "historical_artifacts": {
+    "legacy_verifier": "tests/red_team/verify_audit.py",
+    "source_manifest": "docs/audits/people-graph-v2-source-manifest.json",
+    "traceability": "docs/audits/people-graph-v2-traceability.json",
+    "prompt_contract": "tests/red_team/fixtures/prompt_2_contract.json",
+    "note": "These preserve the first provenance expansion. Their references to the plain .txt source path resolve through the committed locator; verify_final_package.py is authoritative for the final gzip archive layout."
+  },
+  "reasoning_record": {
+    "worklog": "docs/audits/people-graph-v2-forensic-worklog-2026-08-06.md",
+    "narrative_audit": "docs/audits/people-graph-v2-red-team-2026-08-06.md",
+    "findings_registry": "docs/audits/people-graph-v2-findings.json",
+    "source_evidence_ledger": "docs/audits/source-evidence-ledger.json",
+    "policy": "The repository contains an inspectable evidence-backed reconstruction of all material decisions, not private hidden chain-of-thought text."
+  },
+  "validation_correction": {
+    "provisional_checkout_rejected": true,
+    "reason": "Manually reconstructed production files did not match the pinned baseline Git blob IDs.",
+    "final_source_blob_matches": 9,
+    "final_source_blob_mismatches": 0,
+    "semantic_result_changed": false,
+    "final_status": "3 PASS, 19 XFAIL, 0 FAIL, 0 XPASS, 0 ERROR"
+  },
+  "rights_and_safety": {
+    "fixtures": "synthetic and tiny",
+    "included": "public repository source pins and user-provided project instructions explicitly requested for Git publication",
+    "excluded": [
+      "production SQLite databases",
+      "release assets",
+      "corpus text",
+      "credentials",
+      "private profile payloads",
+      "live API responses",
+      "private filesystem topology"
+    ]
+  }
+}
