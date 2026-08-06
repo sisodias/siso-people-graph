@@ -1,0 +1,65 @@
+{
+  "fixture_version": "book-library-export-contract-observation-1",
+  "source": {
+    "repository": "sisodias/siso-book-library",
+    "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+    "path": "scripts/load_into_people_graph.py",
+    "blob_sha": "de4e9fd91c076fd514887c82bd334dde43271d7b",
+    "observed_behaviors": [
+      "existing canonical people are indexed by whitespace-normalized lower-case name",
+      "a matching book display_name reuses that canonical person_id without an identity claim",
+      "AUTHORSHIP contains only author and filters all other contributor roles"
+    ]
+  },
+  "canonical_people": [
+    {
+      "person_id": "gh:alex-kim",
+      "name": "Alex Kim",
+      "kind": "human"
+    }
+  ],
+  "book_people": [
+    {
+      "person_key": "alex-kim-1940",
+      "display_name": "Alex Kim",
+      "birth_year": 1940,
+      "death_year": 2010
+    },
+    {
+      "person_key": "translator-rivera",
+      "display_name": "Rivera, Sam",
+      "birth_year": 1960,
+      "death_year": null
+    },
+    {
+      "person_key": "editor-chen",
+      "display_name": "Chen, Lee",
+      "birth_year": 1955,
+      "death_year": null
+    }
+  ],
+  "contributions": [
+    {
+      "person_key": "alex-kim-1940",
+      "gid": 101,
+      "role": "author"
+    },
+    {
+      "person_key": "translator-rivera",
+      "gid": 101,
+      "role": "translator"
+    },
+    {
+      "person_key": "editor-chen",
+      "gid": 101,
+      "role": "editor"
+    }
+  ],
+  "observed_export_contract": {
+    "identity_match": "normalized_name",
+    "authorship_allowlist": [
+      "author"
+    ],
+    "new_person_prefix": "bk:"
+  }
+}
