@@ -1,0 +1,37 @@
+{
+  "manifest_version": "software-ai-audit-0.1",
+  "repository": "sisodias/siso-people-graph",
+  "branch": "pg/software-ai-pilot-20260806",
+  "base_commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+  "verified_implementation_head": "b78ff6704783dff100774063c305011ce456d704",
+  "observation_contract": "pg-observation-0.1",
+  "source_brief": "docs/source-methods/software-ai/prompt-10-source.md",
+  "audit_entrypoint": "docs/source-methods/software-ai/reconstruction-index.md",
+  "documents": [
+    "docs/source-methods/software-ai/disclosure-boundary.md",
+    "docs/source-methods/software-ai/decision-log.md",
+    "docs/source-methods/software-ai/engineering-walkthrough.md",
+    "docs/source-methods/software-ai/requirement-traceability.md",
+    "docs/source-methods/software-ai/source-ledger.md",
+    "docs/source-methods/software-ai/verification-log.md"
+  ],
+  "implementation_paths": [
+    "sources/software/**",
+    "sources/ai/**",
+    "tests/sources_software_ai/**",
+    "docs/source-methods/software-ai/**",
+    "docs/handoffs/software-ai-pilot.md"
+  ],
+  "verified_results": {
+    "tests_passed": 18,
+    "record_count": 31,
+    "source_count": 7,
+    "network_calls": 0,
+    "canonical_merges": 0,
+    "universal_scores": 0,
+    "logical_ndjson_sha256": "f1e5b923f22b6e94f9102bda2abc4c33f0bfd3bd8ed03b8fc903dee745b5780e"
+  },
+  "claims_boundary": "Synthetic offline contract verification only; no production coverage, precision, recall, freshness, deletion-compliance, throughput, or API-cost claim.",
+  "private_chain_of_thought_included": false,
+  "shareable_engineering_rationale_included": true
+}
