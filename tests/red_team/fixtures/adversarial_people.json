@@ -1,0 +1,30 @@
+{
+  "fixture_version": "people-graph-red-team-adversarial-1",
+  "description": "Tiny labels that exercise common names, human-looking organisations, and pseudonyms without assigning canonical identity.",
+  "people": [
+    {
+      "person_id": "human:alex-smith",
+      "name": "Alex Smith",
+      "kind": "human",
+      "origin": "books"
+    },
+    {
+      "person_id": "org:alex-smith",
+      "name": "Alex Smith",
+      "kind": "organisation",
+      "origin": "github"
+    },
+    {
+      "person_id": "human:robin",
+      "name": "Robin",
+      "kind": "human",
+      "origin": "registry"
+    },
+    {
+      "person_id": "pseudonym:robin",
+      "name": "Robin",
+      "kind": "pseudonym",
+      "origin": "books"
+    }
+  ]
+}
