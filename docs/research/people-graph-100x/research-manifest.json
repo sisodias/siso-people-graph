@@ -1,0 +1,304 @@
+{
+  "schema_version": "pg-100x-research-manifest-1",
+  "record_type": "research_dossier",
+  "id": "pg-100x-2026-08-06",
+  "observed_at": "2026-08-06",
+  "repository": "sisodias/siso-people-graph",
+  "base": {
+    "branch": "main",
+    "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98"
+  },
+  "publication_branch": "agent/people-graph-100x-research-dossier-20260806",
+  "scope": {
+    "mode": "documentation_only",
+    "owned_paths": [
+      "docs/research/people-graph-100x/**"
+    ],
+    "production_database_modified": false,
+    "production_loader_modified": false,
+    "schema_modified": false,
+    "external_dataset_downloaded": false,
+    "private_data_included": false
+  },
+  "documents": [
+    {
+      "path": "docs/research/people-graph-100x/README.md",
+      "purpose": "program map, architectural split, non-negotiable principles and success gates"
+    },
+    {
+      "path": "docs/research/people-graph-100x/research-notebook.md",
+      "purpose": "reproducible evidence-to-conclusion notebook, alternatives and uncertainty"
+    },
+    {
+      "path": "docs/research/people-graph-100x/current-state-audit.md",
+      "purpose": "integrity blockers, repair gates and integration order"
+    },
+    {
+      "path": "docs/research/people-graph-100x/architecture-and-100-tracks.md",
+      "purpose": "target planes, logical objects and one hundred opportunity tracks"
+    },
+    {
+      "path": "docs/research/people-graph-100x/source-and-standards-ledger.md",
+      "purpose": "repository evidence, draft artifacts, official external sources and standards"
+    },
+    {
+      "path": "docs/research/people-graph-100x/agent-missions.md",
+      "purpose": "sixteen copy-paste agent missions with branch and path ownership"
+    },
+    {
+      "path": "docs/research/people-graph-100x/coordination-state.md",
+      "purpose": "point-in-time branch, PR, reservation and integration status"
+    },
+    {
+      "path": "docs/research/people-graph-100x/decision-log.md",
+      "purpose": "decisions, evidence, alternatives, consequences, assumptions and reversal triggers"
+    },
+    {
+      "path": "docs/research/people-graph-100x/handoff.md",
+      "purpose": "validation, review boundary, merge guidance and next actions"
+    }
+  ],
+  "reviewed_repositories": [
+    {
+      "repository": "sisodias/siso-people-graph",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "role": "primary operational graph baseline"
+    },
+    {
+      "repository": "sisodias/siso-book-library",
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "role": "book source, contributor and export baseline"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "commit": "12f4cc249b2b5dc268d05d1698fe9c5e3079327d",
+      "role": "public registry and research control-plane baseline used by parallel program"
+    }
+  ],
+  "load_bearing_files": [
+    {
+      "repository": "sisodias/siso-people-graph",
+      "path": "README.md",
+      "blob": "3ae7738eed163cabb72ed5ea4d57d38453ec40f1"
+    },
+    {
+      "repository": "sisodias/siso-people-graph",
+      "path": "schema/people_schema_v2.sql",
+      "blob": "07b70a2eaf8db48d741010d2d5f31810a0c9d0d1"
+    },
+    {
+      "repository": "sisodias/siso-people-graph",
+      "path": "loaders/build_people_graph_v2.py",
+      "blob": "7983db530d242b386fcd3c8277718010b7a43034"
+    },
+    {
+      "repository": "sisodias/siso-people-graph",
+      "path": "loaders/match_identities.py",
+      "blob": "541c68e7083e54327141aaed37f004579b024c4c"
+    },
+    {
+      "repository": "sisodias/siso-people-graph",
+      "path": "loaders/ask.py",
+      "blob": "37e19c92d242bc979eb2ab55b4f6f6a02872083d"
+    },
+    {
+      "repository": "sisodias/siso-book-library",
+      "path": "README.md",
+      "blob": "d72203f0776d6b012081a02c3b4900c25f5fbfa3"
+    },
+    {
+      "repository": "sisodias/siso-book-library",
+      "path": "scripts/build_books_module.py",
+      "blob": "d912a3c74aad53fcf9a14c0dfa546ffd8a168d27"
+    },
+    {
+      "repository": "sisodias/siso-book-library",
+      "path": "scripts/build_people_graph.py",
+      "blob": "08b667b448c3acbc4bc0357f378270d46892e071"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "path": "docs/question-driven-research.html",
+      "blob": "2ec1c5f688fa25402d4cab71cd46f8500e8b4adb"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "path": "schemas/work.schema.json",
+      "blob": "f92615fe911aaa3b3312ce7f0859dbf4e7e55478"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "path": "schemas/common.schema.json",
+      "blob": "f3f388ec62dca59b27ff585eb9f1a8e5ced45fc2"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "path": "schemas/release.schema.json",
+      "blob": "3bc43b2d863af172ca98e8fd87fb9f63f20155d7"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "path": "schemas/god-question-program.schema.json",
+      "blob": "d812a3fc32e58b91602134726375b098b3f9185c"
+    }
+  ],
+  "draft_pull_requests_at_cut": [
+    {
+      "repository": "sisodias/siso-people-graph",
+      "number": 1,
+      "branch": "pg/red-team-fixtures-20260806",
+      "head": "89dfec07acc38c6dadba69547a7ad4d60fbccf15",
+      "state": "draft_open",
+      "role": "executable red-team findings"
+    },
+    {
+      "repository": "sisodias/siso-people-graph",
+      "number": 2,
+      "branch": "pg/software-ai-pilot-20260806",
+      "head": "b78ff6704783dff100774063c305011ce456d704",
+      "state": "draft_open",
+      "role": "software and AI source observation pilot"
+    },
+    {
+      "repository": "sisodias/siso-people-graph",
+      "number": 3,
+      "branch": "pg/v3-ontology-schema-20260806",
+      "head": "2f66fbe1f4523399463d9e1ff8971879a84f5b88",
+      "state": "draft_open",
+      "role": "v3 evidence ontology proposal"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "number": 1,
+      "branch": "gls/people-graph-parallel-spine-20260806",
+      "head": "215cf63a320523f9c6405b17ae64ddb5468fb2f1",
+      "state": "draft_open",
+      "role": "registry, ADR, GQ-010 and lane program"
+    },
+    {
+      "repository": "sisodias/great-library-of-siso",
+      "number": 2,
+      "branch": "gls/people-graph-source-research-20260806",
+      "head": "20dc000451c28c707b0a97b943d1a4b178ea9bf0",
+      "state": "draft_open",
+      "role": "39-source matrix and pilot portfolio"
+    }
+  ],
+  "branch_observations": [
+    {
+      "branch": "pg/identity-resolution-parallel-20260806",
+      "status": "identical_to_main_at_cut",
+      "ahead_by": 0,
+      "behind_by": 0
+    },
+    {
+      "branch": "pg/living-creators-media-pilot-20260806",
+      "status": "identical_to_main_at_cut",
+      "ahead_by": 0,
+      "behind_by": 0
+    },
+    {
+      "branch": "pg/claims-temporal-relations-20260806",
+      "status": "identical_to_main_at_cut",
+      "ahead_by": 0,
+      "behind_by": 0
+    },
+    {
+      "branch": "pg/parallel-integration-contract-20260806",
+      "status": "identical_to_main_at_cut",
+      "ahead_by": 0,
+      "behind_by": 0
+    }
+  ],
+  "source_research": {
+    "repository": "sisodias/great-library-of-siso",
+    "branch": "gls/people-graph-source-research-20260806",
+    "head": "20dc000451c28c707b0a97b943d1a4b178ea9bf0",
+    "matrix_schema": "pg-source-matrix-1",
+    "source_count": 39,
+    "states": {
+      "pilot_now": 19,
+      "research_more": 8,
+      "discovery_only": 6,
+      "do_not_ingest": 6
+    }
+  },
+  "red_team": {
+    "repository": "sisodias/siso-people-graph",
+    "branch": "pg/red-team-fixtures-20260806",
+    "head": "89dfec07acc38c6dadba69547a7ad4d60fbccf15",
+    "finding_schema": "people-graph-v2-red-team-findings-1",
+    "cases": 22,
+    "pass": 3,
+    "expected_failures": 19,
+    "unexpected_failures": 0,
+    "severity": {
+      "P0": 8,
+      "P1": 8
+    },
+    "bulk_ingestion_blockers": [
+      "PGRT-001",
+      "PGRT-002",
+      "PGRT-003",
+      "PGRT-004",
+      "PGRT-006",
+      "PGRT-009",
+      "PGRT-011",
+      "PGRT-016"
+    ]
+  },
+  "principal_decisions": [
+    "D-001 evidence-backed knowledge-production graph",
+    "D-002 source observations separate from canonical truth",
+    "D-003 source-neutral canonical IDs",
+    "D-004 reversible identity clusters",
+    "D-005 first-class canonical Work graph",
+    "D-006 assertions separated from evidence receipts",
+    "D-007 uncertain bitemporal time",
+    "D-008 artifact-specific rights assertions",
+    "D-009 Great Library remains control plane",
+    "D-010 integrity gates before production scale",
+    "D-011 scholarly authority as first durable modern spine",
+    "D-012 media as bounded overlap accelerator",
+    "D-013 named versioned projections",
+    "D-014 privacy and correction as source gate",
+    "D-015 decision-use metrics over row count",
+    "D-016 non-overlapping public reasoning dossier"
+  ],
+  "claims_made": [
+    "the pinned repository files contain the documented code and schema behavior",
+    "the cited draft PRs and branches existed with the recorded heads and states at the observation cut",
+    "the red-team draft reported the recorded fixture and severity counts",
+    "the Great Library source-research draft reported a 39-source matrix with the recorded state counts",
+    "the proposed architecture and one hundred tracks are reasoned recommendations, not production state"
+  ],
+  "claims_deliberately_not_made": [
+    "the production database was queried or independently rebuilt",
+    "README row counts were independently verified",
+    "any draft PR is accepted or merged truth",
+    "any source is approved beyond the current research matrix and its exact terms revision",
+    "the v3 ontology is a final production schema",
+    "the proposed 10000 multi-domain milestone is already achieved or guaranteed",
+    "a program metadata release is an accepted Answer Release"
+  ],
+  "promotion_gates": [
+    "clean checkout builds",
+    "idempotent replay and source replacement",
+    "source-neutral actor and Work identities",
+    "Unicode and difficult-negative identity benchmark",
+    "contradiction and deletion handling",
+    "artifact-level rights and publication controls",
+    "exact evidence-span selectors",
+    "privacy, correction and abuse review",
+    "named reproducible projections",
+    "decision-use benchmark questions",
+    "synthetic end-to-end evidence path"
+  ],
+  "validation_expected": [
+    "JSON parse for research-manifest.json",
+    "all relative links inside the dossier resolve",
+    "no paths outside docs/research/people-graph-100x are changed",
+    "no common credential, private-key or machine-path patterns are introduced",
+    "branch compares as documentation-only against the pinned base"
+  ]
+}
