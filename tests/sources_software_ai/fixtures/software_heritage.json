@@ -1,0 +1,36 @@
+{
+  "source_id": "software_heritage",
+  "snapshot_id": "swh-api-fixture-2026-08-06",
+  "observed_at": "2026-08-06T00:50:00Z",
+  "retrieved_at": "2026-08-06T00:51:00Z",
+  "terms_revision": "https://archive.softwareheritage.org/terms/ and API documentation retrieved 2026-08-06",
+  "rights_state": "public_metadata",
+  "objects": [
+    {
+      "swhid": "swh:1:snp:1111111111111111111111111111111111111111",
+      "object_type": "snapshot",
+      "label": "Archived snapshot of vector-labs/vectorforge",
+      "visit_date": "2026-08-01T12:00:00Z",
+      "license": null,
+      "origin": {
+        "native_id": "github:repository:1001",
+        "label": "vector-labs/vectorforge",
+        "evidence": "Software Heritage origin URL mapped to GitHub numeric repository ID in fixture receipt"
+      },
+      "api_url": "https://archive.softwareheritage.org/api/1/snapshot/1111111111111111111111111111111111111111/"
+    },
+    {
+      "swhid": "swh:1:rev:2222222222222222222222222222222222222222",
+      "object_type": "revision",
+      "label": "Last archived revision of alice-ai/legacy-parser",
+      "visit_date": "2022-03-21T00:00:00Z",
+      "license": "MIT",
+      "origin": {
+        "native_id": "github:repository:1002",
+        "label": "alice-ai/legacy-parser",
+        "evidence": "Software Heritage origin URL mapped to GitHub numeric repository ID in fixture receipt"
+      },
+      "api_url": "https://archive.softwareheritage.org/api/1/revision/2222222222222222222222222222222222222222/"
+    }
+  ]
+}
