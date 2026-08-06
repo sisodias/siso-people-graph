@@ -1,0 +1,288 @@
+{
+  "baselines": [
+    {
+      "branch": "main",
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "mode": "read/write target; production paths read-only in this lane",
+      "open_pull_requests_at_launch": [],
+      "repository": "sisodias/siso-people-graph"
+    },
+    {
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "mode": "read-only context",
+      "repository": "sisodias/siso-book-library"
+    },
+    {
+      "commit": "12f4cc249b2b5dc268d05d1698fe9c5e3079327d",
+      "mode": "read-only context; no finding depends on its content",
+      "repository": "sisodias/great-library-of-siso"
+    }
+  ],
+  "derived_audit_artifacts": [
+    {
+      "derivation": "human navigation index over the evidence package",
+      "path": "docs/audits/README.md",
+      "sha256": "a1c48ac505b72b350e572682568009e627631af003323d9c8332c92a4361ddce"
+    },
+    {
+      "derivation": "evidence-backed chronology, decisions, alternatives, corrections, validation, and limitations",
+      "path": "docs/audits/people-graph-v2-forensic-worklog-2026-08-06.md",
+      "sha256": "3bc6dbe6d7ebc79f4b752bca276875a327af5a533a5c5fcd730537929d97d7df"
+    },
+    {
+      "derivation": "Prompt requirements + runner cases + final receipt mapping",
+      "path": "docs/audits/people-graph-v2-traceability.json",
+      "sha256": "d37917a20d8ff2c0a0286eba2e5b6677ee42c840c175fdd178bc4ebb18320c65"
+    },
+    {
+      "derivation": "source observation -> invariant -> fixture -> result -> severity/decision chains",
+      "path": "docs/audits/source-evidence-ledger.json",
+      "sha256": "8476c7d8056d7e86a127671226a8505c5ef3c530b6533d9fe5a952fb583898ab"
+    },
+    {
+      "derivation": "stable PGRT-001..PGRT-016 findings registry",
+      "path": "docs/audits/people-graph-v2-findings.json",
+      "sha256": "d81d345039d50901521d6dc53d761d0e057176ccab9a040f304900a59b976e15"
+    },
+    {
+      "derivation": "narrative projection of findings and executable evidence",
+      "path": "docs/audits/people-graph-v2-red-team-2026-08-06.md",
+      "sha256": "91c669f589689ee80c293d15524bfb07f922e58aaa875a25af7c412e7c0fcca3"
+    },
+    {
+      "derivation": "source archive index",
+      "path": "docs/audits/sources/README.md",
+      "sha256": "be8c1544fd1eb0b67635810ca536a1e89e918fb1e2326692def46e604e9aac5c"
+    },
+    {
+      "derivation": "machine-readable Prompt 2 lane/requirements/acceptance contract",
+      "path": "tests/red_team/fixtures/prompt_2_contract.json",
+      "sha256": "8cf8d99ab4244e84ac6cd6e617b8940644ec030605489b97d9878fe5e952907e"
+    },
+    {
+      "derivation": "offline integrity, source-blob, cross-artifact, and replay checker",
+      "path": "tests/red_team/verify_audit.py",
+      "sha256": "2f969b246919c52e5173bb0c1098af24f61592ab63a7dc701f8264dcbe490fbc"
+    },
+    {
+      "derivation": "test/operator documentation",
+      "path": "tests/red_team/README.md",
+      "sha256": "0bad45e98cbe301bcb5695d8941ba5ddfae71433cb67028935319c0b94ece418"
+    },
+    {
+      "derivation": "parallel-lane integration handoff",
+      "path": "docs/handoffs/red-team.md",
+      "sha256": "4b16a80b7135496f3984775f439ac04f3b537a5f76613b4eb96640b1095faee6"
+    }
+  ],
+  "exact_baseline_validation": {
+    "matches": 9,
+    "method": "Recompute Git blob SHA-1 over each local byte sequence and compare to the commit-pinned manifest before executing fixtures.",
+    "mismatches": 0,
+    "people_graph_files_checked": 9,
+    "provisional_checkout": {
+      "documented_in": "docs/audits/people-graph-v2-forensic-worklog-2026-08-06.md",
+      "effect_on_findings": "none; provisional receipts were discarded and the full suite was rerun on exact source bytes",
+      "reason": "manually reconstructed production files did not match pinned Git blob IDs",
+      "status": "rejected"
+    },
+    "result": "accepted for final execution receipts"
+  },
+  "execution_receipts": [
+    {
+      "format": "human-readable projection of one exact-baseline JSON run",
+      "normalizations": {
+        "checkout_root": "replaced with <clean-checkout>",
+        "elapsed_and_run_timestamps": "retained as diagnostics"
+      },
+      "path": "docs/audits/receipts/people-graph-v2-red-team-run-2026-08-06.txt",
+      "sha256": "b1d184f745ff18baa4bc5c63b42da81b55e11321d57e1a8001b0e01b4d1a22a4"
+    },
+    {
+      "format": "runner JSON plus validation metadata",
+      "normalizations": {
+        "checkout_root": "replaced with <clean-checkout>",
+        "elapsed_and_run_timestamps": "retained as diagnostics"
+      },
+      "path": "docs/audits/receipts/people-graph-v2-red-team-run-2026-08-06.json",
+      "sha256": "97103d1f0ef3f8211530a2e1ea44acdf791c846ffc0d130e39879dfa9d55b1e6"
+    }
+  ],
+  "generated_at": "2026-08-06T16:24:00Z",
+  "limitations": [
+    "Tiny fixtures prove code-path behavior, not corpus-wide prevalence.",
+    "No production database or release asset was inspected or executed.",
+    "No network collection was performed; enrichment network calls are injected in tests.",
+    "SQLite FTS5 availability is an environment assumption already required by the production schema.",
+    "Elapsed milliseconds and run-generated timestamps are diagnostic only and are normalized for replay equality.",
+    "Private model chain-of-thought is not evidence; the published worklog reconstructs all material decisions from inspectable sources and results."
+  ],
+  "post_manifest_verification": {
+    "command": "python3 tests/red_team/verify_audit.py --run",
+    "note": "This receipt is generated after the manifest and is intentionally not self-hashed here to avoid a circular digest dependency.",
+    "receipt": "docs/audits/receipts/people-graph-v2-audit-integrity-2026-08-06.txt"
+  },
+  "pre_provenance_branch_artifacts": [
+    {
+      "git_blob_sha": "1da4c08571db2e4cba08d616c129ec4ec7d924ad",
+      "path": "tests/red_team/run.py"
+    },
+    {
+      "git_blob_sha": "369f4eb0b0831b31bd6dad8e21a9905c819c80d0",
+      "path": "tests/red_team/support.py"
+    },
+    {
+      "git_blob_sha": "384d138a430a45fae4b4904aa77dc26e65ccb420",
+      "path": "tests/red_team/cases_build.py"
+    },
+    {
+      "git_blob_sha": "b177644affa6fe55cd209c216a5d98cba4855b3d",
+      "path": "tests/red_team/cases_identity.py"
+    },
+    {
+      "git_blob_sha": "ab83e2e5d225b923d2975d78300cf5a7c8f52706",
+      "path": "tests/red_team/cases_loaders.py"
+    },
+    {
+      "git_blob_sha": "a3f5c3aa78ce0e416e0ea1d31f1ac51e8f4db5d1",
+      "path": "tests/red_team/fixtures/adversarial_people.json"
+    },
+    {
+      "git_blob_sha": "399fd1ea964cc713add6dbfa7c561836a41d2a6e",
+      "path": "tests/red_team/fixtures/book_library_export_contract.json"
+    },
+    {
+      "path": "docs/audits/people-graph-v2-red-team-2026-08-06.md",
+      "pre_provenance_git_blob_sha": "535869f219a7166e52b3994c258395388abf27c1"
+    },
+    {
+      "path": "docs/audits/people-graph-v2-findings.json",
+      "pre_provenance_git_blob_sha": "3cbcc1c6c9968e1bbe3463832a5304a013126d21"
+    }
+  ],
+  "publication": {
+    "base_branch": "main",
+    "branch": "pg/red-team-fixtures-20260806",
+    "draft_pull_request": 1,
+    "pre_provenance_head": "89dfec07acc38c6dadba69547a7ad4d60fbccf15",
+    "repository": "sisodias/siso-people-graph"
+  },
+  "request_source": {
+    "committed_copy": "docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt",
+    "committed_copy_sha256": "077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d",
+    "machine_contract": "tests/red_team/fixtures/prompt_2_contract.json",
+    "original_bytes": 54730,
+    "original_filename": "Pasted text.txt",
+    "original_sha256": "077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d",
+    "prompt_2_bytes": 3353,
+    "prompt_2_extract": "docs/audits/sources/prompt-02-people-graph-red-team.txt",
+    "prompt_2_sha256": "5f490d41ebe26f768131ec9d1f08b8ba6c0736a316ed4336250a104a48298f00",
+    "transformation": "UTF-8 exact copy for the full bundle; Prompt 2 is a byte-for-byte slice bounded by Prompt 2 and Prompt 3 headings, with one terminal newline."
+  },
+  "rights_privacy": {
+    "excluded": [
+      "production SQLite databases",
+      "release assets",
+      "book text",
+      "credentials",
+      "private profile data",
+      "live API responses",
+      "private filesystem topology"
+    ],
+    "fixture_data": "synthetic and tiny",
+    "prompt_bundle": "user-provided project instructions explicitly requested for Git publication",
+    "source_code": "public repository code pinned by commit/blob"
+  },
+  "schema_version": "people-graph-v2-red-team-source-manifest-2",
+  "source_files": [
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "3ae7738eed163cabb72ed5ea4d57d38453ec40f1",
+      "local_validation_blob_sha": "3ae7738eed163cabb72ed5ea4d57d38453ec40f1",
+      "local_validation_match": true,
+      "path": "README.md",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "scope, documented counts, build/query contract"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "07b70a2eaf8db48d741010d2d5f31810a0c9d0d1",
+      "local_validation_blob_sha": "07b70a2eaf8db48d741010d2d5f31810a0c9d0d1",
+      "local_validation_match": true,
+      "path": "schema/people_schema_v2.sql",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "DDL, identity claims, ranking fields, contemporaries view"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "37e19c92d242bc979eb2ab55b4f6f6a02872083d",
+      "local_validation_blob_sha": "37e19c92d242bc979eb2ab55b4f6f6a02872083d",
+      "local_validation_match": true,
+      "path": "loaders/ask.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "canonical reads and missing-domain behavior"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "08b667b448c3acbc4bc0357f378270d46892e071",
+      "local_validation_blob_sha": "08b667b448c3acbc4bc0357f378270d46892e071",
+      "local_validation_match": true,
+      "path": "loaders/build_people_graph_books.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "Book keys, Unicode, rerun behavior, aliases"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "7983db530d242b386fcd3c8277718010b7a43034",
+      "local_validation_blob_sha": "7983db530d242b386fcd3c8277718010b7a43034",
+      "local_validation_match": true,
+      "path": "loaders/build_people_graph_v2.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "schema lookup, name reuse, role and FTS projection"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "9ea6956f30a06115b8c5946be02ef2dfffb7208b",
+      "local_validation_blob_sha": "9ea6956f30a06115b8c5946be02ef2dfffb7208b",
+      "local_validation_match": true,
+      "path": "loaders/enrich_owners.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "profile observations, field mutation, stable GitHub ID"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "f33d0cfc459330fd97fb69865c7cb7da33468e57",
+      "local_validation_blob_sha": "f33d0cfc459330fd97fb69865c7cb7da33468e57",
+      "local_validation_match": true,
+      "path": "loaders/load_owner_topics.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "topic projection and repeated rank mutation"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "726742a7e7dcfe8c0f76107daef0c147f9e42e34",
+      "local_validation_blob_sha": "726742a7e7dcfe8c0f76107daef0c147f9e42e34",
+      "local_validation_match": true,
+      "path": "loaders/load_owners_into_people_graph.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "owner identity, source replacement, repository transfers"
+    },
+    {
+      "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "git_blob_sha": "541c68e7083e54327141aaed37f004579b024c4c",
+      "local_validation_blob_sha": "541c68e7083e54327141aaed37f004579b024c4c",
+      "local_validation_match": true,
+      "path": "loaders/match_identities.py",
+      "repository": "sisodias/siso-people-graph",
+      "used_for": "candidate generation, shared external IDs, rerun claims"
+    },
+    {
+      "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "git_blob_sha": "de4e9fd91c076fd514887c82bd334dde43271d7b",
+      "local_validation": "contract pinned in tests/red_team/fixtures/book_library_export_contract.json; sibling source not copied",
+      "path": "scripts/load_into_people_graph.py",
+      "repository": "sisodias/siso-book-library",
+      "used_for": "cross-repository canonical-name reuse and contributor-role filtering contract"
+    }
+  ]
+}
