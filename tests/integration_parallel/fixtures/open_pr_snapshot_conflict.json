@@ -1,0 +1,29 @@
+{
+  "snapshot_version": "pg-open-pr-snapshot-0.1",
+  "repository": "sisodias/siso-people-graph",
+  "captured_at": "fixture",
+  "base_sha": "fixture-main",
+  "pull_requests": [
+    {
+      "number": 101,
+      "title": "Schema lane fixture",
+      "head_branch": "pg/v3-ontology-schema-20260806",
+      "changed_paths": [
+        "schema/v3/schema.sql",
+        "docs/architecture/people-graph-v3.md",
+        "docs/handoffs/schema-v3.md",
+        "integration/pg_observation_0_1.schema.json"
+      ]
+    },
+    {
+      "number": 102,
+      "title": "Build lane fixture",
+      "head_branch": "pg/reproducible-builds-parallel-20260806",
+      "changed_paths": [
+        "schema/v3/schema.sql",
+        "build_v3/build.py",
+        "README.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "baseline_version": "pg-current-main-capabilities-0.1",
+  "repository": "sisodias/siso-people-graph",
+  "observed_date": "2026-08-06",
+  "base_sha": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+  "open_pull_requests": 0,
+  "connector_timestamp_available": false,
+  "capabilities": {
+    "v2_schema": "declared",
+    "v2_build": "declared_unproven",
+    "v2_identity_claims": "declared_not_canonical_cluster",
+    "v2_query": "declared_runtime_data_absent_from_git",
+    "v3_schema": "missing",
+    "v3_identity": "missing",
+    "reproducible_build": "missing",
+    "query_v3": "missing",
+    "http_api": "missing",
+    "mcp": "missing",
+    "claims": "missing",
+    "source_pilots": "missing",
+    "red_team": "missing",
+    "integration_contract": "missing_on_main"
+  },
+  "blocking_findings": [
+    {
+      "severity": "P0",
+      "id": "BASE-IDENTIFIER-ATTRIBUTES",
+      "summary": "external_ids mixes stable IDs with real_name/company/location while shared_external_id matching treats every duplicate platform/value as 0.98 evidence"
+    },
+    {
+      "severity": "P0",
+      "id": "BASE-NAME-MERGE",
+      "summary": "v2 build reuses existing people by normalized name before reviewable identity claims"
+    }
+  ]
+}

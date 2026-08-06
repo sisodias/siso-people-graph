@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siso.invalid/contracts/pg-observation-0.1.schema.json",
+  "title": "SISO People Graph observation envelope 0.1",
+  "description": "Replayable source observation contract. It does not assign canonical People Graph identity.",
+  "type": "object",
+  "required": [
+    "envelope_version",
+    "source",
+    "subject",
+    "identifiers",
+    "contributions",
+    "relationships",
+    "evidence",
+    "raw_pointer"
+  ],
+  "properties": {
+    "envelope_version": {
+      "const": "pg-observation-0.1"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "snapshot_id",
+        "record_native_id",
+        "observed_at",
+        "retrieved_at",
+        "terms_revision",
+        "rights_state",
+        "payload_sha256"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "record_native_id": {"type": "string", "minLength": 1},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "retrieved_at": {"type": "string", "format": "date-time"},
+        "terms_revision": {"type": "string", "minLength": 1},
+        "rights_state": {
+          "enum": [
+            "public_metadata",
+            "open_data",
+            "restricted",
+            "discovery_only",
+            "pending"
+          ]
+        },
+        "payload_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "subject": {
+      "type": "object",
+      "required": ["kind", "source_native_id", "label", "attributes"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "person",
+            "organisation",
+            "account",
+            "work",
+            "event",
+            "venue",
+            "place",
+            "concept",
+            "claim"
+          ]
+        },
+        "source_native_id": {"type": "string", "minLength": 1},
+        "label": {"type": "string", "minLength": 1},
+        "attributes": {"type": "object"}
+      },
+      "additionalProperties": true
+    },
+    "identifiers": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/identifier"}
+    },
+    "contributions": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "relationships": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"type": "object"}
+    },
+    "raw_pointer": {"type": "string", "minLength": 1},
+    "canonical_id": false,
+    "canonical_person_id": false,
+    "canonical_entity_id": false,
+    "canonical_people_graph_id": false,
+    "people_graph_id": false,
+    "cluster_id": false,
+    "resolved_entity_id": false,
+    "merged_into": false,
+    "canonical_redirect": false
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "identifier": {
+      "type": "object",
+      "required": [
+        "scheme",
+        "value",
+        "scope",
+        "stability",
+        "uniqueness",
+        "evidence"
+      ],
+      "properties": {
+        "scheme": {"type": "string", "minLength": 1},
+        "value": {"type": "string", "minLength": 1},
+        "scope": {"enum": ["global", "source", "organisation"]},
+        "stability": {"enum": ["stable", "mutable", "unknown"]},
+        "uniqueness": {"enum": ["unique", "non_unique", "unknown"]},
+        "evidence": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    }
+  },
+  "$comment": "The executable Python validator additionally rejects attribute-only identifier schemes, unsafe handle semantics, recursive canonical-ID fields, automatic merge directives, name-only identity relationships, private absolute paths, and payload digest mismatches."
+}

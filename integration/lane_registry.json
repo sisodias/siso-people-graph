@@ -1,0 +1,321 @@
+{
+  "registry_version": "pg-parallel-lanes-0.1",
+  "program_date": "2026-08-06",
+  "coordination": "Independent branches, exclusive path ownership, additive compatibility shims, and draft-PR handoffs; no launch dependency graph.",
+  "lanes": [
+    {
+      "id": 1,
+      "name": "Great Library registry and program spine",
+      "repository": "sisodias/great-library-of-siso",
+      "branch": "gls/people-graph-parallel-spine-20260806",
+      "owned_paths": [
+        "registry/works/**",
+        "registry/releases/**",
+        "registry/decisions/**",
+        "registry/events/**",
+        "registry/snapshots/**",
+        "site/**",
+        "CURRENT_STATE.md",
+        "docs/people-graph-program/**"
+      ],
+      "expected_artifacts": [
+        "People Graph and Book Library Work/Release records",
+        "ownership ADR",
+        "Frontier Question",
+        "initiative_started event",
+        "docs/people-graph-program/handoff-registry.md"
+      ],
+      "validation_commands": [
+        "npm ci",
+        "npm run verify"
+      ],
+      "compatibility_seam": "Public registry/control-plane records reference external data-plane artifacts without asserting unbuilt production state."
+    },
+    {
+      "id": 2,
+      "name": "Forensic red-team fixtures",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/red-team-fixtures-20260806",
+      "owned_paths": [
+        "tests/red_team/**",
+        "docs/audits/**",
+        "docs/handoffs/red-team.md"
+      ],
+      "expected_artifacts": [
+        "tests/red_team/run.py",
+        "severity-ranked Markdown audit",
+        "machine-readable findings JSON"
+      ],
+      "validation_commands": [
+        "python3 tests/red_team/run.py"
+      ],
+      "compatibility_seam": "Stable finding IDs and tiny current-main fixtures; diagnoses only, with owning-lane suggestions."
+    },
+    {
+      "id": 3,
+      "name": "Additive v3 ontology and schema",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/v3-ontology-schema-20260806",
+      "owned_paths": [
+        "schema/v3/**",
+        "docs/architecture/**",
+        "tests/schema_v3/**",
+        "docs/handoffs/schema-v3.md"
+      ],
+      "expected_artifacts": [
+        "versioned v3 SQLite DDL",
+        "pg-observation-0.1 import mapping",
+        "synthetic schema tests",
+        "architecture report"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/schema_v3 -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Additive schema and envelope mapping; current v2 remains untouched."
+    },
+    {
+      "id": 4,
+      "name": "Safe identity resolution",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/identity-resolution-parallel-20260806",
+      "owned_paths": [
+        "identity_v3/**",
+        "loaders/match_identities.py",
+        "loaders/enrich_owners.py",
+        "tests/identity_v3/**",
+        "docs/handoffs/identity-resolution.md"
+      ],
+      "expected_artifacts": [
+        "identifier registry",
+        "reversible canonical-cluster engine",
+        "review CLI",
+        "offline adversarial tests",
+        "method card"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/identity_v3 -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Read adapters for v2 external_ids/identity_claim and pg-observation-0.1; canonical decisions remain reversible and separate from observations."
+    },
+    {
+      "id": 5,
+      "name": "Reproducible builds and source manifests",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/reproducible-builds-parallel-20260806",
+      "owned_paths": [
+        "build_v3/**",
+        "manifests/**",
+        "loaders/build_people_graph_v2.py",
+        "loaders/load_owner_topics.py",
+        "loaders/load_owners_into_people_graph.py",
+        "tests/build_v3/**",
+        ".github/workflows/**",
+        "docs/handoffs/reproducible-builds.md"
+      ],
+      "expected_artifacts": [
+        "one-command fixture build",
+        "source/build manifests",
+        "logical digests",
+        "validation and release-packaging tools",
+        "offline CI"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/build_v3 -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Consumes pg-observation-0.1 without identity resolution and produces versioned manifests/digests."
+    },
+    {
+      "id": 6,
+      "name": "Read-only query/API/MCP surface",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/query-surface-parallel-20260806",
+      "owned_paths": [
+        "query_v3/**",
+        "api/**",
+        "mcp/**",
+        "viewer/**",
+        "loaders/ask.py",
+        "tests/query_v3/**",
+        "docs/handoffs/query-surface.md"
+      ],
+      "expected_artifacts": [
+        "versioned query library",
+        "CLI",
+        "read-only HTTP API",
+        "MCP surface",
+        "capability-aware fixtures"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/query_v3 -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Capability-detecting resolver adapters for v2, v3 canonical redirects when present, and observation-only envelope inspection."
+    },
+    {
+      "id": 7,
+      "name": "Book Library integrity and graph export",
+      "repository": "sisodias/siso-book-library",
+      "branch": "books/integrity-export-parallel-20260806",
+      "owned_paths": [
+        "scripts/**",
+        "index/**",
+        "tests/**",
+        "manifests/**",
+        "docs/**",
+        ".github/workflows/**"
+      ],
+      "expected_artifacts": [
+        "idempotent fixture build",
+        "logical digests",
+        "locator verification",
+        "role-preserving pg-observation-0.1 export",
+        "docs/handoff-parallel-people-graph.md"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Exports source-native Works/contributors as pg-observation-0.1 with no canonical People Graph ID or name-only merge."
+    },
+    {
+      "id": 8,
+      "name": "External-source and rights research",
+      "repository": "sisodias/great-library-of-siso",
+      "branch": "gls/people-graph-source-research-20260806",
+      "owned_paths": [
+        "research/people-graph-sources/**"
+      ],
+      "expected_artifacts": [
+        "source matrix",
+        "GitHub landscape",
+        "rights/deletion matrix",
+        "100x theses",
+        "pilot portfolio",
+        "handoff"
+      ],
+      "validation_commands": [
+        "git diff --check"
+      ],
+      "compatibility_seam": "Research recommendations target any provenance-first observation model and do not alter registry or generated site paths."
+    },
+    {
+      "id": 9,
+      "name": "Scholarly and authority pilot",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/scholarly-authority-pilot-20260806",
+      "owned_paths": [
+        "sources/scholarly/**",
+        "tests/sources_scholarly/**",
+        "docs/source-methods/scholarly/**",
+        "docs/handoffs/scholarly-pilot.md"
+      ],
+      "expected_artifacts": [
+        "source adapters",
+        "replayable fixtures",
+        "NDJSON exporter",
+        "pilot metrics",
+        "method cards"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/sources_scholarly -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Outputs pg-observation-0.1 only; strong identity bridges remain inspectable evidence and never auto-merge."
+    },
+    {
+      "id": 10,
+      "name": "Software, package, and AI pilot",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/software-ai-pilot-20260806",
+      "owned_paths": [
+        "sources/software/**",
+        "sources/ai/**",
+        "tests/sources_software_ai/**",
+        "docs/source-methods/software-ai/**",
+        "docs/handoffs/software-ai-pilot.md"
+      ],
+      "expected_artifacts": [
+        "software/AI adapters",
+        "replayable fixtures",
+        "envelope exporter",
+        "pilot metrics",
+        "source method cards"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/sources_software_ai -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Stable source IDs and timestamped metrics are emitted as pg-observation-0.1; no canonical rank or silent identity merge."
+    },
+    {
+      "id": 11,
+      "name": "Living creators and media pilot",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/living-creators-media-pilot-20260806",
+      "owned_paths": [
+        "sources/creators/**",
+        "sources/media/**",
+        "tests/sources_creators_media/**",
+        "docs/source-methods/living-creators/**",
+        "docs/handoffs/living-creators-pilot.md"
+      ],
+      "expected_artifacts": [
+        "creator/media adapters",
+        "cohort manifest",
+        "fixtures",
+        "identity-evidence review",
+        "removal workflow",
+        "metrics"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/sources_creators_media -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Outputs rights-aware pg-observation-0.1 records; media payload acquisition remains separately gated."
+    },
+    {
+      "id": 12,
+      "name": "Claims and temporal relationships",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/claims-temporal-relations-20260806",
+      "owned_paths": [
+        "claims/**",
+        "projections/**",
+        "tests/claims/**",
+        "docs/reasoning/**",
+        "docs/handoffs/claims-relations.md"
+      ],
+      "expected_artifacts": [
+        "claim contract",
+        "temporal relationship layer",
+        "named projections",
+        "review CLI",
+        "versioned JSON export"
+      ],
+      "validation_commands": [
+        "python3 -m unittest discover -s tests/claims -p 'test_*.py' -v"
+      ],
+      "compatibility_seam": "Imports v2/Book/envelope evidence without canonicalizing and exports claims/relations separately from source observations."
+    },
+    {
+      "id": 13,
+      "name": "Parallel integration contract",
+      "repository": "sisodias/siso-people-graph",
+      "branch": "pg/parallel-integration-contract-20260806",
+      "owned_paths": [
+        "integration/**",
+        "tests/integration_parallel/**",
+        "docs/integration/**",
+        "docs/handoffs/integration-contract.md"
+      ],
+      "expected_artifacts": [
+        "pg-observation-0.1 validator",
+        "compatibility adapters",
+        "capability matrix",
+        "merge-risk analyzer",
+        "release checklist",
+        "handoff"
+      ],
+      "validation_commands": [
+        "python3 tests/integration_parallel/run.py",
+        "python3 -m integration check --repo-root ."
+      ],
+      "compatibility_seam": "Evaluates any subset of lanes without becoming a launch or release dependency."
+    }
+  ]
+}
