@@ -1,0 +1,293 @@
+{
+  "actual_size": 10,
+  "generated_at": "2026-08-06T15:00:00Z",
+  "manifest_version": "living-creators-cohort-0.1",
+  "members": [
+    {
+      "domains": [
+        "code",
+        "video"
+      ],
+      "explicit_links": [],
+      "label": "Morgan Lee",
+      "living_evidence": {
+        "evidence": "public contribution observed 2026-07-20",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:gh:003",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "github_seed",
+      "source_native_id": "gh-account-003",
+      "stable_identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "gh-account-003"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "code",
+        "research"
+      ],
+      "explicit_links": [
+        "https://profiles.example.test/priya-chen"
+      ],
+      "label": "Priya Chen",
+      "living_evidence": {
+        "evidence": "public contribution observed 2026-07-28",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:gh:002",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "github_seed",
+      "source_native_id": "gh-account-002",
+      "stable_identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "gh-account-002"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "code",
+        "podcast"
+      ],
+      "explicit_links": [],
+      "label": "Sam Okafor",
+      "living_evidence": {
+        "evidence": "public contribution observed 2026-07-18",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:gh:004",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "github_seed",
+      "source_native_id": "gh-account-004",
+      "stable_identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "gh-account-004"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "code",
+        "writing"
+      ],
+      "explicit_links": [
+        "https://profiles.example.test/alex-rivera"
+      ],
+      "label": "Alex Rivera",
+      "living_evidence": {
+        "evidence": "public contribution observed 2026-07-30",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:gh:001",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "github_seed",
+      "source_native_id": "gh-account-001",
+      "stable_identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "gh-account-001"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "code",
+        "conference"
+      ],
+      "explicit_links": [],
+      "label": "Taylor Kim",
+      "living_evidence": {
+        "evidence": "public contribution observed 2026-07-14",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:gh:005",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "github_seed",
+      "source_native_id": "gh-account-005",
+      "stable_identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "gh-account-005"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "article",
+        "course"
+      ],
+      "explicit_links": [],
+      "label": "Nadia Hassan",
+      "living_evidence": {
+        "evidence": "work published 2026; requires review",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:author:004",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "modern_author_seed",
+      "source_native_id": "https://openalex.org/A5000000004",
+      "stable_identifiers": [
+        {
+          "scheme": "openalex_author_id",
+          "value": "https://openalex.org/A5000000004"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "article",
+        "conference"
+      ],
+      "explicit_links": [
+        "https://profiles.example.test/priya-chen"
+      ],
+      "label": "Priya Chen",
+      "living_evidence": {
+        "evidence": "work published 2026; requires review",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:author:002",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "modern_author_seed",
+      "source_native_id": "https://openalex.org/A5000000001",
+      "stable_identifiers": [
+        {
+          "scheme": "openalex_author_id",
+          "value": "https://openalex.org/A5000000001"
+        },
+        {
+          "scheme": "orcid",
+          "value": "0000-0002-1825-0097"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "article",
+        "conference"
+      ],
+      "explicit_links": [],
+      "label": "Taylor Kim",
+      "living_evidence": {
+        "evidence": "conference submission 2026; requires review",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:author:005",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "modern_author_seed",
+      "source_native_id": "~Taylor_Kim1",
+      "stable_identifiers": [
+        {
+          "scheme": "openreview_profile_id",
+          "value": "~Taylor_Kim1"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "book",
+        "article"
+      ],
+      "explicit_links": [
+        "https://profiles.example.test/alex-rivera"
+      ],
+      "label": "Alex Rivera",
+      "living_evidence": {
+        "evidence": "work published 2025; requires review",
+        "state": "likely_living"
+      },
+      "seed_id": "fixture:author:001",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "modern_author_seed",
+      "source_native_id": "/authors/OLFIXTUREA",
+      "stable_identifiers": [
+        {
+          "scheme": "open_library_author_id",
+          "value": "/authors/OLFIXTUREA"
+        }
+      ]
+    },
+    {
+      "domains": [
+        "book"
+      ],
+      "explicit_links": [],
+      "label": "Jordan Silva",
+      "living_evidence": {
+        "evidence": "modern work only; manual review required",
+        "state": "unknown"
+      },
+      "seed_id": "fixture:author:003",
+      "seed_version": "living-creator-seed-0.1",
+      "source_id": "modern_author_seed",
+      "source_native_id": "/authors/OLFIXTUREB",
+      "stable_identifiers": [
+        {
+          "scheme": "open_library_author_id",
+          "value": "/authors/OLFIXTUREB"
+        }
+      ]
+    }
+  ],
+  "production_gate": "supply current People Graph and modern-author source snapshots",
+  "selection_policy": {
+    "balancing": "source targets followed by deterministic round-robin",
+    "identity": "source-native seeds only; no label/name merge",
+    "living_rule": "living or likely_living preferred; unknown retained for review",
+    "source_targets": {
+      "github_seed": 125,
+      "modern_author_seed": 125
+    }
+  },
+  "snapshot_receipts": [
+    {
+      "path": "conference.json",
+      "sha256": "2bf8e043b4370b7b1813e57e58ac41703ea3803f3a429f5932d879cf2db4a16a"
+    },
+    {
+      "path": "open_library.json",
+      "sha256": "0d0b74ebf91814a7346293e1310861e7afaad0a09456cd35c56abc9a156fb277"
+    },
+    {
+      "path": "personal_site.html",
+      "sha256": "547605f1e72d109050ea8c19311925fb0cad6aafceb4132467c5a0b24de2c6c8"
+    },
+    {
+      "path": "podcast.xml",
+      "sha256": "810753df42ca02740ec6b3b2dedc7b8a6088297c05cef078df731f4d86469e0f"
+    },
+    {
+      "path": "podcast_index.json",
+      "sha256": "b255c9b5085393dc385cd563cf69386fe493b3433aedd69e721f889c59a744a4"
+    },
+    {
+      "path": "reviews.json",
+      "sha256": "55ca11ed0057576c54eab9de52b1852fc157124ffdfca4813f98fadf0affdc50"
+    },
+    {
+      "path": "scholarly.json",
+      "sha256": "e995c332130bd9a1678c63ba7e1d86b3d49e94c3fa62dbabd8da40711a120b31"
+    },
+    {
+      "path": "seeds.ndjson",
+      "sha256": "691f586680261d782976f3d732db34159bd68ebb88d9365169b9271fefbe942d"
+    },
+    {
+      "path": "youtube.json",
+      "sha256": "fb049e0266d14f259b926bcfe6c05708f8559f84a6876f0c268fe76ad7c45c0c"
+    }
+  ],
+  "source_counts": {
+    "github_seed": 5,
+    "modern_author_seed": 5
+  },
+  "status": "fixture_only",
+  "target_size": 250,
+  "unfilled_slots": 240
+}

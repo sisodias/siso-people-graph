@@ -1,0 +1,132 @@
+{
+  "baseline_comparison": {
+    "accepted_identity_added_by_this_lane": 0,
+    "comparability_note": "pilot candidates are review hypotheses, not accepted identities",
+    "documented_current_cross_domain_stitch_people": 3,
+    "pilot_candidate_signals": 4
+  },
+  "bridge_candidates": {
+    "all": 4,
+    "automatic_acceptance": 0,
+    "mean_source_domains_per_candidate": 2.75,
+    "review_only_explicit_link": 3,
+    "source_domain_count_distribution": {
+      "2": 3,
+      "5": 1
+    },
+    "strong_authority": 1,
+    "strong_or_review_bridge_rate": 0.4230769230769231,
+    "subjects_with_bridge_signal": 11
+  },
+  "cohort": {
+    "actual_size": 10,
+    "status": "fixture_only",
+    "target_size": 250
+  },
+  "freshness": {
+    "open_sources": "replay from timestamped snapshot receipt",
+    "per_source_refresh_rule": {
+      "crossref_rest_api": "refresh by DOI/update timestamp or pinned data-file snapshot",
+      "open_library_api": "pin API retrieval or dump snapshot and replace source-native records on the next snapshot",
+      "openalex_api": "pin quarterly snapshot or retrieval date; apply source-native updated-date replacement",
+      "openreview_api": "refresh by note/profile ID and modification time; keep revision lineage",
+      "podcast_index_api": "API material is cache-header bounded; refresh only within current API terms",
+      "podcast_rss": "honour Cache-Control, ETag, Last-Modified, Retry-After, and publisher cadence",
+      "pretalx_schedule": "pin schedule version; replace from latest published schedule only when deliberately requested",
+      "public_web_schema_org": "re-fetch only under page terms and robots policy; content hash every supplied page",
+      "youtube_data_api": "refresh or delete stored API data within 30 days unless a current documented exception applies"
+    },
+    "podcast_index": "cache-header bounded; prefer publisher RSS for durable replay",
+    "youtube_refresh_days": 30
+  },
+  "metric_version": "living-creators-pilot-metrics-0.1",
+  "quota_and_cost": {
+    "credential_required_sources": [
+      "podcast_index_api",
+      "youtube_data_api",
+      "openalex_api"
+    ],
+    "fixture_bytes": 16257,
+    "network_requests_made": 0,
+    "source_constraints": {
+      "crossref_rest_api": "use the polite pool/mailto, cache, back off, and obey current response headers",
+      "open_library_api": "bounded API use: identify the client; use current published limits; prefer dumps for bulk",
+      "openalex_api": "API key and metered daily credits; use snapshots for reproducible bulk work",
+      "openreview_api": "bounded API use with current server limits and backoff",
+      "podcast_index_api": "credentialed access; obey response cache/rate headers and current API documentation",
+      "podcast_rss": "publisher-specific; use conditional GET and an identified user agent",
+      "pretalx_schedule": "event-instance specific; use public endpoints only and back off",
+      "public_web_schema_org": "site-specific robots/rate policy; no authentication bypass",
+      "youtube_data_api": "project quota units and endpoint-specific costs; no quota circumvention"
+    }
+  },
+  "records": 16,
+  "removal_coverage": {
+    "coverage": 1.0,
+    "missing_source_policies": [],
+    "sources_in_fixture": 9,
+    "sources_with_documented_workflow": 9
+  },
+  "retention": {
+    "raw_pointers_only": true,
+    "transcript_or_media_payloads_persisted": 0
+  },
+  "reviewed_precision": {
+    "accepted": 2,
+    "false_positive": 0,
+    "precision": 1.0,
+    "reviewed": 4,
+    "true_positive": 2,
+    "warning": "fixture-labelled precision is not a production estimate"
+  },
+  "rights": {
+    "completeness": 1.0,
+    "state_counts": {
+      "discovery_only": 3,
+      "open_data": 3,
+      "public_metadata": 6,
+      "restricted": 4
+    },
+    "unknown_or_pending": 0
+  },
+  "role_counts": {
+    "author": 7,
+    "guest": 2,
+    "host": 3,
+    "publisher": 1,
+    "publisher_account": 1,
+    "speaker": 1
+  },
+  "scope": "offline fixture/replay observations; candidates are not canonical identities",
+  "source_counts": {
+    "crossref_rest_api": 1,
+    "open_library_api": 3,
+    "openalex_api": 2,
+    "openreview_api": 1,
+    "podcast_index_api": 2,
+    "podcast_rss": 2,
+    "pretalx_schedule": 1,
+    "public_web_schema_org": 2,
+    "youtube_data_api": 2
+  },
+  "unique_observed_entities": 26,
+  "unique_source_subjects": 16,
+  "work_type_counts": {
+    "account": 1,
+    "article": 2,
+    "book": 1,
+    "book_edition": 1,
+    "conference_talk": 1,
+    "openreview_article": 1,
+    "person": 3,
+    "podcast_episode": 2,
+    "podcast_show": 2,
+    "proceedings-article": 1,
+    "youtube_video": 1
+  },
+  "works_and_appearances": {
+    "contribution_edges": 15,
+    "work_event_or_venue_records": 12,
+    "works_or_appearances_per_manifest_member": 1.5
+  }
+}

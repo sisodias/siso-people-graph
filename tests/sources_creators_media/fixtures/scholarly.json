@@ -1,0 +1,102 @@
+{
+  "crossref": {
+    "DOI": "10.5555/fixture.2026.1",
+    "URL": "https://doi.org/10.5555/fixture.2026.1",
+    "title": ["Bounded identity resolution for creator graphs"],
+    "type": "proceedings-article",
+    "publisher": "Fixture Society",
+    "published": {
+      "date-parts": [[2026, 7, 1]]
+    },
+    "indexed": {
+      "date-time": "2026-08-05T10:00:00Z"
+    },
+    "author": [
+      {
+        "given": "Priya",
+        "family": "Chen",
+        "ORCID": "https://orcid.org/0000-0002-1825-0097"
+      },
+      {
+        "given": "Alex",
+        "family": "Rivera"
+      }
+    ],
+    "abstract": "Not persisted by the adapter.",
+    "license": [
+      {
+        "URL": "https://creativecommons.org/licenses/by/4.0/",
+        "start": {
+          "date-time": "2026-07-01T00:00:00Z"
+        }
+      }
+    ]
+  },
+  "openalex_author": {
+    "id": "https://openalex.org/A5000000001",
+    "orcid": "https://orcid.org/0000-0002-1825-0097",
+    "display_name": "Priya Chen",
+    "works_count": 24,
+    "cited_by_count": 800,
+    "last_known_institutions": [
+      {
+        "id": "https://openalex.org/I5000000001",
+        "display_name": "Fixture Institute"
+      }
+    ],
+    "updated_date": "2026-08-02T00:00:00Z",
+    "summary_stats": {
+      "h_index": 14
+    }
+  },
+  "openalex_work": {
+    "id": "https://openalex.org/W5000000001",
+    "doi": "https://doi.org/10.5555/fixture.2026.1",
+    "display_name": "Bounded identity resolution for creator graphs",
+    "type": "article",
+    "publication_date": "2026-07-01",
+    "updated_date": "2026-08-02T00:00:00Z",
+    "open_access": {
+      "is_oa": true,
+      "oa_status": "gold"
+    },
+    "authorships": [
+      {
+        "author_position": "first",
+        "author": {
+          "id": "https://openalex.org/A5000000001",
+          "display_name": "Priya Chen",
+          "orcid": "https://orcid.org/0000-0002-1825-0097"
+        }
+      }
+    ],
+    "abstract_inverted_index": {
+      "Not": [0],
+      "persisted": [1]
+    },
+    "cited_by_count": 12
+  },
+  "openreview": {
+    "id": "fixture-note-1",
+    "forum": "fixture-note-1",
+    "venueid": "FixtureConf.org/2026/Conference",
+    "mdate": 1785700000000,
+    "content": {
+      "title": {
+        "value": "Bounded identity resolution for creator graphs"
+      },
+      "authors": {
+        "value": ["Priya Chen", "Alex Rivera"]
+      },
+      "authorids": {
+        "value": ["~Priya_Chen1", "~Alex_Rivera1"]
+      },
+      "license": {
+        "value": "CC BY 4.0"
+      },
+      "abstract": {
+        "value": "Not persisted by the adapter."
+      }
+    }
+  }
+}

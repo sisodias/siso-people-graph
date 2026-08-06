@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+     xmlns:podcast="https://podcastindex.org/namespace/1.0"
+     xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Bounded Creators</title>
+    <link>https://show.example.test/</link>
+    <description>A fixture feed; descriptions are not exported.</description>
+    <language>en</language>
+    <podcast:guid>feed-fixture-guid-001</podcast:guid>
+    <podcast:person role="host" group="cast" href="https://profiles.example.test/alex-rivera">Alex Rivera</podcast:person>
+    <item>
+      <guid isPermaLink="false">episode-fixture-guid-001</guid>
+      <title>Building evidence-first creator graphs</title>
+      <link>https://show.example.test/episodes/evidence-first</link>
+      <pubDate>Tue, 04 Aug 2026 10:00:00 GMT</pubDate>
+      <description>Fixture show notes; not exported.</description>
+      <podcast:person role="host" href="https://profiles.example.test/alex-rivera">Alex Rivera</podcast:person>
+      <podcast:person role="guest" href="https://profiles.example.test/priya-chen">Priya Chen</podcast:person>
+      <podcast:transcript url="https://show.example.test/transcripts/evidence-first.vtt" type="text/vtt" language="en" />
+      <enclosure url="https://cdn.example.test/evidence-first.mp3" type="audio/mpeg" length="123456" />
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,47 @@
+{
+  "status": {
+    "lastUpdate": "2026-08-05T13:00:00Z"
+  },
+  "feeds": [
+    {
+      "id": 9001,
+      "podcastGuid": "feed-fixture-guid-001",
+      "title": "Bounded Creators",
+      "url": "https://feeds.example.test/bounded-show.xml",
+      "link": "https://show.example.test/",
+      "language": "en",
+      "ownerName": "Fixture Studio",
+      "dead": 0,
+      "lastUpdateTime": 1785934800,
+      "description": "Not persisted by the adapter.",
+      "image": "https://cdn.example.test/show.jpg"
+    }
+  ],
+  "items": [
+    {
+      "id": 9101,
+      "guid": "episode-fixture-guid-001",
+      "feedId": 9001,
+      "feedTitle": "Bounded Creators",
+      "title": "Building evidence-first creator graphs",
+      "datePublished": 1785924000,
+      "duration": 3120,
+      "explicit": 0,
+      "description": "Not persisted by the adapter.",
+      "enclosureUrl": "https://cdn.example.test/evidence-first.mp3",
+      "transcriptUrl": "https://show.example.test/transcripts/evidence-first.vtt",
+      "persons": [
+        {
+          "name": "Alex Rivera",
+          "role": "host",
+          "href": "https://profiles.example.test/alex-rivera"
+        },
+        {
+          "name": "Priya Chen",
+          "role": "guest",
+          "href": "https://profiles.example.test/priya-chen"
+        }
+      ]
+    }
+  ]
+}
