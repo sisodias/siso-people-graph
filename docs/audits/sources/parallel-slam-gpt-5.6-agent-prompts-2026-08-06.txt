@@ -16,7 +16,8 @@ The gzip stream was produced deterministically with mtime=0. Decompress with:
 Decompressed bytes: 54730
 Decompressed SHA-256: 077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d
 Compressed bytes: 17889
-Compressed SHA-256: 0dc1fe2059b5f3dfc2e2dfa0d9d59d534af0588d86fd8d4b9ad37a5dbeb17bd1
+Compressed SHA-256: aae7888a6f076588515a8b977f1d25c3508f7bfd3f43fbfaec2af5f8cdec11b1
+Git blob SHA-1: b8750bd65324864897fa11984b938381ad227d91
 
 Prompt 2 is also committed directly as readable plain text at:
 
