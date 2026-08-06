@@ -1,0 +1,280 @@
+{
+  "entities": [
+    {
+      "entity_id": "gh:alice-old",
+      "label": "Alice Example",
+      "kind": "human",
+      "origin": "github",
+      "identifiers": [
+        {
+          "scheme": "github_id",
+          "value": "100"
+        }
+      ],
+      "aliases": [
+        {
+          "scheme": "github_login",
+          "value": "alice-old"
+        }
+      ]
+    },
+    {
+      "entity_id": "gh:alice-new",
+      "label": "Alice E. Example",
+      "kind": "human",
+      "origin": "github",
+      "identifiers": [
+        {
+          "scheme": "github_id",
+          "value": "100"
+        }
+      ],
+      "aliases": [
+        {
+          "scheme": "github_login",
+          "value": "alice"
+        }
+      ]
+    },
+    {
+      "entity_id": "gh:alex-lee-one",
+      "label": "Alex Lee",
+      "kind": "human",
+      "origin": "github",
+      "attributes": {
+        "company": "Acme",
+        "location": "London"
+      }
+    },
+    {
+      "entity_id": "book:alex-lee-two",
+      "label": "Alex Lee",
+      "kind": "human",
+      "origin": "book",
+      "attributes": {
+        "company": "Acme",
+        "location": "London"
+      }
+    },
+    {
+      "entity_id": "org:marina-chen",
+      "label": "Marina Chen",
+      "kind": "organisation",
+      "origin": "github"
+    },
+    {
+      "entity_id": "person:marina-chen",
+      "label": "Marina Chen",
+      "kind": "human",
+      "origin": "registry"
+    },
+    {
+      "entity_id": "book:mark-twain",
+      "label": "Mark Twain",
+      "kind": "pseudonym",
+      "origin": "book",
+      "identifiers": [
+        {
+          "scheme": "viaf",
+          "value": "50566653"
+        }
+      ]
+    },
+    {
+      "entity_id": "registry:samuel-clemens",
+      "label": "Samuel Langhorne Clemens",
+      "kind": "human",
+      "origin": "registry",
+      "identifiers": [
+        {
+          "scheme": "viaf",
+          "value": "50566653"
+        }
+      ]
+    },
+    {
+      "entity_id": "gh:zhang-wei",
+      "label": "张伟",
+      "kind": "human",
+      "origin": "github",
+      "identifiers": [
+        {
+          "scheme": "github_id",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "entity_id": "registry:zhang-wei",
+      "label": "张伟",
+      "kind": "human",
+      "origin": "registry",
+      "identifiers": [
+        {
+          "scheme": "github_id",
+          "value": "200"
+        }
+      ]
+    },
+    {
+      "entity_id": "book:zhang-wei-other",
+      "label": "张伟",
+      "kind": "human",
+      "origin": "book"
+    },
+    {
+      "entity_id": "registry:ada",
+      "label": "Ada Lovelace",
+      "kind": "human",
+      "origin": "registry",
+      "identifiers": [
+        {
+          "scheme": "orcid",
+          "value": "0000-0001-0000-0001"
+        }
+      ]
+    },
+    {
+      "entity_id": "openalex:ada",
+      "label": "A. Lovelace",
+      "kind": "human",
+      "origin": "openalex",
+      "identifiers": [
+        {
+          "scheme": "orcid",
+          "value": "0000-0001-0000-0001"
+        }
+      ]
+    },
+    {
+      "entity_id": "impossible:a",
+      "label": "Impossible A",
+      "kind": "human",
+      "origin": "authority",
+      "identifiers": [
+        {
+          "scheme": "viaf",
+          "value": "V-1"
+        },
+        {
+          "scheme": "orcid",
+          "value": "0000-0002-0000-0001"
+        }
+      ]
+    },
+    {
+      "entity_id": "impossible:b",
+      "label": "Impossible B",
+      "kind": "human",
+      "origin": "authority",
+      "identifiers": [
+        {
+          "scheme": "viaf",
+          "value": "V-1"
+        },
+        {
+          "scheme": "wikidata",
+          "value": "Q9001"
+        }
+      ]
+    },
+    {
+      "entity_id": "impossible:c",
+      "label": "Impossible C",
+      "kind": "human",
+      "origin": "authority",
+      "identifiers": [
+        {
+          "scheme": "wikidata",
+          "value": "Q9001"
+        },
+        {
+          "scheme": "orcid",
+          "value": "0000-0002-0000-0002"
+        }
+      ]
+    },
+    {
+      "entity_id": "surname:one",
+      "label": "Jordan Patel",
+      "kind": "human",
+      "origin": "github"
+    },
+    {
+      "entity_id": "surname:two",
+      "label": "J. Patel",
+      "kind": "human",
+      "origin": "book"
+    },
+    {
+      "entity_id": "registry:spinoza",
+      "label": "Baruch Spinoza",
+      "kind": "human",
+      "origin": "registry",
+      "birth_year": 1632,
+      "death_year": 1677
+    },
+    {
+      "entity_id": "book:spinoza",
+      "label": "Baruch Spinoza",
+      "kind": "human",
+      "origin": "book",
+      "birth_year": 1632,
+      "death_year": 1677
+    }
+  ],
+  "truth_pairs": [
+    [
+      "gh:alice-new",
+      "gh:alice-old"
+    ],
+    [
+      "book:mark-twain",
+      "registry:samuel-clemens"
+    ],
+    [
+      "gh:zhang-wei",
+      "registry:zhang-wei"
+    ],
+    [
+      "openalex:ada",
+      "registry:ada"
+    ],
+    [
+      "book:spinoza",
+      "registry:spinoza"
+    ]
+  ],
+  "known_distinct_pairs": [
+    [
+      "book:alex-lee-two",
+      "gh:alex-lee-one"
+    ],
+    [
+      "org:marina-chen",
+      "person:marina-chen"
+    ],
+    [
+      "book:zhang-wei-other",
+      "gh:zhang-wei"
+    ],
+    [
+      "book:zhang-wei-other",
+      "registry:zhang-wei"
+    ],
+    [
+      "surname:one",
+      "surname:two"
+    ]
+  ],
+  "conflict_pairs": [
+    [
+      "impossible:a",
+      "impossible:b"
+    ],
+    [
+      "impossible:b",
+      "impossible:c"
+    ]
+  ]
+}
