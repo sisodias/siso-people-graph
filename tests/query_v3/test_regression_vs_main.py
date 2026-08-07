@@ -30,9 +30,16 @@ from query_v3 import QueryEngine  # noqa: E402
 from tests.query_v3.fixtures import build_people_db  # noqa: E402
 
 
+# Pinned pre-fix baseline. MUST NOT be a moving ref: once the query-surface fix
+# merged to main, "origin/main" became the FIXED code and these regression tests
+# failed because they had succeeded. de048bb is the last commit whose
+# loaders/ask.py still carries the defects asserted below.
+PRE_FIX_BASELINE = "de048bb3b34bf931b56fd741cb46c1334acdfb98"
+
+
 def _old_ask_source() -> str | None:
-    """loaders/ask.py exactly as it stands on origin/main."""
-    for ref in ("origin/main", "main"):
+    """loaders/ask.py as it stood BEFORE the query-surface fix (pinned)."""
+    for ref in (PRE_FIX_BASELINE,):
         try:
             out = subprocess.run(
                 ["git", "-C", REPO, "show", f"{ref}:loaders/ask.py"],
@@ -60,7 +67,7 @@ class RegressionVsMainTest(unittest.TestCase):
 
     def _run_old(self, *args) -> dict:
         if self.old_src is None:
-            self.skipTest("origin/main loaders/ask.py unavailable (no git remote)")
+            self.skipTest("pinned baseline loaders/ask.py unavailable (shallow clone?)")
         script = os.path.join(self.tmp.name, "ask_main_snapshot.py")
         with open(script, "w", encoding="utf-8") as fh:
             fh.write(self.old_src)
