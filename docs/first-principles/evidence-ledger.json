@@ -1,0 +1,473 @@
+{
+  "schema_version": "1.0.0",
+  "record_type": "architecture_audit_evidence_ledger",
+  "audit_id": "siso-people-graph-first-principles-2026-08-06",
+  "created_at": "2026-08-06",
+  "scope": [
+    "sisodias/siso-people-graph",
+    "sisodias/siso-book-library",
+    "sisodias/great-library-of-siso"
+  ],
+  "evidence_policy": {
+    "observation": "Directly visible in a pinned repository source or commit.",
+    "reproduction": "A behavior reproduced with a bounded executable fixture.",
+    "inference": "A conclusion derived from one or more observations; supporting premises are named.",
+    "proposal": "A recommended future design or action; not represented as current truth.",
+    "unknown": "Not established by the accessible evidence and intentionally left unresolved."
+  },
+  "limitations": [
+    "The GitHub connector exposed source and commit history but not arbitrary SQL execution against the published SQLite release assets.",
+    "Published row counts are repository claims and were not independently re-counted in this audit.",
+    "Small SQLite behavior checks were reproduced with synthetic databases by the accompanying verifier."
+  ],
+  "sources": [
+    {
+      "source_id": "PG-COMMIT-INITIAL",
+      "repository": "sisodias/siso-people-graph",
+      "revision": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "locator": "https://github.com/sisodias/siso-people-graph/commit/de048bb3b34bf931b56fd741cb46c1334acdfb98",
+      "scope": "Initial public schema, loaders, query surface, README, and graph design claims."
+    },
+    {
+      "source_id": "BOOK-COMMIT-INITIAL",
+      "repository": "sisodias/siso-book-library",
+      "revision": "c2f12b1476a2889d125e409e1652c0eb99c75f56",
+      "locator": "https://github.com/sisodias/siso-book-library/commit/c2f12b1476a2889d125e409e1652c0eb99c75f56",
+      "scope": "Initial public Book Library builders, README, locator, and graph integration."
+    },
+    {
+      "source_id": "BOOK-COMMIT-TIERS",
+      "repository": "sisodias/siso-book-library",
+      "revision": "3a5d1875b395342730205100e99443308d3263e3",
+      "locator": "https://github.com/sisodias/siso-book-library/commit/3a5d1875b395342730205100e99443308d3263e3",
+      "scope": "Extraction queue views and measured queue counts."
+    },
+    {
+      "source_id": "BOOK-COMMIT-PAYLOAD",
+      "repository": "sisodias/siso-book-library",
+      "revision": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "locator": "https://github.com/sisodias/siso-book-library/commit/be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+      "scope": "Published payload and locator claims."
+    },
+    {
+      "source_id": "GL-COMMIT-EVIDENCE-ADDRESSABILITY",
+      "repository": "sisodias/great-library-of-siso",
+      "revision": "12f4cc249b2b5dc268d05d1698fe9c5e3079327d",
+      "locator": "https://github.com/sisodias/great-library-of-siso/commit/12f4cc249b2b5dc268d05d1698fe9c5e3079327d",
+      "scope": "Measured finding that question exports lacked dereferenceable evidence."
+    },
+    {
+      "source_id": "GL-REGISTRY-MODEL",
+      "repository": "sisodias/great-library-of-siso",
+      "revision": "e746e22da160f836f0c962359ee3dd76dc71a098",
+      "path": "docs/registry-model.md",
+      "locator": "https://github.com/sisodias/great-library-of-siso/blob/main/docs/registry-model.md",
+      "scope": "Durable identity, Release, Snapshot, Event, and Source Inventory boundaries."
+    },
+    {
+      "source_id": "GL-QUESTION-DRIVEN",
+      "repository": "sisodias/great-library-of-siso",
+      "revision": "2ec1c5f688fa25402d4cab71cd46f8500e8b4adb",
+      "path": "docs/question-driven-research.html",
+      "locator": "https://github.com/sisodias/great-library-of-siso/blob/main/docs/question-driven-research.html",
+      "scope": "Question-first research loop, evidence objects, assumptions, and stopping rules."
+    },
+    {
+      "source_id": "GL-RELEASE-SCHEMA",
+      "repository": "sisodias/great-library-of-siso",
+      "revision": "3bc43b2d863af172ca98e8fd87fb9f63f20155d7",
+      "path": "schemas/release.schema.json",
+      "locator": "https://github.com/sisodias/great-library-of-siso/blob/main/schemas/release.schema.json",
+      "scope": "Immutable release, integrity, artifact, and distribution contract."
+    }
+  ],
+  "findings": [
+    {
+      "finding_id": "PG-P0-001",
+      "severity": "P0",
+      "title": "V2 builder resolves the schema from the wrong directory",
+      "classification": ["observation"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/build_people_graph_v2.py",
+          "symbol": "SCHEMA",
+          "observation": "The path is constructed from the loaders directory and the filename people_schema_v2.sql."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "schema/people_schema_v2.sql",
+          "observation": "The actual schema file is stored under schema/, not loaders/."
+        }
+      ],
+      "reproduction": {
+        "runner": "python3 tools/verify_audit_findings.py",
+        "check": "schema_path",
+        "expected_current_result": "documented_path_exists=false and actual_schema_exists=true"
+      },
+      "implication": "A clean checkout cannot execute the documented V2 build path without an unrecorded local modification.",
+      "recommended_action": "Resolve from repository root and add a clean-checkout smoke test."
+    },
+    {
+      "finding_id": "PG-P0-002",
+      "severity": "P0",
+      "title": "Descriptive attributes can become near-certain identity evidence",
+      "classification": ["observation", "inference"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/enrich_owners.py",
+          "observation": "real_name, website, company, and location are written to external_ids alongside issuer identifiers."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/match_identities.py",
+          "observation": "Every repeated (platform, value) group is processed by the shared_external_id method at confidence 0.98, with no allowlist."
+        }
+      ],
+      "reproduction": {
+        "runner": "python3 tools/verify_audit_findings.py",
+        "checks": ["matcher_allowlist", "shared_attribute_pair_explosion"],
+        "expected_current_result": "no issuer-unique allowlist detected; 100 repeated attributes imply 4950 candidate pairs"
+      },
+      "implication": "People sharing a common employer, city, name, or organization website can be proposed as the same actor with near-certain confidence.",
+      "recommended_action": "Separate identifiers from attributes and allow automatic identity evidence only for documented issuer-unique identifiers."
+    },
+    {
+      "finding_id": "PG-P0-003",
+      "severity": "P0",
+      "title": "Accepted identity claims are not applied by the query surface",
+      "classification": ["observation"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "schema/people_schema_v2.sql",
+          "observation": "identity_claim supports proposed, accepted, and rejected states."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/ask.py",
+          "observation": "No query reads identity_claim; works chooses the raw name match with the greatest content count."
+        }
+      ],
+      "implication": "Review decisions do not create a query-visible canonical actor or aggregate accepted source records.",
+      "recommended_action": "Introduce accepted source-actor assignments and make all actor queries consume a canonical projection."
+    },
+    {
+      "finding_id": "PG-P0-004",
+      "severity": "P0",
+      "title": "The V2 build silently merges book people by normalized name",
+      "classification": ["observation"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/build_people_graph_v2.py",
+          "observation": "Book people are assigned to an existing person ID when the lowercased whitespace-normalized name already exists."
+        },
+        {
+          "source_id": "BOOK-COMMIT-INITIAL",
+          "path": "scripts/load_into_people_graph.py",
+          "observation": "A second direct-write integration also matches existing graph people by normalized name."
+        }
+      ],
+      "implication": "Name-only merging bypasses the explicit claim and reversal model and leaves two integration paths with different schema assumptions.",
+      "recommended_action": "Ingest source actors independently, resolve through one policy, and retire direct source-library writes into graph internals."
+    },
+    {
+      "finding_id": "PG-P0-005",
+      "severity": "P0",
+      "title": "rank_score stores incompatible and non-idempotent values",
+      "classification": ["observation", "inference"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/build_people_graph_v2.py",
+          "observation": "Book work count and inherited V1 score are loaded into rank_score."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/load_owners_into_people_graph.py",
+          "observation": "Summed repository stars are loaded into rank_score."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/load_owner_topics.py",
+          "observation": "Average model-rated repository value is added to the existing rank_score, so repeat runs can add it again."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/enrich_owners.py",
+          "observation": "GitHub follower count later replaces rank_score."
+        }
+      ],
+      "implication": "The field has no stable unit or interpretation and cannot support reproducible cross-domain ranking.",
+      "recommended_action": "Store typed metric observations with source, time, unit, and method version; derive named rankings."
+    },
+    {
+      "finding_id": "PG-P1-006",
+      "severity": "P1",
+      "title": "The qualified FTS MATCH expression fails and is silently bypassed",
+      "classification": ["observation", "reproduction"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/ask.py",
+          "observation": "who() uses WHERE people.person_search MATCH ? and catches all sqlite3.Error exceptions."
+        }
+      ],
+      "reproduction": {
+        "runner": "python3 tools/verify_audit_findings.py",
+        "check": "fts_match",
+        "expected_current_result": "qualified_query_error=no such column: people.person_search; corrected query returns the fixture row"
+      },
+      "implication": "Name queries fall back to a linear LIKE scan while appearing to support FTS.",
+      "recommended_action": "Use the valid FTS table expression and add a test that proves the FTS branch executed."
+    },
+    {
+      "finding_id": "PG-P1-007",
+      "severity": "P1",
+      "title": "The works query overstates completeness and hides truncation",
+      "classification": ["observation"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/ask.py",
+          "observation": "works() selects one heuristic match, limits to 200 rows, and reports count=len(returned rows) without total or truncation."
+        }
+      ],
+      "implication": "An agent can interpret a partial, unresolved source view as everything the human produced.",
+      "recommended_action": "Declare source coverage, identity status, total matches, returned rows, truncation, and known gaps."
+    },
+    {
+      "finding_id": "PG-P1-008",
+      "severity": "P1",
+      "title": "Person topics are stronger than the underlying source assertion",
+      "classification": ["observation", "inference"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/build_people_graph_v2.py",
+          "observation": "LCSH work subjects are rolled directly into person_topic."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/load_owner_topics.py",
+          "observation": "Repository topics and programming languages are rolled directly into person_topic."
+        }
+      ],
+      "implication": "Work classification can be misread as actor expertise, endorsement, or belief, especially across non-author roles.",
+      "recommended_action": "Preserve work-level classification and expose actor output profiles as named derivations with role and scheme visible."
+    },
+    {
+      "finding_id": "PG-P1-009",
+      "severity": "P1",
+      "title": "Lifetime overlap is presented as stronger intellectual adjacency",
+      "classification": ["observation", "inference"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "schema/people_schema_v2.sql",
+          "observation": "v_contemporaries computes overlapping lifespan intervals and substitutes birth_year + 80 when death year is absent."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "README.md",
+          "observation": "The example describes results as the actual historical conversation."
+        }
+      ],
+      "implication": "Possible temporal coexistence can be mistaken for contact, influence, or shared discourse.",
+      "recommended_action": "Rename as possible lifetime overlap and expose source, precision, and estimation flags."
+    },
+    {
+      "finding_id": "PG-P1-010",
+      "severity": "P1",
+      "title": "The canonical entity is broader than a person",
+      "classification": ["observation", "inference"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "schema/people_schema_v2.sql",
+          "observation": "The person.kind enum contains human, organisation, pseudonym, and unknown."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/load_owners_into_people_graph.py",
+          "observation": "GitHub owners can be organizations or unknown."
+        },
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": "loaders/build_people_graph_v2.py",
+          "observation": "Inherited V1 rows are hardcoded to kind=human."
+        }
+      ],
+      "implication": "Projects, collectives, organizations, bots, personas, and shared accounts are forced into an inconsistent person abstraction.",
+      "recommended_action": "Use an internal actor abstraction and model accounts separately from the actor controlling them."
+    },
+    {
+      "finding_id": "PG-P1-011",
+      "severity": "P1",
+      "title": "The data-release reproducibility contract is incomplete",
+      "classification": ["observation", "inference"],
+      "status": "confirmed_with_unverified_remote_state",
+      "confidence": "high_for_source_contract_medium_for_remote_history",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "path": ".gitignore",
+          "observation": "The comment states that release assets can be replaced."
+        },
+        {
+          "source_id": "BOOK-COMMIT-INITIAL",
+          "path": "scripts/build_books_module.py",
+          "observation": "The current wall clock is stored in fetched_at for every build."
+        },
+        {
+          "source_id": "BOOK-COMMIT-PAYLOAD",
+          "path": "README.md",
+          "observation": "The README says locator.sqlite records SHA-256 per book."
+        },
+        {
+          "source_id": "BOOK-COMMIT-INITIAL",
+          "path": "scripts/build_locator.py",
+          "observation": "The checked-in location schema has no digest column and the builder records offsets and lengths only."
+        },
+        {
+          "source_id": "GL-RELEASE-SCHEMA",
+          "path": "schemas/release.schema.json",
+          "observation": "The Great Library requires immutable releases, artifact revisions, and integrity state."
+        }
+      ],
+      "implication": "The documented ability to rebuild or verify an exact data release is not yet fully represented by the checked-in builders and manifests.",
+      "recommended_action": "Pin source snapshots and clocks, publish builder receipts and checksums, and create successor releases rather than replacing bytes."
+    },
+    {
+      "finding_id": "PG-P1-012",
+      "severity": "P1",
+      "title": "Book extraction profile SQL does not match its stated deduplication and section policy",
+      "classification": ["observation", "reproduction"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "BOOK-COMMIT-TIERS",
+          "path": "index/tier_queries.sql",
+          "observation": "Core and tier-two policies compare one-letter values to bookcase, while the builder creates two-letter bookcases for classes such as QA."
+        },
+        {
+          "source_id": "BOOK-COMMIT-TIERS",
+          "path": "index/tier_queries.sql",
+          "observation": "v_extraction_queue uses UNION on rows containing different reason values, allowing one GID to remain multiple times."
+        }
+      ],
+      "implication": "Books can be omitted from intended section-level profiles and can appear more than once in a queue described as deduplicated.",
+      "recommended_action": "Filter by section for section-level policy and aggregate membership reasons under one profile row per GID."
+    },
+    {
+      "finding_id": "PG-P1-013",
+      "severity": "P1",
+      "title": "Question-addressable summaries are not yet dereferenceable evidence",
+      "classification": ["observation"],
+      "status": "confirmed",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "GL-COMMIT-EVIDENCE-ADDRESSABILITY",
+          "path": "registry/works/frontier-question-gq-009.json",
+          "observation": "The evaluated export contained model summaries but no URL, quotation, or citation and therefore did not replace a manual evidence link."
+        }
+      ],
+      "implication": "A large indexed corpus and generated summaries do not yet form a source-grounded research answer system.",
+      "recommended_action": "Require exact artifact and source-span receipts for accepted claims."
+    },
+    {
+      "finding_id": "PG-P1-014",
+      "severity": "P1",
+      "title": "Automated repository contracts are absent from the initial public implementation",
+      "classification": ["observation"],
+      "status": "confirmed_for_inspected_revision",
+      "confidence": "high",
+      "evidence": [
+        {
+          "source_id": "PG-COMMIT-INITIAL",
+          "observation": "The commit file list contains schema, loaders, README, and .gitignore but no tests or workflow files."
+        }
+      ],
+      "implication": "Parallel loader work can silently change build, identity, idempotence, and query semantics.",
+      "recommended_action": "Add clean-build, identity, idempotence, query, release, and privacy fixtures before broad ingestion."
+    }
+  ],
+  "architectural_decisions_proposed": [
+    {
+      "decision_id": "PG-AD-PROPOSED-001",
+      "decision": "Separate immutable source actors from opaque canonical actors.",
+      "status": "proposal",
+      "depends_on": ["PG-P0-002", "PG-P0-003", "PG-P0-004", "PG-P1-010"]
+    },
+    {
+      "decision_id": "PG-AD-PROPOSED-002",
+      "decision": "Represent canonicalization as evidenced source-actor assignments rather than destructive or silent merges.",
+      "status": "proposal",
+      "depends_on": ["PG-P0-002", "PG-P0-003", "PG-P0-004"]
+    },
+    {
+      "decision_id": "PG-AD-PROPOSED-003",
+      "decision": "Replace rank_score with typed, time-bound metric observations and derive named projections.",
+      "status": "proposal",
+      "depends_on": ["PG-P0-005"]
+    },
+    {
+      "decision_id": "PG-AD-PROPOSED-004",
+      "decision": "Separate Work, expression/version, artifact, locator, and contribution semantics.",
+      "status": "proposal",
+      "depends_on": ["PG-P1-007", "PG-P1-008", "PG-P1-011"]
+    },
+    {
+      "decision_id": "PG-AD-PROPOSED-005",
+      "decision": "Model public statements with exact source spans; treat beliefs as uncertain derived projections only.",
+      "status": "proposal",
+      "depends_on": ["PG-P1-008", "PG-P1-013"]
+    }
+  ],
+  "unknowns": [
+    {
+      "unknown_id": "PG-U-001",
+      "question": "What is the measured false-positive and false-negative rate of each identity method on representative full-scale data?"
+    },
+    {
+      "unknown_id": "PG-U-002",
+      "question": "What exact bytes and checksums are currently served by each published release asset, and have any assets been replaced?"
+    },
+    {
+      "unknown_id": "PG-U-003",
+      "question": "What are the current full-dataset row counts after rebuilding from pinned source snapshots?"
+    },
+    {
+      "unknown_id": "PG-U-004",
+      "question": "Which source family yields the greatest answer-value increase after identity, rights, and maintenance cost?"
+    },
+    {
+      "unknown_id": "PG-U-005",
+      "question": "Which query patterns justify a graph traversal service beyond the portable SQLite snapshot?"
+    }
+  ]
+}
