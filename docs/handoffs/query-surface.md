@@ -165,7 +165,7 @@ the claim record, so a pair whose claim was *rejected* stayed merged.
 
 | # | severity | defect | fix |
 |---|---|---|---|
-| 1 | critical | applied merge trusted without checking the claim; rejected pairs stayed merged | a rejection now defeats a stale applied merge and is reported as `refused_merges`; an applied merge with only a *proposed* claim merges but is flagged as unreviewed |
+| 1 | critical | applied merge trusted without checking the claim; rejected pairs stayed merged | **any** non-accepted claim — rejected *or* proposed — now defeats an applied merge, reported as `refused_merges` |
 | 2 | high | expansion followed `merged_into` forward only, so searching the winner omitted rows merged into it — the same person returned different works depending on which name was typed | traversal now goes both directions |
 | 3 | high | the 8-pass expansion cap silently truncated valid clusters | the bound stays (an unbounded walk would traverse the corpus) but a truncated cluster now reports `cluster_complete: false` and a coverage gap |
 | 4 | medium | `from`/`to` echoed the schema's lexical `person_a < person_b` ordering, emitting decisions pointing *from* the live canonical row *to* the merged one | direction is assigned after canonical selection; pair-level decisions inside a transitive cluster say so explicitly |
@@ -207,12 +207,36 @@ build. The review confirmed these independently ("union-find roots all unified;
 bound hostile ID preserved person table; cycles/self-merge terminate; canonical
 liveness fix currently present and selected live row. No findings there.").
 
+### The merge-authorization contract, and the one carve-out
+
+The open policy question from the first review round — what to do with an applied
+merge whose claim is only *proposed* — went back to the reviewer and was settled
+in favour of strictness. The contract is now explicit:
+
+> **`identity_claim.status='accepted'` is the authorization.
+> `person.merged_into` is materialized execution state, not an independent
+> decision.**
+
+So a proposed-only claim is a hypothesis that was executed without ever being
+authorized, and it does **not** merge. Merge-and-flag was rejected because it
+still merges a non-accepted decision — finding #1 in a narrower form — and
+quietly restates the contract as "applied merges affect reads unless explicitly
+rejected", which is a weaker guarantee than this lane promises. Reads do not
+pretend the inconsistency is absent: the rows come back separately with the pair
+IDs, the claim status, and an `INCONSISTENT` coverage gap saying the database and
+the decision record disagree.
+
+**One deliberate carve-out: an applied merge with NO claim of any status is
+honoured**, labelled `claim_status: "absent"`, `authority: "legacy_applied_merge"`.
+Merges predate `identity_claim` entirely and production holds **zero** claim rows,
+so refusing every unbacked merge would discard the whole applied merge history
+and make reads contradict the database for no reviewer's benefit. This is the
+"documented legacy policy" exception the reviewer named, kept as narrow as
+possible: it grants historical authority only where no decision record exists at
+all, never where one exists and disagrees.
+
 What remains unreviewed is *judgement*, not coverage: whether canonical selection
-is the right policy, whether the v2/v3/none adapter split is the right seam, and
-whether merging on an applied-but-only-proposed claim is the right call — this
-build merges and flags it, on the reasoning that the read layer should reflect
-what the build did while making the absence of review visible. A reviewer could
-reasonably argue it should refuse instead.
+is the right policy, and whether the v2/v3/none adapter split is the right seam.
 
 ## Safety properties
 

@@ -165,10 +165,15 @@ class V2Resolver(Resolver):
         rejected pair silently stays merged -- which falsifies the guarantee this
         module exists to make, that only accepted decisions affect reads.
 
-        A rejected claim is an explicit decision NOT to merge and outranks a
-        stale application. A merely proposed claim over an applied merge is an
-        inconsistent state that a caller must be told about, not one this module
-        may resolve by picking a side.
+        Both a rejected claim and a merely proposed one defeat an applied merge.
+        Under this lane's contract `identity_claim.status='accepted'` is the
+        AUTHORIZATION and `person.merged_into` is materialized execution state,
+        not an independent decision -- so a proposed claim is a hypothesis that
+        was executed without ever being authorized. Merging it while flagging it
+        would still merge a non-accepted decision, which is finding #1 in a
+        narrower form, and would quietly restate the contract as "applied merges
+        affect reads unless explicitly rejected". That is a weaker guarantee and
+        not the one this lane promises.
         """
         if not self.caps.has("people", "identity_claim") or not ids:
             return {}
@@ -186,6 +191,22 @@ class V2Resolver(Resolver):
             if out.get(key) != "rejected":
                 out[key] = status
         return out
+
+    def _claim_backed(self, a: str, b: str) -> bool:
+        """Does an ACCEPTED claim exist for this exact pair?
+
+        Distinguishes "authorized by a reviewer" from "applied by a build with no
+        claim at all". Only the latter gets the legacy carve-out.
+        """
+        if not self.caps.has("people", "identity_claim"):
+            return False
+        lo, hi = sorted((a, b))  # schema stores pairs as person_a < person_b
+        row = self.con.execute(
+            "SELECT 1 FROM people.identity_claim WHERE status = 'accepted' "
+            "AND person_a = ? AND person_b = ? LIMIT 1",
+            (lo, hi),
+        ).fetchone()
+        return row is not None
 
     def _merge_targets(self, ids: set[str]) -> list[tuple]:
         """Applied merges recorded on the person row itself, BOTH directions.
@@ -263,18 +284,27 @@ class V2Resolver(Resolver):
             if not target:
                 continue
             status = contradicted.get(frozenset((pid, target)))
-            if status == "rejected":
-                # An explicit decision NOT to merge outranks a stale application.
+            if status in ("rejected", "proposed"):
+                # Accepted-only contract: a claim that is not accepted does not
+                # authorize a merge, however the build materialised it. Reads
+                # return the rows separately AND surface the inconsistency --
+                # which is more actionable than serving an unauthorized merged
+                # identity as truth.
                 blocked.append({
                     "person_a": pid,
                     "person_b": target,
                     "signal": "person.merged_into",
                     "claim_status": status,
                     "action": "merge_refused",
-                    "note": "person.merged_into joins these rows but an "
-                            "identity_claim REJECTS the pair. The rejection "
-                            "wins: they are reported as separate people and the "
-                            "applied merge is treated as stale.",
+                    "person_state": state,
+                    "note": (
+                        f"person.merged_into records {pid} -> {target}, but the "
+                        f"identity_claim for this pair is '{status}', not "
+                        "'accepted'. merged_into is materialised execution "
+                        "state, not an authorization: these rows are reported "
+                        "separately and the applied merge is inconsistent with "
+                        "the decision record."
+                    ),
                 })
                 continue
             uf.union(target, pid)
@@ -289,15 +319,21 @@ class V2Resolver(Resolver):
                     detail=f"{pid} superseded by {target} (person.state={state})",
                 ).as_dict(),
             }
-            if status == "proposed":
-                # Applied, but never accepted. Merging matches the build; saying
-                # nothing would hide that no reviewer ever signed this off.
-                entry["claim_status"] = "proposed"
+            if not self._claim_backed(pid, target):
+                # LEGACY CARVE-OUT, deliberate and narrow. Merges predate
+                # identity_claim entirely: production currently holds zero claim
+                # rows, so refusing every unbacked merge would discard the whole
+                # applied merge history and make reads contradict the database
+                # for no reviewer's benefit. Applied merges with NO claim keep
+                # their historical authority -- but they are labelled, so an
+                # unreviewed merge is never mistaken for a reviewed one.
+                entry["claim_status"] = "absent"
+                entry["authority"] = "legacy_applied_merge"
                 entry["warning"] = (
-                    "This merge is APPLIED in person.merged_into but its "
-                    "identity_claim is only 'proposed' -- no reviewer accepted "
-                    "it. Reported because an unreviewed merge should not be "
-                    "indistinguishable from a reviewed one."
+                    "Applied via person.merged_into with NO identity_claim of "
+                    "any status. Honoured under the legacy carve-out for merges "
+                    "predating the claim table; it carries no reviewer "
+                    "authorization."
                 )
             decisions[(pid, target)] = entry
 

@@ -77,10 +77,19 @@ class Finding1RejectedMergeTest(unittest.TestCase):
                          "a rejected pair must NOT stay merged")
         refused = r["identity_resolution"].get("refused", [])
         self.assertTrue(refused, "the refusal must be reported, not silent")
-        self.assertTrue(any("REJECT" in g for g in r["coverage_gaps"]))
+        self.assertTrue(any(b["claim_status"] == "rejected" for b in refused))
+        self.assertTrue(any("INCONSISTENT" in g and "rejected" in g
+                            for g in r["coverage_gaps"]))
 
-    def test_applied_merge_with_only_a_proposed_claim_is_flagged(self):
-        """Merging matches the build, but an unreviewed merge must say so."""
+    def test_proposed_only_claim_also_defeats_an_applied_merge(self):
+        """The accepted-only contract, applied strictly.
+
+        Resolved by the reviewer after the first round: merge-and-flag still
+        merges a non-accepted decision, which is finding #1 in a narrower form,
+        and silently restates the contract as "applied merges affect reads unless
+        explicitly rejected". `identity_claim.status='accepted'` is the
+        authorization; `person.merged_into` is materialized execution state.
+        """
         with tempfile.TemporaryDirectory() as tmp:
             _fresh(tmp, [
                 (P, ("p:prop-b", "Proposed Merge", "linked", None)),
@@ -92,12 +101,42 @@ class Finding1RejectedMergeTest(unittest.TestCase):
             with QueryEngine(root=tmp) as e:
                 r = e.who("Proposed Merge")
 
+        self.assertEqual(len(r["result"]["matches"]), 2,
+                         "a proposed-only claim must NOT authorize a merge")
+        refused = r["identity_resolution"].get("refused", [])
+        self.assertTrue(any(b["claim_status"] == "proposed" for b in refused),
+                        "the refusal and its reason must be reported")
+        self.assertTrue(any("INCONSISTENT" in g for g in r["coverage_gaps"]),
+                        "reads must surface the materialised inconsistency "
+                        "rather than pretend it does not exist")
+
+    def test_applied_merge_with_no_claim_is_honoured_but_labelled(self):
+        """The narrow legacy carve-out, and the reason it exists.
+
+        Merges predate identity_claim entirely -- production currently holds ZERO
+        claim rows -- so refusing every unbacked merge would discard the whole
+        applied merge history and make reads contradict the database for no
+        reviewer's benefit. These merges keep their historical authority, but are
+        labelled so they are never mistaken for reviewed ones.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            _fresh(tmp, [
+                (P, ("g:legacy-b", "Legacy Merge", "linked", None)),
+                (P, ("g:legacy-a", "Legacy Merge", "merged", "g:legacy-b")),
+                (S, ("g:legacy-a", "Legacy Merge", "Legacy")),
+                (S, ("g:legacy-b", "Legacy Merge", "Legacy")),
+                # deliberately NO identity_claim row for this pair
+            ])
+            with QueryEngine(root=tmp) as e:
+                r = e.who("Legacy Merge")
+
+        self.assertEqual(len(r["result"]["matches"]), 1,
+                         "an unbacked legacy merge is still honoured")
         decisions = r["result"]["matches"][0]["identity"]["decisions"]
-        self.assertTrue(any(d.get("claim_status") == "proposed"
+        self.assertTrue(any(d.get("claim_status") == "absent"
                             for d in decisions),
-                        "an unreviewed merge must be distinguishable")
-        self.assertTrue(any("no reviewer accepted it" in g
-                            for g in r["coverage_gaps"]))
+                        "it must be labelled as carrying no authorization")
+        self.assertTrue(any("legacy carve-out" in g for g in r["coverage_gaps"]))
 
 
 class Finding2ReverseTraversalTest(unittest.TestCase):

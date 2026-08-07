@@ -307,16 +307,21 @@ class QueryEngine:
                 if b not in r.identity["refused"]:
                     r.identity["refused"].append(b)
                 r.gap(
-                    f"{b['person_a']} and {b['person_b']} are joined by "
-                    "person.merged_into but an identity_claim REJECTS the pair. "
-                    "The rejection wins; they are reported separately and the "
-                    "applied merge is stale."
+                    f"INCONSISTENT: person.merged_into records "
+                    f"{b['person_a']} -> {b['person_b']}, but that pair's "
+                    f"identity_claim is '{b['claim_status']}', not 'accepted'. "
+                    "The merge is NOT applied to this read -- an unaccepted "
+                    "claim does not authorize a merge -- so these rows are "
+                    "reported separately. The database and the decision record "
+                    "disagree and one of them needs correcting."
                 )
             for d in ident.get("decisions", ()):
-                if d.get("claim_status") == "proposed":
+                if d.get("claim_status") == "absent":
                     r.gap(
-                        f"An applied merge ({d.get('from')} -> {d.get('to')}) has "
-                        "only a 'proposed' claim: no reviewer accepted it."
+                        f"An applied merge ({d.get('from')} -> {d.get('to')}) "
+                        "has NO identity_claim of any status. It is honoured "
+                        "under the legacy carve-out for merges predating the "
+                        "claim table, but carries no reviewer authorization."
                     )
             if not ident.get("cluster_complete", True):
                 r.gap(
