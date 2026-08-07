@@ -1,0 +1,388 @@
+# Handoff — read-only query surface (Lane 6)
+
+- **Branch**: `pg/query-surface-parallel-20260806`, forked from `origin/main` @ `de048bb`
+- **Spec**: parallel-slam Prompt 6, "Read-only query library, API/MCP, and explorer".
+  Cross-read against the superseded v0 Prompt 5; where they differ, parallel-slam
+  is canonical per `.docs/lane-numbering-map.html`. The material difference: v0
+  Prompt 5 declared a hard dependency on merged v3 canonical resolution, which
+  has not merged. Prompt 6's resolver-adapter rule is what made this lane
+  executable now.
+- **Status**: draft PR. Not merged. No production database was opened.
+
+## What this closes
+
+**PG-AUDIT-002 / PGRT-004 — accepted identity claims were inert.**
+
+`loaders/ask.py` queried `person` rows directly and never read `identity_claim`
+or `person.merged_into`. A reviewer could accept an identity merge, the review
+queue would report success, and every read path kept returning the duplicate
+rows. Reviewers did the work and the graph ignored them. The estate's other
+identity work (Lane 4, `identity_v3/`) was invisible for the same reason: nothing
+downstream consumed its decisions.
+
+Two further defects in the same file, from the reasoning ledger, had the same
+shape — a failure that presented as a success:
+
+| defect | before | after |
+|---|---|---|
+| identity | `--who Kant` → `bk:kant` and `gh:kant`, split coverage `book:3` / `github:1` | one person, `{book:3, github:1}`, with the decision reported |
+| FTS | `WHERE people.person_search MATCH ?` raised `no such column`, swallowed by a bare `except`, silently degraded to a LIKE scan | unaliased-table MATCH; `execution.search_path` declares which path ran |
+| truncation | `--works` capped at 200, reported `count = len(rows)` | `returned: 200, total_matched: 250, truncated: true` |
+
+## Necessary, and currently latent
+
+PG-BASELINE measured the production database directly and found **`identity_claim`
+holds zero rows** — no proposed, no accepted, no rejected. Two consequences,
+stated plainly so nobody reads more into this PR than it delivers:
+
+- This fix is **necessary but not yet sufficient**. On today's production data it
+  changes nothing visible, because there are no accepted decisions to honour.
+  What it removes is the reason not to produce any: until now, populating
+  `identity_claim` would have been pointless work, since no read path consumed it.
+  The matcher (`loaders/match_identities.py`) and Lane 4's `identity_v3/` now
+  have a consumer.
+- The `person.merged_into` half of the resolver is live regardless: it applies to
+  any merge a build has already written, independent of the claim table.
+
+The fix is demonstrated against fixtures that contain the decisions production
+lacks. That is the correct order — a read path that cannot honour a decision is a
+defect whether or not a decision currently exists — but it does mean the
+production-visible payoff arrives with the first accepted claim, not with this
+merge.
+
+## Architecture
+
+`query_v3/` is the single source of truth. The CLI (`loaders/ask.py`), HTTP API
+(`api/`), MCP server (`mcp/`) and viewer (`viewer/`) are projections that hold no
+SQL of their own — enforced by `test_no_surface_contains_sql`, which fails the
+build if any surface starts talking to the database directly. Four surfaces each
+carrying their own SQL is the original defect with four times the surface area.
+
+```
+query_v3/capability.py   probe what this database can answer; absence is reportable
+query_v3/resolver.py     APPLY decisions already made; never make one
+query_v3/evidence.py     the four provenance grades
+query_v3/response.py     the truth-contract envelope
+query_v3/engine.py       who / works / relationships / path / claims / inventory / source
+```
+
+### The resolver boundary — the thing not to break
+
+`query_v3/resolver.py` contains **no matching logic**: no name comparison, no
+confidence threshold, no heuristic. Deciding whether two rows are the same human
+belongs to Lane 4 (`identity_v3/`, method card `identity-v3.1.0`), which owns the
+thresholds, the registry, and the deny-by-default automatic policy. This module
+reads decisions a reviewer or an audited policy already recorded and applies them
+to reads. If it ever starts deciding, two systems will disagree about who is who
+and neither will be authoritative.
+
+Three adapters, chosen by capability detection:
+
+- **v2** — `person.merged_into` plus `identity_claim` where `status='accepted'`.
+- **v3** — additive decision/cluster tables when present. Written to the
+  documented shape, **unexercised against a real v3 database**, and it says so in
+  its own warnings rather than implying it was verified.
+- **none** — no identity machinery: duplicates are returned and explicitly
+  declared as possible duplicates.
+
+Accepted claims are applied at **read time even when `merged_into` is not yet
+written**. That gap — decided but not yet rebuilt — is precisely the window where
+a reviewer's work disappears. Proposed claims are reported as unresolved
+ambiguity and never applied; rejected claims are never applied.
+
+## Truth contract
+
+Every response carries `schema_version`, `page` (returned / total_matched /
+truncated / counts_are_exact), `identity_resolution` (mode, applied decisions,
+unresolved candidates), `sources` (resolved path, its origin, rights state),
+`capabilities` (including `v3_tables_absent`), `coverage_gaps`, `warnings`, and
+`execution` (which search path ran, elapsed ms).
+
+`total_matched` is a real `COUNT` over the same predicate as the page query,
+never `len(rows)`. No query says "all" without a declared source universe.
+
+Two subtleties worth knowing before you extend this:
+
+- **`who()` pages in source rows, not people.** Identity resolution legitimately
+  reduces row count to people count; counting resolved people against a row total
+  would make a successful merge look like truncation and advise paging for
+  results that do not exist. Both numbers are reported (`page.total_matched` and
+  `result.people_returned`).
+- **An absent table is a capability gap, not an empty answer.** `claims()`
+  against a database with no `claim` table reports a missing capability rather
+  than "this person has no claims".
+
+## Verification
+
+Full offline suite, no network, no production data:
+
+```bash
+PYTHONPATH=. python3 -m unittest discover -s tests/query_v3 -t . -p 'test_*.py'
+# Ran 64 tests — OK   (clean under -W error::ResourceWarning)
+```
+
+`tests/query_v3/test_regression_vs_main.py` is the before/after proof: it
+extracts `loaders/ask.py` as it exists on `origin/main`, runs it against the same
+fixture, asserts the old behaviour **is** the defect, then asserts the new
+behaviour differs in the specific way that matters. A regression test that passes
+both before and after proves nothing, so this one is written to fail loudly if
+either half stops demonstrating the defect.
+
+`tests/query_v3/test_search_path.py` proves **which execution path ran**, not
+merely that a result came back. Both broken MATCH forms are pinned as raising:
+the schema-qualified `people.person_search MATCH ?` (what shipped) and the
+aliased `s MATCH ?` (a plausible fix that is also wrong — verified against
+SQLite, not assumed). The correct operand is the unaliased table name.
+
+Fixtures cover the lane's acceptance list: a multi-source person, a reviewer-
+accepted merge with no `merged_into` yet, an ambiguous common name, an
+organisation, a historical figure with BCE dates, a relationship path, a 250-work
+truncation case, a rejected claim, and a missing database.
+
+`tests/query_v3/test_adversarial.py` covers hostile database states: merge
+cycles, self-merge, dangling claim targets, a 12-long merge chain, SQL
+metacharacters in names, and a corrupt database file.
+
+### A bug this suite caught
+
+The 12-long merge chain test failed on first run. `_canonical()` preferred "a row
+something merged into" ahead of "a row that is not itself merged", so a chain
+`A→B→…→L` elected `bk:chain-1` — a row with `state='merged'` — while the only
+live row was ignored. Liveness is now checked first. Recorded here because the
+same trap is available to anyone extending canonical selection.
+
+## Review status — the review found six defects, and the headline claim was false
+
+An independent cold review of `resolver.py` returned **rethink** with six
+demonstrated defects. All six are fixed; each is now a permanent regression test
+in `tests/query_v3/test_review_findings.py`, verified to fail on the pre-fix
+commit `7957503` and pass after.
+
+The most important one falsified this lane's headline claim. "Accepted identity
+decisions affect reads, **and only accepted ones do**" was **not true as
+originally shipped**: `person.merged_into` was applied without ever consulting
+the claim record, so a pair whose claim was *rejected* stayed merged.
+
+| # | severity | defect | fix |
+|---|---|---|---|
+| 1 | critical | applied merge trusted without checking the claim; rejected pairs stayed merged | **any** non-accepted claim — rejected *or* proposed — now defeats an applied merge, reported as `refused_merges` |
+| 2 | high | expansion followed `merged_into` forward only, so searching the winner omitted rows merged into it — the same person returned different works depending on which name was typed | traversal now goes both directions |
+| 3 | high | the 8-pass expansion cap silently truncated valid clusters | the bound stays (an unbounded walk would traverse the corpus) but a truncated cluster now reports `cluster_complete: false` and a coverage gap |
+| 4 | medium | `from`/`to` echoed the schema's lexical `person_a < person_b` ordering, emitting decisions pointing *from* the live canonical row *to* the merged one | direction is assigned after canonical selection; pair-level decisions inside a transitive cluster say so explicitly |
+| 5 | high | detected `identity_cluster` rows were annotations only — a v3 cluster still returned two people | v3 cluster membership now folds rows into one person, as an accepted v2 claim does |
+| 6 | medium | a malformed `identity_cluster` was swallowed and read as "no clusters" | reported as `UNREADABLE`, with the underlying SQLite error |
+
+**Why the original suite missed all six.** The fixtures only ever built states
+where `merged_into` and `identity_claim` **agreed**. Under that assumption,
+trusting `merged_into` alone is indistinguishable from checking both, and every
+test passes. The review supplied the disagreeing states. The transferable lesson:
+a suite written by the code's own author inherits that author's beliefs about
+which states are possible, and those beliefs are exactly what needs attacking.
+
+Finding 6 deserves a specific note, because it is this lane's own defect class
+reappearing one schema version later: a swallowed `sqlite3.Error` making a
+failure look like a legitimate empty result. Fixing it also exposed an ordering
+bug — `warnings()` was read while building the envelope, before `resolve()` ran,
+so a failure raised *during* resolution never reached the caller. Warnings are
+now re-read after resolving.
+
+Probes run directly (before the review returned), all now permanent tests:
+
+| probe | result |
+|---|---|
+| can a `rejected` claim merge? | no — 2 people returned, as required |
+| can a `proposed` claim merge? | no — 2 people returned |
+| accepted claim whose partner row does **not** match the query text | merged correctly; `_expand()` pulled in the off-screen row and its work surfaced |
+| merge cycle A↔B, self-merge | terminate, one cluster |
+| 12-long merge chain | one person — **this found the `_canonical()` bug** |
+| dangling claim / `merged_into` target | no crash, no invented row |
+| SQL metacharacters in names | bound, table intact |
+| corrupt database file | reported, never a clean empty |
+
+| union-find grouping | matches a reference transitive closure across 300 randomised trials, 0 mismatches |
+| `decisions[].from/to` direction | points at the canonical row (`gh:lovelace → bk:lovelace`), not the schema's stored `person_a < person_b` order |
+
+Every row above is a permanent test, so a regression on any of them fails the
+build. The review confirmed these independently ("union-find roots all unified;
+bound hostile ID preserved person table; cycles/self-merge terminate; canonical
+liveness fix currently present and selected live row. No findings there.").
+
+### The merge-authorization contract, and the one carve-out
+
+The open policy question from the first review round — what to do with an applied
+merge whose claim is only *proposed* — went back to the reviewer and was settled
+in favour of strictness. The contract is now explicit:
+
+> **`identity_claim.status='accepted'` is the authorization.
+> `person.merged_into` is materialized execution state, not an independent
+> decision.**
+
+So a proposed-only claim is a hypothesis that was executed without ever being
+authorized, and it does **not** merge. Merge-and-flag was rejected because it
+still merges a non-accepted decision — finding #1 in a narrower form — and
+quietly restates the contract as "applied merges affect reads unless explicitly
+rejected", which is a weaker guarantee than this lane promises. Reads do not
+pretend the inconsistency is absent: the rows come back separately with the pair
+IDs, the claim status, and an `INCONSISTENT` coverage gap saying the database and
+the decision record disagree.
+
+**One deliberate carve-out: an applied merge with NO claim of any status is
+honoured**, labelled `claim_status: "absent"`, `authority: "legacy_applied_merge"`.
+Merges predate `identity_claim` entirely and production holds **zero** claim rows,
+so refusing every unbacked merge would discard the whole applied merge history
+and make reads contradict the database for no reviewer's benefit. This is the
+"documented legacy policy" exception the reviewer named, kept as narrow as
+possible: it grants historical authority only where no decision record exists at
+all, never where one exists and disagrees.
+
+Precedence is **pair-level**, which is the property that makes this safe: an
+explicit accepted claim authorizes, an explicit proposed/rejected claim blocks,
+and only a total absence of evidence falls through to legacy authority. Every
+future decision record therefore wins over legacy state without disturbing any
+other pair.
+
+**Known limit, accepted and reviewed** — see follow-up debt below. `absent` means
+only "no claim row for this pair", so it cannot distinguish a genuine pre-claim
+merge from a newly written bad one; it is not intrinsically proof of legacy
+provenance. The durable tightening is an explicit **migration cutoff timestamp or
+a legacy allowlist**. It is specifically *not* a "refuse absent once the claim
+table is non-empty" switch — that was considered and rejected on review, because
+the first reviewed pair would invalidate unrelated historical merges and make
+behaviour depend on migration order rather than on the pair's own evidence.
+
+What remains unreviewed is *judgement*, not coverage: whether canonical selection
+is the right policy, and whether the v2/v3/none adapter split is the right seam.
+
+## Safety properties
+
+Read-only throughout: every connection and every attach uses `?mode=ro`. All
+values are bound; no user input is interpolated into SQL. Limits are capped at
+500. The HTTP API serves GET/HEAD only and refuses every mutating verb with an
+explicit 405 stating the API is read-only by design — the stdlib default of 501
+would read as "not implemented yet" rather than a guarantee. There is no write
+endpoint, no arbitrary-SQL endpoint, and no full-corpus payload proxy;
+`test_no_write_or_sql_endpoints_exist` and `test_no_write_tool_is_exposed` hold
+that line for the API and MCP respectively. The viewer escapes every value that
+came from the database.
+
+Machine-specific path guessing is gone. Configuration is explicit
+(`PEOPLE_GRAPH_CONFIG`, `PEOPLE_GRAPH_<DOMAIN>`, `PEOPLE_GRAPH_ROOT`, or
+`--root`/`--people`), with a local-fixture default, and every resolved path plus
+its origin appears in the response — so "why did this machine answer differently"
+is always answerable from the output.
+
+## What is NOT done
+
+- **Legacy-merge provenance needs a real cutoff (tracked debt, reviewed and
+  explicitly not a PR blocker).** `claim_status: "absent"` currently grants
+  legacy authority to any applied merge lacking a claim row, which cannot
+  distinguish a genuine pre-claim-table merge from a newly written bad one. Fix
+  it with a migration cutoff timestamp or an explicit legacy allowlist —
+  **never** with a table-nonempty switch, for the reason recorded above. Until
+  then, every such merge is labelled and carries a coverage gap, so it is
+  visible rather than silent.
+
+- **`--about` and `--contemporaries` are degraded.** Both resolve as name queries
+  and say so in `coverage_gaps`. Namespaced topic vocabularies with explicit
+  crosswalks, and temporal overlap, need the v3 topic/temporal tables. The old
+  `--about` topic/subject search was lost in the rewrite; it is reinstatable
+  against v2 `person_topic` and `books.book_subject` and is the most obvious next
+  task.
+- **`compare` and `timeline` are unimplemented.** Both are in the spec's required
+  capability list. Neither has a v2 substrate worth projecting.
+- **The v3 resolver adapter is unverified.** It matches the documented shape; no
+  v3 database existed to run it against.
+- **Relationships are derived, not asserted.** Co-contribution on a shared
+  `content_ref` is adjacency we computed, labelled `derived_relation`. Typed,
+  temporal, evidenced relations need `person_relation`.
+- **No performance benchmarks against a production-scale database.** The spec
+  asks for them; fixtures are tiny by constraint. The FTS path is now genuinely
+  used, which is the change that matters at 280k rows, but the measurement is
+  owed.
+- **Rights state is undeclared, not clean.** No `source_snapshot` table exists in
+  v2; the response says `undeclared` rather than implying permissiveness.
+
+## Display representative (was "canonical selection")
+
+A cold review found that cluster selection bottomed out in `sorted(members)[0]`.
+Because entity ids carry an origin prefix, that string sort silently encoded
+`bk:` < `crates:` < `gh:` < `yt:` — books always beating GitHub, GitHub always
+beating YouTube. **An origin hierarchy nobody chose, produced by string sort,
+reading as policy.** The 76-test suite passed throughout, which was the problem:
+it proved the behaviour was consistent, not that it was correct.
+
+Three things changed, and the rename is the load-bearing one.
+
+**1. It is a display representative, not a canonical row.** v3's own design says
+entity ids are opaque and identity is a reversible cluster decision. A cluster
+does not need a king; it needs a stable row to render. `Resolution` now exposes
+`display_representative` and the response carries `display_representative` plus
+`representative_selection`. `canonical_id` is retained for callers written
+against the previous shape, but it is no longer the name the code thinks in.
+
+**2. The cluster is the answer.** Each match now carries `cluster`: every member
+with its own evidence, `is_display_representative` marking the rendering choice.
+A caller that disagrees with the choice has what it needs to make its own. A
+member with no `person` row is reported, never dropped.
+
+**3. The rule is explicit and versioned, never emergent.**
+`REPRESENTATIVE_RULE_VERSION = "display-representative-1.0.0"`, applied in order:
+liveness → applied merge winner → most independent strong identifiers → origin
+priority → earliest observation → alphabetical **last resort only**. Every answer
+ships `representative_selection` with the reason and, critically,
+`decided_by_alphabetical_tiebreak`. Every possible rule (most-recent,
+source-authority, most-evidence) is a policy that will be wrong for some person
+and wrong *invisibly*; that is exactly why the reason ships with the answer
+rather than living in a doc.
+
+The origin table is **adopted verbatim from Lane 4's**
+`identity_v3/_clusters.py::_canonical_sort_key`, not reinvented. Two
+independently invented rankings would make `identity_v3` and `query_v3` disagree
+about who a person is — the two-authorities failure this lane exists to prevent.
+It is duplicated rather than imported only because Lane 4 has not merged;
+`test_display_representative.py::TestRankingMatchesLaneFour` asserts the tables
+stay in step. **If Lane 4's table changes, this one must change with it.**
+
+Origin is read from the `person.origin` column, never parsed from the id prefix.
+Reading the prefix is how the alphabetical hierarchy got in the first time.
+
+Worked example — the two rules disagreeing:
+
+    aa:sparse  1 authority id   |  zz:rich  3 authority ids
+    alphabetical picks aa:sparse ......... zz:rich has 3x the evidence
+    display-representative-1.0.0 picks zz:rich, and says why
+
+Eleven tests in `tests/query_v3/test_display_representative.py` cover equal
+strong-id counts, alphabetical-vs-evidence disagreement, a non-Latin
+representative, org-vs-human, and the liveness guard. **Seven of them fail when
+`_representative` is reverted to the old alphabetical rule** — verified by
+patching it back and re-running. A test that passed both ways would guard
+nothing.
+
+**Still a latent issue, not an active one.** `identity_claim` holds zero rows in
+production, so every cluster is currently size 1 and no representative is
+contested today. This is designed for when that stops being true.
+
+## For the integrator
+
+Exclusive paths owned by this lane: `query_v3/**`, `api/**`, `mcp/**`,
+`viewer/**`, `loaders/ask.py`, `tests/query_v3/**`, this file. Nothing outside
+them was touched — no schema, identity, build, or source-adapter path.
+
+`loaders/ask.py` is the only pre-existing file modified. Its CLI flags are
+backward compatible; **its output shape is not** — every response is now wrapped
+in the truth-contract envelope, so `result.matches` replaces top-level `matches`.
+Any caller parsing the old shape needs updating. That break is the point: the old
+shape had nowhere to put identity resolution, truncation, or provenance.
+
+**MERGE NOTE — the output shape moved again, additively.** Each match gained a
+`cluster` array, and `identity` gained `display_representative`,
+`representative_selection`, and `cluster_size`. **No field was removed or
+renamed** — `identity.canonical_id` still resolves to the same row it always did
+for every uncontested cluster, so existing readers keep working. The change is
+that `canonical_id` is now documented as a rendering choice rather than a truth
+claim, and `display_representative` is its accurate name. Callers should migrate
+to the new name; the old one is kept deliberately, not accidentally.
+
+When Lane 3/4 merge, the v3 adapter should be exercised against a real v3
+database and its provisional warning removed.
