@@ -151,6 +151,35 @@ something merged into" ahead of "a row that is not itself merged", so a chain
 live row was ignored. Liveness is now checked first. Recorded here because the
 same trap is available to anyone extending canonical selection.
 
+## Review status — read this before trusting the resolver
+
+An independent cold review of `resolver.py` was dispatched and **never
+returned**. It is not reflected here, so the resolver has not had a second pair
+of eyes. Treat that as an open risk on the most load-bearing file in the lane.
+
+The highest-value probes from that review brief were run directly instead, with
+executed evidence rather than reasoning:
+
+| probe | result |
+|---|---|
+| can a `rejected` claim merge? | no — 2 people returned, as required |
+| can a `proposed` claim merge? | no — 2 people returned |
+| accepted claim whose partner row does **not** match the query text | merged correctly; `_expand()` pulled in the off-screen row and its work surfaced |
+| merge cycle A↔B, self-merge | terminate, one cluster |
+| 12-long merge chain | one person — **this found the `_canonical()` bug** |
+| dangling claim / `merged_into` target | no crash, no invented row |
+| SQL metacharacters in names | bound, table intact |
+| corrupt database file | reported, never a clean empty |
+
+| union-find grouping | matches a reference transitive closure across 300 randomised trials, 0 mismatches |
+| `decisions[].from/to` direction | points at the canonical row (`gh:lovelace → bk:lovelace`), not the schema's stored `person_a < person_b` order |
+
+Every row above is now a permanent test rather than a one-off probe, so a
+regression on any of them fails the build. What remains genuinely unreviewed is
+*judgement*, not coverage: whether the resolver's canonical-selection policy is
+the right policy, and whether the v2/v3/none adapter split is the right seam.
+Those want a second opinion, not another test.
+
 ## Safety properties
 
 Read-only throughout: every connection and every attach uses `?mode=ro`. All
