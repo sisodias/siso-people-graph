@@ -1,0 +1,213 @@
+{
+  "schema": "pg-source-gap-supplement-1",
+  "as_of": "2026-08-06",
+  "scope": "research_only_no_production_ingest",
+  "base_matrix": "sisodias/great-library-of-siso#2:research/people-graph-sources/source-matrix.json",
+  "score_formula": "3*bridge + 3*identity + 2*relationships + 2*provenance + 2*openness + freshness - 2*risk",
+  "rules": [
+    "no_ingest_approval",
+    "explicit_successor_matrix_required",
+    "metadata_not_payload_permission",
+    "no_silent_merges"
+  ],
+  "sources": [
+    {
+      "id": "repo-native-identity",
+      "gap": "missing_source_family",
+      "extends": ["github_api", "pypi", "npm_registry", "crates_io"],
+      "phase": 1,
+      "score": 59,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified",
+      "official": "https://github.com/citation-file-format/citation-file-format"
+    },
+    {
+      "id": "datacite-zenodo",
+      "gap": "missing_source_family",
+      "extends": ["crossref", "github_api", "openalex"],
+      "phase": 2,
+      "score": 58,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified",
+      "official": "https://support.datacite.org/docs/datacite-public-data-file"
+    },
+    {
+      "id": "openaire",
+      "gap": "missing_source_family",
+      "extends": ["openalex", "crossref", "nih_reporter_exporter"],
+      "phase": 3,
+      "score": 52,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified_with_bulk_license_review",
+      "official": "https://graph.openaire.eu/docs/11.1.1/apis/graph-api/"
+    },
+    {
+      "id": "arxiv",
+      "gap": "missing_direct_source",
+      "extends": ["openalex", "crossref"],
+      "phase": 2,
+      "score": 52,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified",
+      "official": "https://info.arxiv.org/help/api/index.html"
+    },
+    {
+      "id": "pyvideo",
+      "gap": "missing_structured_dataset",
+      "extends": ["conference_schedules", "youtube_api"],
+      "phase": 3,
+      "score": 56,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified",
+      "official": "https://github.com/pyvideo/data"
+    },
+    {
+      "id": "ietf-datatracker",
+      "gap": "missing_governance_source",
+      "extends": ["conference_schedules"],
+      "phase": 3,
+      "score": 56,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified",
+      "official": "https://datatracker.ietf.org/"
+    },
+    {
+      "id": "standards-repositories",
+      "gap": "missing_governance_source",
+      "extends": ["github_api"],
+      "phase": 3,
+      "score": 55,
+      "tier": "S",
+      "decision": "prioritise",
+      "verification": "verified",
+      "official": "https://github.com/python/peps"
+    },
+    {
+      "id": "public-inbox",
+      "gap": "missing_discourse_source",
+      "extends": ["github_api", "stack_exchange"],
+      "phase": 5,
+      "score": 43,
+      "tier": "A",
+      "decision": "later_after_privacy_and_identity",
+      "verification": "verified",
+      "official": "https://www.kernel.org/doc/projects/korg/lore.html"
+    },
+    {
+      "id": "world-of-code",
+      "gap": "missing_research_benchmark",
+      "extends": ["github_api", "gh_archive", "software_heritage"],
+      "phase": 5,
+      "score": 40,
+      "tier": "A",
+      "decision": "research_benchmark_not_truth",
+      "verification": "verified_with_access_review",
+      "official": "https://worldofcode.org/"
+    },
+    {
+      "id": "papers-with-code",
+      "gap": "missing_historical_bridge",
+      "extends": ["openalex", "github_api", "huggingface_hub"],
+      "phase": 3,
+      "score": 45,
+      "tier": "A",
+      "decision": "historical_seed",
+      "verification": "verified_historical",
+      "official": "https://github.com/paperswithcode/paperswithcode-data"
+    },
+    {
+      "id": "cordis-projects",
+      "gap": "missing_funding_source",
+      "extends": ["nih_reporter_exporter", "openaire"],
+      "phase": 5,
+      "score": 53,
+      "tier": "S",
+      "decision": "after_openaire",
+      "verification": "candidate_access_review",
+      "official": "https://cordis.europa.eu/"
+    },
+    {
+      "id": "snac",
+      "gap": "missing_historical_relationship_source",
+      "extends": ["loc_authorities", "viaf", "wikidata"],
+      "phase": 6,
+      "score": 50,
+      "tier": "S",
+      "decision": "historical_phase",
+      "verification": "candidate_access_review",
+      "official": "https://portal.snaccooperative.org/"
+    },
+    {
+      "id": "musicbrainz",
+      "gap": "optional_scope_expansion",
+      "extends": [],
+      "phase": 6,
+      "score": 55,
+      "tier": "S",
+      "decision": "optional_scope_expansion",
+      "verification": "verified",
+      "official": "https://musicbrainz.org/doc/MusicBrainz_Database/Download"
+    },
+    {
+      "id": "common-crawl",
+      "gap": "missing_last_resort_discovery",
+      "extends": ["schema_org_sameas"],
+      "phase": 6,
+      "score": 33,
+      "tier": "B",
+      "decision": "last_resort_discovery",
+      "verification": "verified",
+      "official": "https://commoncrawl.org/"
+    },
+    {
+      "id": "semantic-scholar",
+      "gap": "missing_comparison_source",
+      "extends": ["openalex", "dblp", "opencitations"],
+      "phase": 4,
+      "score": 44,
+      "tier": "A",
+      "decision": "evaluate_for_incremental_value",
+      "verification": "candidate_terms_review",
+      "official": "https://www.semanticscholar.org/product/api"
+    },
+    {
+      "id": "internet-archive",
+      "gap": "missing_payload_locator_source",
+      "extends": ["open_library"],
+      "phase": 4,
+      "score": 36,
+      "tier": "B",
+      "decision": "targeted_only",
+      "verification": "verified",
+      "official": "https://archive.org/developers/"
+    },
+    {
+      "id": "crossref-event-data",
+      "gap": "missing_attention_source",
+      "extends": ["crossref"],
+      "phase": 6,
+      "score": 32,
+      "tier": "B",
+      "decision": "evaluate_later",
+      "verification": "candidate_current_state_review",
+      "official": "https://www.crossref.org/services/event-data/"
+    },
+    {
+      "id": "fosdem-ccc",
+      "gap": "specific_event_archive_extension",
+      "extends": ["conference_schedules", "youtube_api"],
+      "phase": 4,
+      "score": 47,
+      "tier": "A",
+      "decision": "prioritise",
+      "verification": "candidate_license_review",
+      "official": "https://fosdem.org/2026/schedule/xml"
+    }
+  ]
+}
