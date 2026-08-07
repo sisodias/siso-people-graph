@@ -1,0 +1,30 @@
+{
+  "id": "TASK-0004",
+  "title": "Decide the fate of Lane 12: finish it or close it",
+  "status": "backlog",
+  "priority": "medium",
+  "domain": "lifecycle",
+  "category": "gap",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "Branch pg/claims-temporal-relations-20260806 declared claims/**, projections/**, tests/claims/** and docs/reasoning/** and shipped 165 lines consisting of 2 GitHub Actions files only.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [],
+  "spec": {
+    "description": "Lane 12 under-delivered, shipping CI configuration instead of the claims and projections surface it declared. This is a DECISION task, not an implementation task.",
+    "context": "Either commission the declared work against the surviving parallel-slam Prompt 12 spec, or close the lane explicitly and record that the claims and temporal surface is unbuilt, so nothing downstream assumes it exists. Note the numbering trap: v0 Prompt 12 is a different thing entirely (the adversarial release gate) - see .docs/lane-numbering-map.html.",
+    "acceptance_criteria": [
+      "A written decision either commissioning or closing the lane",
+      "If closed, the gap is recorded so no downstream work assumes a claims surface exists"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

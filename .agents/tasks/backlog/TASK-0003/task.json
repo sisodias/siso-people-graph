@@ -1,0 +1,34 @@
+{
+  "id": "TASK-0003",
+  "title": "Merge the nine draft PRs in dependency order",
+  "status": "backlog",
+  "priority": "high",
+  "domain": "lifecycle",
+  "category": "infrastructure",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "Zero exact file-path conflicts verified across PRs #1-#8; only shared directory is docs/handoffs/ where each lane writes a differently-named file.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [
+    "TASK-0001",
+    "TASK-0002"
+  ],
+  "spec": {
+    "description": "Nine draft PRs are open; none has ever been merged. Suggested order: #8 integration contract, then #1 red-team (tests and docs only, zero production code), then #4 identity, then #3 v3 schema as an ADDITIVE parallel schema only.",
+    "context": "BLOCKING GATE from the program's own handoff-registry.md, merge consideration #3: 'Require all thirteen draft handoffs before selecting a production schema or database migration.' Two handoffs do not exist (Lanes 5 and 6), so a production schema CANNOT be selected. This does not block merging the additive parallel schema, the red-team suite, or docs-only lanes. Executable verifier tools/verify_audit_findings.py exists on branch agent/first-principles-audit-2026-08-06 and re-checks every finding: run it after each merge.",
+    "acceptance_criteria": [
+      "Each merge preceded by running that branch's own test suite",
+      "No production schema or migration selected while handoffs are missing",
+      "verify_audit_findings.py run after each merge to confirm which defects still reproduce"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

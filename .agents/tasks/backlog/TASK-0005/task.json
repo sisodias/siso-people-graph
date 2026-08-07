@@ -1,0 +1,31 @@
+{
+  "id": "TASK-0005",
+  "title": "Re-count the published person figures and commit the query as a receipt",
+  "status": "backlog",
+  "priority": "high",
+  "domain": "data",
+  "category": "research",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "The value 339217 appears in NO file on ANY branch of sisodias/siso-people-graph. Amended in the Great Library at commit fad12f1, registry/works/siso-people-graph.json, verified flag set false.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [],
+  "spec": {
+    "description": "Published counts (person=339,217, person_person=1,272,495, organisation=1,131) survive only as a prose summary. No query log, receipt or reproducible artifact backs them.",
+    "context": "Neither independent audit could re-count them. Red team: 'No production SQLite assets were opened. Dataset-wide counts and collision rates are therefore not claimed.' First-principles audit: 'Published row counts are therefore treated as repository claims, not independently re-counted observations', because its connector 'did not expose arbitrary SQL execution against the published 688 MB graph release asset'. Separately PGRT-002/003/009/016 establish person rows are not defensible as DISTINCT-HUMAN counts under name fusion, 0.98 attribute auto-accept and CJK label collapse to a comma. Row count and distinct-human count are different claims and must be reported separately.",
+    "acceptance_criteria": [
+      "The counting query is committed as a re-runnable receipt",
+      "Row counts and the distinct-human question are reported separately",
+      "The Great Library Work record moves from repository-asserted to verified ONLY if the re-count succeeds"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}
