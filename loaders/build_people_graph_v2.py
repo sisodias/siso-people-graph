@@ -212,8 +212,12 @@ def build(v1_db, people_db, books_db, out_db, observed_at=None,
             """INSERT OR REPLACE INTO build_run
                (run_id,started_at,finished_at,builder,schema_version,notes)
                VALUES (?,?,?,?,?,?)""",
-            (run_id, now, time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-             LOADER_VERSION, "people_schema_v2", ""),
+            # finished_at follows `now` when the caller pinned a timestamp.
+            # Using wall-clock here regardless would make build_run differ
+            # between two otherwise-identical pinned builds -- harmless for the
+            # logical digest, which excludes this table, but it needlessly
+            # destroys byte-comparability of the run record itself.
+            (run_id, now, now, LOADER_VERSION, "people_schema_v2", ""),
         )
 
     g.commit()

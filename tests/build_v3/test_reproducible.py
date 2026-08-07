@@ -109,6 +109,82 @@ class TestDigest(unittest.TestCase):
             res = build.build_fixture(pathlib.Path(td) / "a")
             self.assertNotIn("build_run", digest.logical_digest(res["graph"])["tables"])
 
+    def test_every_canonical_table_is_covered(self):
+        """Regression test for a digest FALSE PASS found in review.
+
+        _is_fts_shadow matched on suffix alone, so `person_content` -- the
+        graph's central edge table -- was stripped to `person`, found to exist,
+        and silently classified as an FTS shadow. It was therefore absent from
+        the digest entirely: two builds differing in EVERY content edge would
+        have produced identical digests, which is precisely the failure the
+        digest exists to catch.
+
+        This test pins the covered set explicitly. Adding a canonical table
+        without adding it here is a deliberate act, not an accident.
+        """
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            covered = set(digest.covered_tables(res["graph"]))
+            must_cover = {
+                "person", "person_content", "person_topic", "external_ids",
+                "identity_claim", "person_observation", "person_projection",
+            }
+            missing = must_cover - covered
+            self.assertEqual(
+                missing, set(),
+                f"canonical tables missing from the digest: {sorted(missing)}. "
+                "A digest that skips a table certifies less than it appears to.")
+
+    def test_a_changed_content_edge_changes_the_digest(self):
+        """The direct proof that the false pass is closed.
+
+        Mutating one person_content row must move the digest. Under the old
+        suffix rule it did not.
+        """
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            before = digest.logical_digest(res["graph"])["overall"]
+            c = sqlite3.connect(res["graph"])
+            try:
+                c.execute("UPDATE person_content SET score = score + 1 "
+                          "WHERE content_ref = 'quietcrafter/serde-ish'")
+                self.assertEqual(c.total_changes, 1, "fixture row not found")
+                c.commit()
+            finally:
+                c.close()
+            self.assertNotEqual(
+                before, digest.logical_digest(res["graph"])["overall"],
+                "a changed content edge did not change the digest")
+
+    def test_fts_shadows_are_still_excluded(self):
+        """The fix must not over-correct into including the shadows."""
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            covered = set(digest.covered_tables(res["graph"]))
+            for shadow in ("person_search_data", "person_search_idx",
+                           "person_search_docsize", "person_search_config"):
+                self.assertNotIn(shadow, covered,
+                                 f"{shadow} is an FTS shadow and must be excluded")
+            # ...while the virtual table itself remains covered.
+            self.assertIn("person_search", covered)
+
+    def test_pinned_build_run_is_deterministic(self):
+        """finished_at used wall-clock even when the caller pinned a timestamp."""
+        with tempfile.TemporaryDirectory() as td:
+            a = build.build_fixture(pathlib.Path(td) / "a", run_id="same")
+            b = build.build_fixture(pathlib.Path(td) / "b", run_id="same")
+            def run_rows(p):
+                c = sqlite3.connect(p)
+                try:
+                    return c.execute(
+                        "SELECT run_id, started_at, finished_at, builder, "
+                        "schema_version FROM build_run").fetchall()
+                finally:
+                    c.close()
+            self.assertEqual(
+                run_rows(a["graph"]), run_rows(b["graph"]),
+                "build_run differs between two pinned builds with the same run id")
+
 
 class TestManifests(unittest.TestCase):
     def test_manifest_round_trips(self):

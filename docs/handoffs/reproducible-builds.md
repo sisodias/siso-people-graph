@@ -145,10 +145,14 @@ rank rather than being ordered arbitrarily.
 Measured, two clean builds in separate directories with distinct run ids:
 
 ```
-logical digest A = 65a70a5a22b731a169e4b1626cb3e252598d488946248deac5704abfbfe6f192
-logical digest B = 65a70a5a22b731a169e4b1626cb3e252598d488946248deac5704abfbfe6f192
+logical digest A = 0da88aa245ef295906b47f3526dd9fa6a61139fd9bcd7cd68da46e0a3d9b9883
+logical digest B = 0da88aa245ef295906b47f3526dd9fa6a61139fd9bcd7cd68da46e0a3d9b9883
 counts_equal     = true          differing_tables = []
-byte_identical   = FALSE         (size 180224 both; sha256 differs)
+byte_identical   = FALSE         (sha256 differs)
+
+covered tables   = person, person_content, person_topic, external_ids,
+                   identity_claim, person_observation, person_projection,
+                   person_search        (69 rows total)
 ```
 
 The byte result is reported rather than assumed, per the spec's "measure binary
@@ -162,6 +166,30 @@ The logical digest covers every canonical table, rows sorted by full tuple,
 values rendered through one explicit typed rule, with `build_run` and FTS shadow
 tables excluded and each exclusion justified in `build_v3/digest.py`.
 
+### A false pass found in review, and fixed
+
+The first version of this digest **silently excluded `person_content`** — the
+graph's central edge table, 13 rows in the fixture and ~564,000 in production.
+`_is_fts_shadow` matched on suffix alone: `person_content` ends in `_content`,
+stripping that leaves `person`, `person` exists, so the real table was
+classified as an FTS5 shadow and dropped.
+
+The consequence is the worst kind: **two builds differing in every single
+content edge would have produced identical digests.** The check designed to
+catch silent divergence was itself silently blind, and the earlier
+reproducibility claim in this document was correspondingly weaker than it read.
+
+The rule now asks SQLite which virtual tables were actually declared, and a
+shadow is only recognised as a shadow of a *declared* FTS table. Three tests
+pin it: the covered set is asserted explicitly, mutating one `person_content`
+row must move the digest, and the FTS shadows must still be excluded. Verified
+that the covered-set assertion fails under the old rule, so it is a real
+regression guard rather than decoration.
+
+Recorded here rather than quietly corrected, because a digest is a trust
+instrument: the interesting fact is not that it is right now, but that it was
+confidently wrong in a way nothing else would have caught.
+
 ### Remaining non-reproducible inputs — stated explicitly
 
 1. **Real source snapshots are not content-addressed yet.** Manifests record a
@@ -171,6 +199,33 @@ tables excluded and each exclusion justified in `build_v3/digest.py`.
 2. **`enrich_owners.py` is out of this lane's scope** and calls the GitHub API.
    Any build including it is network-dependent and therefore not reproducible.
    It is not part of the fixture build.
+
+   **It also needs a follow-up this lane could not make, and a reviewer should
+   not miss it.** That loader both *writes* `rank_score` (line 163) and *reads*
+   it to choose which owners to enrich:
+
+   ```sql
+   ORDER BY COALESCE(p.rank_score, 0) DESC   -- line 85
+   ```
+
+   with the comment "rank_score holds summed stars for github-origin". Since
+   this lane's loaders no longer populate that column, on a freshly built graph
+   that ORDER BY degrades to a constant and the enrichment priority becomes
+   arbitrary rather than star-ordered. Nothing breaks and nothing is corrupted —
+   but the loader silently stops prioritising what it claims to prioritise.
+
+   The fix is one line, replacing the read with the equivalent observation:
+
+   ```sql
+   LEFT JOIN person_observation o
+     ON o.person_id = p.person_id AND o.metric = 'github_stars_sum'
+   ORDER BY COALESCE(o.value, 0) DESC
+   ```
+
+   It is **not applied here**: `enrich_owners.py` is outside this lane's
+   exclusive paths (C2), and editing another lane's file to make my own change
+   look complete is exactly the coordination failure the path-ownership design
+   exists to prevent. Flagged for whoever owns that loader.
 3. **Only the fixture path is one-command.** `build_v3/build.py` accepts
    `--fixture` only. A full production build still needs the operator to supply
    four source databases and the documented command below; it was not run here
@@ -269,7 +324,8 @@ quantities, and it carries no `person_observation`, `person_projection` or
 | Validator catches orphan edge / rank regression / duplicate identity | all fail as designed |
 | Digest sensitivity | a changed value changes the digest |
 | Tracked data assets | none |
-| Test suite | 35 tests, all passing |
+| Digest covers every canonical table | asserted explicitly; a changed `person_content` row moves the digest |
+| Test suite | 39 tests, all passing |
 
 ## What a reviewer should challenge first
 

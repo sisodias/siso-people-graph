@@ -53,12 +53,43 @@ FTS_SHADOW_SUFFIXES = (
 )
 
 
-def _is_fts_shadow(name, all_tables):
-    for suffix in FTS_SHADOW_SUFFIXES:
-        if name.endswith(suffix):
-            base = name[: -len(suffix)]
-            if base in all_tables:
-                return True
+def _fts_base_tables(conn):
+    """The FTS5 virtual tables actually declared in this database.
+
+    Ask SQLite rather than guessing from names. Suffix-matching alone is
+    dangerously wrong: `person_content` is a REAL table -- the graph's central
+    edge table -- but stripping the `_content` suffix leaves `person`, which
+    also exists, so a name-only rule classified 564k edges as an FTS shadow and
+    silently dropped them from the digest. Two builds differing in every content
+    edge would then have produced identical digests: a false pass in exactly the
+    check that is supposed to catch that.
+
+    A shadow table only exists if a virtual table declared it, so the virtual
+    table list is the authority.
+    """
+    bases = set()
+    for name, sql in conn.execute(
+        "SELECT name, sql FROM sqlite_master WHERE type='table'"
+    ):
+        if sql and "VIRTUAL TABLE" in sql.upper():
+            bases.add(name)
+    # sqlite_master lists fts5 virtual tables with type='table' and a CREATE
+    # VIRTUAL TABLE sql; belt-and-braces, also consult the documented list.
+    for row in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND "
+        "sql LIKE '%fts5%' COLLATE NOCASE"
+    ):
+        bases.add(row[0])
+    return bases
+
+
+def _is_fts_shadow(name, fts_bases):
+    """True only when `name` is a shadow of a DECLARED virtual table."""
+    for base in fts_bases:
+        if not name.startswith(base + "_"):
+            continue
+        if name[len(base):] in FTS_SHADOW_SUFFIXES:
+            return True
     return False
 
 
@@ -92,16 +123,31 @@ def _table_names(conn):
         "WHERE type IN ('table') ORDER BY name"
     ).fetchall()
     names = {r[0] for r in rows}
+    fts_bases = _fts_base_tables(conn)
     keep = []
     for name in sorted(names):
         if name in EXCLUDED_TABLES:
             continue
         if name.startswith("sqlite_"):
             continue
-        if _is_fts_shadow(name, names):
+        if _is_fts_shadow(name, fts_bases):
             continue
         keep.append(name)
     return keep
+
+
+def covered_tables(db_path):
+    """Which tables a digest of this database would actually cover.
+
+    Exposed deliberately. An exclusion is a claim that a table's contents may
+    legitimately vary, and a silent exclusion is how a digest comes to certify
+    less than a reader believes. Tests assert against this.
+    """
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    try:
+        return _table_names(conn)
+    finally:
+        conn.close()
 
 
 def _column_names(conn, table):
