@@ -27,10 +27,18 @@ Usage:
 """
 import argparse
 import json
+import os
 import sqlite3
 import sys
 import time
 from collections import defaultdict
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from build_v3 import paths  # noqa: E402,F401
+
+LOADER_VERSION = "load_owner_topics/2"
+SOURCE_NAME = "repo_card"
+VALUE_SOURCE = "repo_category"
 
 # Topics too generic to carry signal. Tagging someone "javascript" says little;
 # tagging them "compilers" says a lot. Kept short deliberately -- over-filtering
@@ -43,9 +51,11 @@ NOISE = {
 }
 
 
-def load(identity_db, graph_db, min_stars, apply_changes):
+def load(identity_db, graph_db, min_stars, apply_changes,
+         observed_at=None, snapshot=None, prune_stale=True):
     src = sqlite3.connect(f"file:{identity_db}?mode=ro", uri=True)
     g = sqlite3.connect(graph_db)
+    now = observed_at or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     # Which logins are actually in the graph -- no point computing topics for
     # owners we never loaded.
@@ -95,13 +105,18 @@ def load(identity_db, graph_db, min_stars, apply_changes):
     except sqlite3.Error:
         pass  # repo_category absent on some machines; topics still work
 
+    # Sorting is (-count, name), not -count alone. With ties broken only by
+    # dict insertion order, the top-25 cut could select a DIFFERENT set of
+    # equally-frequent topics depending on the order rows came back from the
+    # source -- two builds of the same snapshot would then disagree. The name
+    # is the tiebreak that makes the cut deterministic.
     rows = []
-    for login, ts in topics.items():
-        for t, n in sorted(ts.items(), key=lambda kv: -kv[1])[:25]:
-            rows.append((f"gh:{login}", t, "github_topic", float(n), "repo_card"))
-    for login, ls in langs.items():
-        for l, n in sorted(ls.items(), key=lambda kv: -kv[1])[:8]:
-            rows.append((f"gh:{login}", l, "github_lang", float(n), "repo_card"))
+    for login in sorted(topics):
+        for t, n in sorted(topics[login].items(), key=lambda kv: (-kv[1], kv[0]))[:25]:
+            rows.append((f"gh:{login}", t, "github_topic", float(n), SOURCE_NAME))
+    for login in sorted(langs):
+        for l, n in sorted(langs[login].items(), key=lambda kv: (-kv[1], kv[0]))[:8]:
+            rows.append((f"gh:{login}", l, "github_lang", float(n), SOURCE_NAME))
 
     summary = {
         "owners_in_graph": len(known),
@@ -118,20 +133,69 @@ def load(identity_db, graph_db, min_stars, apply_changes):
         for pid, in g.execute("SELECT person_id FROM person WHERE person_id LIKE 'gh:%'"):
             real[pid.lower()] = pid
         fixed = [(real.get(r[0].lower(), r[0]),) + r[1:] for r in rows]
+
+        # Stale-topic pruning, scoped to the topic schemes and source this
+        # loader owns. A repo that lost a GitHub topic between snapshots must
+        # lose the corresponding edge; otherwise person_topic accumulates every
+        # tag the owner ever carried. lcsh edges belong to the books loader and
+        # are never touched here.
+        pruned = 0
+        if prune_stale:
+            current = {(r[0], r[1], r[2]) for r in fixed}
+            existing = g.execute(
+                "SELECT person_id, topic, scheme FROM person_topic "
+                "WHERE source=? AND scheme IN ('github_topic','github_lang')",
+                (SOURCE_NAME,),
+            ).fetchall()
+            stale = [r for r in existing if tuple(r) not in current]
+            if stale:
+                g.executemany(
+                    "DELETE FROM person_topic WHERE person_id=? AND topic=? "
+                    "AND scheme=? AND source=?",
+                    [(a, b, c, SOURCE_NAME) for a, b, c in stale],
+                )
+                pruned = len(stale)
+
+        # REPLACE, not IGNORE: a changed weight must update rather than be
+        # skipped, or the first snapshot's counts are frozen forever.
         g.executemany(
-            "INSERT OR IGNORE INTO person_topic "
+            "INSERT OR REPLACE INTO person_topic "
             "(person_id,topic,scheme,weight,source) VALUES (?,?,?,?,?)",
             fixed,
         )
-        for login, v in value.items():
+
+        # THE ADDITIVE RANK BUG, removed.
+        #
+        # This loader previously ran:
+        #     UPDATE person SET rank_score = COALESCE(rank_score,0) + ?
+        # so a second run over the same unchanged source DOUBLED every owner's
+        # contribution, a third tripled it, and the graph's ranking depended on
+        # how many times the loader had been executed rather than on what the
+        # source said. That single line is why reruns were non-idempotent.
+        #
+        # It also blended a 0-100 model rating into a column already holding
+        # summed stars and book counts -- three incompatible units summed
+        # together. A mean rating is a measurement, so it is stored as one,
+        # keyed by (person_id, metric, source) so a rerun REPLACES it.
+        obs = []
+        for login, v in sorted(value.items()):
             pid = real.get(f"gh:{login}", f"gh:{login}")
             if v["rated"]:
-                g.execute(
-                    "UPDATE person SET rank_score = COALESCE(rank_score,0) + ? "
-                    "WHERE person_id = ?",
-                    (v["sum"] / v["rated"], pid),
-                )
+                obs.append((pid, "rated_overall_mean", v["sum"] / v["rated"],
+                            "rating_0_100", VALUE_SOURCE, snapshot, now))
+                obs.append((pid, "rated_reuse_mean", v["reuse"] / v["rated"],
+                            "rating_0_100", VALUE_SOURCE, snapshot, now))
+                obs.append((pid, "rated_repo_count", float(v["rated"]),
+                            "repos", VALUE_SOURCE, snapshot, now))
+        g.executemany(
+            """INSERT OR REPLACE INTO person_observation
+               (person_id,metric,value,unit,source,snapshot,observed_at)
+               VALUES (?,?,?,?,?,?,?)""",
+            obs,
+        )
         g.commit()
+        summary["pruned_stale_topics"] = pruned
+        summary["observations"] = len(obs)
         summary["person_topic_total"] = g.execute(
             "SELECT COUNT(*) FROM person_topic"
         ).fetchone()[0]
@@ -147,9 +211,16 @@ def main():
     ap.add_argument("--graph", required=True)
     ap.add_argument("--min-stars", type=int, default=100)
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--observed-at",
+                    help="fixed ISO8601 timestamp for reproducible builds")
+    ap.add_argument("--snapshot", help="source snapshot id, tied to the manifest")
+    ap.add_argument("--no-prune", action="store_true",
+                    help="keep topic edges the current snapshot no longer supports")
     a = ap.parse_args()
     t = time.time()
-    s = load(a.identity, a.graph, a.min_stars, a.apply)
+    s = load(a.identity, a.graph, a.min_stars, a.apply,
+             observed_at=a.observed_at, snapshot=a.snapshot,
+             prune_stale=not a.no_prune)
     s["elapsed_s"] = round(time.time() - t, 2)
     print(json.dumps(s, indent=2))
     return 0

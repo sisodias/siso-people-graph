@@ -4,3 +4,8 @@
 *.sqlite
 *.sqlite-*
 *.gz
+
+# Build outputs. The fixture build writes here; nothing in it belongs in git.
+build-out/
+__pycache__/
+*.pyc
