@@ -7,7 +7,7 @@ import sqlite3
 from typing import Mapping
 
 from ._base import METHOD_VERSION, stable_id, stable_json, utc_now
-from .registry import is_auto_resolvable, name_parts, normalize_name, rule_for, years_compatible
+from .registry import is_auto_resolvable, is_sentinel_value, name_parts, normalize_name, rule_for, years_compatible
 
 class CandidateMixin:
 
@@ -72,6 +72,10 @@ class CandidateMixin:
                 if not is_auto_resolvable(scheme):
                     continue
                 for value in values:
+                    # A sentinel encodes "no account", so every row carrying it
+                    # would otherwise appear to share one unique identifier.
+                    if is_sentinel_value(scheme, value):
+                        continue
                     by_identifier[scheme, value].append(entity_id)
         for (scheme, value), entities in sorted(by_identifier.items()):
             unique_entities = sorted(set(entities))

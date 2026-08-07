@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Identity resolution run — first contact with the real graph (2026-08-08)</title>
+<style>
+  :root { --fg:#1a1a1a; --mut:#666; --line:#ddd; --bad:#b3261e; --ok:#1b5e20; --warn:#8a6100; --bg:#fff; --code:#f6f6f4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e8e8e8; --mut:#9a9a9a; --line:#333; --bad:#f2b8b5; --ok:#a5d6a7; --warn:#e0c068; --bg:#121212; --code:#1c1c1c; }
+  }
+  body { max-width:60rem; margin:0 auto; padding:2rem 1.25rem 6rem; background:var(--bg); color:var(--fg);
+         font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+  h1 { font-size:1.9rem; line-height:1.2; margin:0 0 .25rem; }
+  h2 { font-size:1.3rem; margin:2.75rem 0 .75rem; padding-bottom:.3rem; border-bottom:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin:1.75rem 0 .5rem; }
+  .sub { color:var(--mut); margin:0 0 2rem; }
+  code, pre { background:var(--code); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.86em; }
+  code { padding:.1em .35em; border-radius:3px; }
+  pre { padding:.8rem 1rem; border-radius:6px; overflow-x:auto; border:1px solid var(--line); }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  .bad { color:var(--bad); font-weight:600; }
+  .ok { color:var(--ok); font-weight:600; }
+  .warn { color:var(--warn); font-weight:600; }
+  .box { border:1px solid var(--line); border-left:4px solid var(--mut); padding:.85rem 1rem; margin:1.25rem 0; border-radius:0 6px 6px 0; }
+  .box.red { border-left-color:var(--bad); }
+  .box.green { border-left-color:var(--ok); }
+  .box.amber { border-left-color:var(--warn); }
+  footer { margin-top:4rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--mut); font-size:.88rem; }
+</style>
+</head>
+<body>
+
+<h1>Identity resolution — first contact with the real graph</h1>
+<p class="sub">People Graph v2 · run 2026-08-08 by PG-IDENTITY-RUN · asset SHA-256 <code>9938237a…d9b919b</code> · repo base <code>88858bc</code></p>
+
+<div class="box red">
+<strong>Headline.</strong> The identity engine had never been run on real data. Running it found that
+<strong>every one of the 159 auto-accept candidates in the shipped graph is a false positive</strong>, and applying
+the documented automatic policy <strong>fuses 18 distinct named humans into a single person</strong>. Measured
+auto-accept precision on production data is <span class="bad">0.000</span>, against the method card's
+synthetic-fixture claim of 1.000. The cause is a sentinel value — <code>github_id=0</code> meaning
+"no GitHub account" — being treated as a unique identifier. A guard is included in this branch;
+after it, auto-eligible candidates go 159 → 0 and the engine is safe to run.
+</div>
+
+<h2>1. What was run, and against what</h2>
+
+<p>The published release asset was downloaded and both digests confirmed against the GQ-010 baseline
+before anything else, so these numbers are comparable to that document by construction.</p>
+
+<pre>gh release download graph-v2 -R sisodias/siso-people-graph -p 'people_graph_v2.sqlite.gz'
+shasum -a 256 people_graph_v2.sqlite.gz
+  → 85a0f1e4f44ae4b5843be919bee236146b8fe73bb3bf67928f6a1507be557a3c   (matches baseline)
+shasum -a 256 people_graph_v2.sqlite
+  → 9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b   (matches baseline)</pre>
+
+<p>Baseline counts were re-derived rather than assumed, and all four match:
+<code>person=339,217</code>, <code>identity_claim=0</code>, <code>external_ids=442,499</code>,
+<code>person_content=901,524</code>; kind split <code>unknown=294,241 / human=37,647 / organisation=7,329</code>.</p>
+
+<p class="warn"><strong>Write discipline.</strong> The published asset was opened read-only
+(<code>mode=ro</code> / <code>immutable=1</code>) and never written. Identity tables live in a separate
+run database. Nothing under <code>~/foundry-data</code> was touched.</p>
+
+<h2>2. Candidate generation across the whole graph — new information</h2>
+
+<p>Generation over all 339,217 entities completes in <strong>5.8 seconds</strong> and yields
+<strong>29,366 candidates</strong>. Nobody in the estate had this number before.</p>
+
+<table>
+<tr><th>Method</th><th>Candidates</th><th>Confidence</th><th>Auto-eligible</th><th>Hand-measured precision</th></tr>
+<tr><td><code>exact_name</code></td><td>14,864</td><td>0.49–0.52</td><td>No</td><td class="bad">2/9 = 0.222 (human↔human cross-origin stratum, reviewed in full)</td></tr>
+<tr><td><code>surname_initial</code></td><td>14,501</td><td>0.35</td><td>No</td><td class="bad">0/20 = 0.000</td></tr>
+<tr><td><code>name_plus_years</code></td><td>1</td><td>0.86</td><td>No</td><td class="bad">0/1 = 0.000</td></tr>
+<tr><td><code>shared_external_id</code></td><td>159 <em>(before guard)</em></td><td>0.995</td><td class="bad">Yes</td><td class="bad">0/159 = 0.000</td></tr>
+</table>
+
+<p>Conflict reasons across all candidates: <code>[]</code> 16,432 · <code>conflicting_github_id</code> 12,834 ·
+<code>human_organisation_conflict</code> 64 · <code>life_date_conflict</code> 36.</p>
+
+<h2>3. The defect: absence encoded as identity</h2>
+
+<p>The automatic path is <code>shared_external_id</code> only, so the entire auto-accept surface of this
+graph is whatever values are shared under an auto-eligible scheme. Measured, that surface is
+<strong>two values, both sentinels</strong>:</p>
+
+<pre>sqlite3 DB "SELECT value, COUNT(DISTINCT person_id) np FROM external_ids
+            WHERE platform='github_id' GROUP BY value HAVING np>1;"
+→ 0  | 18      → C(18,2) = 153 pairs
+→ -1 | 4       → C(4,2)  =   6 pairs
+                            ───────────
+                             159 pairs   ← 100% of auto-eligible candidates</pre>
+
+<p>These are crates.io-derived rows for authors with no linked GitHub account; the loader wrote
+<code>0</code> or <code>-1</code> rather than NULL. The people are unrelated:</p>
+
+<pre>gh:ghost_283  Jony              gh:ghost_2943  Richard Protasov
+gh:ghost_71   Aaron Weiss       gh:ghost_2944  Huo Linhe
+gh:ghost_192  Allen Goodman     gh:ghost_3311  Austin Hellyer
+gh:ghost_1518 David Begin       gh:ghost_3767  Mohammad Aliyan
+gh:ghost_2172 Vladislav Orlov   gh:ghost_4125  James Anthony Bruno
+gh:ghost_2581 Yohaï Berreby     …18 in total</pre>
+
+<div class="box red">
+<strong>All five auto-accept conditions pass for these pairs.</strong> The method is
+<code>shared_external_id</code> (1); <code>github_id</code> is registered unique and eligible (2); the rows are
+all <code>kind='unknown'</code> so no human/organisation flag fires, they carry no life dates so no date
+conflict fires, and they share no <em>other</em> unique scheme so no identifier conflict fires (3); joining
+them introduces no second value for a unique scheme, <em>because they all carry the same one</em> (4); and
+no prior rejection exists (5). The gate is working exactly as designed and specified. The specification
+is what is wrong.
+</div>
+
+<h3>Demonstrated, not argued</h3>
+
+<p>The unguarded policy was applied to a throwaway copy. After 72 accepts:</p>
+
+<pre>canonical_entity_id | members
+gh:ghost_1185       |   18     ← 18 distinct humans, one "person"
+gh:ghost_1356       |    4</pre>
+
+<p>This is GQ-010 falsifier <strong>F2</strong> ("auto-accept precision below 99.5%, or silent merges")
+firing on real data on first contact, and it is exactly the disaster the README warns about
+("two humans named John Murray would fuse into one"). The baseline noted that safety was
+"accidental — it holds because the matcher never ran". Running it confirms that reading.</p>
+
+<h2>4. Reversibility holds — the design's best feature</h2>
+
+<p>Undo was proven against the damaged database before any fix was written:</p>
+
+<pre>BEFORE undo: multi-member clusters = {'gh:ghost_1185': 18, 'gh:ghost_1356': 4}
+active decisions: 72
+undone: 72
+AFTER undo:  multi-member clusters = {}
+remaining active decisions: 0
+source entities intact: 339217</pre>
+
+<p class="ok">Undo restored the prior state exactly and deleted no source rows. Cluster membership is
+recomputed from active decisions and each accept writes a new immutable generation, so every merge in
+this system is reversible in practice, not just in principle. This is the reason a 0.000-precision
+defect is recoverable rather than fatal.</p>
+
+<h2>5. The fix</h2>
+
+<p>A sentinel is a value that is syntactically valid for its scheme but encodes <em>absence</em>. The guard
+lives in <code>registry.py</code>, beside the rest of identifier policy, and blocks at two points:</p>
+
+<ul>
+<li><strong>Generation</strong> — a sentinel value never enters the shared-identifier index, so no
+auto-eligible candidate is ever minted from one.</li>
+<li><strong>Acceptance</strong> — defence in depth: a candidate minted <em>before</em> this guard existed
+still cannot auto-accept, so stored candidates from an earlier run stay safe.</li>
+</ul>
+
+<p>Covered: <code>github_id ≤ 0</code> and non-numeric, <code>github_node_id=0</code>, all-zero ORCID,
+<code>Q0</code>, and the text sentinels <code>none/null/nil/n-a/unknown/ghost/deleted/deleted-user/anonymous/placeholder</code>.</p>
+
+<table>
+<tr><th>Measure</th><th>Before guard</th><th>After guard</th></tr>
+<tr><td>Auto-eligible candidates (real graph)</td><td class="bad">159</td><td class="ok">0</td></tr>
+<tr><td>Auto-accept precision (real graph)</td><td class="bad">0.000</td><td class="ok">undefined — nothing auto-accepts</td></tr>
+<tr><td>Legitimate <code>conflicting_github_id</code> blocks</td><td>12,834</td><td class="ok">12,834 (unchanged)</td></tr>
+<tr><td>Total candidates</td><td>29,524</td><td>29,366</td></tr>
+<tr><td>Synthetic fixture precision</td><td>1.000</td><td class="ok">1.000 (no regression)</td></tr>
+<tr><td>Tests passing</td><td>15</td><td class="ok">33</td></tr>
+</table>
+
+<p>The 18 new tests include a reproduction of the exact production failure (three distinct humans sharing
+<code>github_id=0</code> must yield zero auto candidates) and its inverse (two rows sharing a <em>real</em>
+GitHub id must still yield one), so the guard cannot silently over-block.</p>
+
+<div class="box amber">
+<strong>The honest consequence.</strong> With the guard in place this graph has <strong>zero safe
+auto-accept candidates</strong>. That is the correct outcome, not a disappointing one: the auto path
+requires shared authority identifiers, and the graph holds only 806 ORCIDs, 805 Wikidata QIDs and 35
+YouTube channel ids — none of them shared between two rows. Automatic identity resolution here is
+blocked by <em>source coverage</em>, not by algorithm quality. Adding real authority identifiers is what
+unlocks it.
+</div>
+
+<h2>6. What was accepted, and what was not</h2>
+
+<p>The human↔human cross-origin <code>exact_name</code> stratum is exactly 9 candidates, so it was reviewed
+in full rather than sampled. Two were accepted, both with independent corroboration, both by a named
+reviewer with <code>automatic=False</code>:</p>
+
+<table>
+<tr><th>Pair</th><th>Verdict</th><th>Evidence</th></tr>
+<tr><td><code>andrew-ng</code> ↔ <code>gh:andrewyng</code></td><td class="ok">ACCEPT</td>
+<td>Registry row carries <code>x_handle=@AndrewYNg</code>; GitHub row carries <code>github_login=andrewyng</code>,
+<code>real_name='Andrew Ng'</code>, <code>website=andrewng.org</code>. The handle and login are the same string.</td></tr>
+<tr><td><code>gh:rauchg</code> ↔ <code>guillermo-rauch</code></td><td class="ok">ACCEPT</td>
+<td><strong>Both rows independently carry the same X handle</strong> (<code>rauchg</code> / <code>@rauchg</code>);
+GitHub row carries <code>real_name='Guillermo Rauch'</code>. Distinctive full name.</td></tr>
+<tr><td><code>bk:gildas|516-570</code> ↔ <code>gh:gildas-lormeau</code></td><td class="bad">REJECT</td>
+<td>A 6th-century Brittonic monk and a modern developer. Mononym collision across 1,400 years; the GitHub
+row has no dates, so the date check passes <em>vacuously</em>. Method-card blind spot 4 ("missing dates are
+not proof of sameness") firing verbatim.</td></tr>
+<tr><td><code>bk:baron, david</code> ↔ three GitHub "David"s</td><td class="bad">REJECT ×3</td>
+<td>Comma-format book name split to surname "Baron", given "David", colliding with bare first-name
+crates.io rows.</td></tr>
+<tr><td><code>bk:dirk, jan</code> ↔ <code>gh:dirkjanm</code>, <code>bk:cameron, mrs</code> ↔ <code>gh:cameron314</code>, <code>gh:rsms</code> ↔ <code>yt:rasmus</code></td><td class="bad">REJECT ×3</td>
+<td>Mononym or surname artifacts; plausible but uncorroborated.</td></tr>
+</table>
+
+<h3>The most instructive rejection</h3>
+
+<p>The single <code>name_plus_years</code> candidate — the highest-confidence review item in the entire
+graph at 0.86 — is <strong>wrong</strong>:</p>
+
+<pre>bk:kernahan, coulson, mrs|1857-1941   "Kernahan, Coulson, Mrs."   1857–1941
+bk:kernahan, coulson|1858-1943        "Kernahan, Coulson"         1858–1943</pre>
+
+<p>Dates fall inside the ±2 tolerance and the comparison keys are identical — because
+<code>normalize_name</code> strips <code>Mrs.</code> as a noise token. These are <em>spouses</em>: the novelist
+Coulson Kernahan and his wife, who published as "Mrs. Coulson Kernahan". They hold separate authorship
+(1 work vs 5). <strong>248 book rows carry an honorific</strong>, so this failure mode has a real
+population. Stripping honorifics before comparison makes married couples collide — the gate correctly
+refuses to auto-accept it, but it ranks first in the review queue.</p>
+
+<h2>7. What genuinely works</h2>
+
+<ul>
+<li><strong>The conflict guard is effective.</strong> 12,834 same-name crates pairs are correctly blocked
+by <code>conflicting_github_id</code>. Where people have <em>real</em> distinct GitHub ids the guard catches
+them — the precise inverse of the sentinel bug.</li>
+<li><strong>The human/organisation guard works.</strong> 64 pairs blocked, e.g. "Street, Julian" vs
+"Jane Street", "Lang, T. B." vs "triton-lang".</li>
+<li><strong>Deny-by-default holds.</strong> 303,683 <code>github_login</code> and 68,324 <code>crates_io</code>
+values were correctly quarantined as aliases/unregistered and never drove a candidate.</li>
+<li><strong>Reversibility is real</strong> (§4).</li>
+</ul>
+
+<h2>8. Effect on the GQ-010 baseline — honest answer</h2>
+
+<table>
+<tr><th>Criterion</th><th>Baseline</th><th>After this run</th></tr>
+<tr><td>D4 "Is this person the same as that account?"</td><td class="bad">Structurally unanswerable</td>
+<td class="warn">Answerable for 2 people. <code>resolve('gh:andrewyng')</code> now redirects to canonical
+<code>andrew-ng</code> with a cited decision and an undo path.</td></tr>
+<tr><td>2. Resolution quality (≥99.5% precision)</td><td class="bad">Unmeasurable</td>
+<td class="ok"><strong>Now measured</strong> — and that is the real gain. Auto 0.000 pre-guard;
+undefined post-guard; review-only 2/9, 0/20, 0/1 by method.</td></tr>
+<tr><td>F2 falsifier</td><td>Not triggered</td><td class="bad">TRIGGERED, then fixed</td></tr>
+<tr><td>Criteria met</td><td>0 of 6</td><td>0 of 6</td></tr>
+</table>
+
+<p><strong>Nothing else moves.</strong> Two accepted decisions out of 339,217 people does not change
+breadth, research depth, rights, or reproducibility. Anyone hoping this run would light up the estate
+should read the number plainly: <strong>2</strong>. What actually changed is that criterion 2 went from
+<em>unmeasurable</em> to <em>measured</em>, and a defect that would have silently corrupted the graph was
+caught before it ever ran in production.</p>
+
+<h2>9. What I did not do, and why</h2>
+
+<ul>
+<li><strong>Did not bulk-accept.</strong> Constraint C6 fired: measured precision (0.000) is below the
+method card's claim (1.000). Post-guard there is nothing left to auto-accept anyway.</li>
+<li><strong>Did not accept any name-only candidate without corroboration.</strong> 7 of the 9 reviewed
+were rejected. <code>surname_initial</code> (14,501 candidates, 0/20 precision) should be considered for
+removal or demotion — it is the largest method by volume and produced no true positive.</li>
+<li><strong>Did not retry the github↔book stitch.</strong> Packet says structurally dead; the run
+confirms it — zero book candidates survived review, and all 9 book-origin pairs reviewed were artifacts.</li>
+<li><strong>Did not touch PR#23/#24, and did not merge.</strong> Branch
+<code>pg/identity-run-20260808</code>, draft PR only.</li>
+<li><strong>Did not write to the published asset</strong> or to <code>~/foundry-data</code>.</li>
+</ul>
+
+<h3>Known limits of this run</h3>
+<ul>
+<li>Precision figures are from strata I reviewed by hand (9 + 20 + 1 + 159 pairs), not a
+probability-weighted sample of all 29,366. The <code>exact_name</code> figure covers the cross-origin
+human↔human stratum specifically; the 12,834 crates↔crates same-name pairs are blocked by conflict and
+were not individually reviewed.</li>
+<li>Non-Latin script coverage was inspected but is thin — the graph's non-Latin rows are almost entirely
+book-origin, which stitches with nothing, so script handling is largely untested by this corpus.</li>
+<li>Each accept writes a full generation (339,217 membership rows, ~48 MB). Correct for undo, but
+<strong>this will not scale</strong> to thousands of decisions — 72 accepts grew the database from
+258 MB to 3.7 GB. A production run needs batched acceptance with one generation per batch.</li>
+</ul>
+
+<h2>10. Recommended next steps</h2>
+<ol>
+<li><strong>Merge the sentinel guard before anything else runs the engine.</strong> It is the only thing
+standing between this graph and an 18-person false merge.</li>
+<li><strong>Fix the loader</strong> so absent GitHub accounts write NULL, not <code>0</code>/<code>-1</code>,
+and audit other loaders for the same pattern.</li>
+<li><strong>Batch acceptance</strong> — one generation per batch, not per decision.</li>
+<li><strong>Demote or remove <code>surname_initial</code></strong> pending evidence it produces any true
+positive.</li>
+<li><strong>Stop stripping honorifics</strong> before name comparison, or treat an honorific difference as
+negative evidence (248 affected rows).</li>
+<li><strong>Add authority identifiers</strong> (ORCID/VIAF/Wikidata) to more rows — that, not algorithm
+work, is what unblocks automatic resolution here.</li>
+</ol>
+
+<footer>
+Run by PG-IDENTITY-RUN, 2026-08-08. Asset pinned at SHA-256
+<code>9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b</code>; branch base
+<code>88858bc</code>. The published release asset was never opened writable and no repository was merged.
+All figures re-derived from the shipped database; commands are inline above.
+</footer>
+
+</body>
+</html>

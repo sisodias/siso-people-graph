@@ -8,6 +8,7 @@ import sqlite3
 from typing import Mapping, Sequence
 
 from ._base import IdentityError, METHOD_VERSION, UnionFind, stable_id, stable_json, utc_now
+from .registry import is_sentinel_value
 
 class ClusterMixin:
 
@@ -49,6 +50,18 @@ class ClusterMixin:
         candidate = self._candidate_row(row)
         if automatic and (not candidate['auto_eligible']):
             raise IdentityError('candidate is review-only; automatic acceptance is forbidden')
+        if automatic:
+            # Defence in depth: a candidate generated before the sentinel guard
+            # existed must still never auto-accept on an absence value.
+            for item in candidate['positive_evidence']:
+                if not isinstance(item, dict):
+                    continue
+                scheme, value = item.get('scheme'), item.get('value')
+                if scheme and is_sentinel_value(str(scheme), str(value)):
+                    raise IdentityError(
+                        f'sentinel identifier {scheme}={value!r} encodes absence, '
+                        'not identity; automatic acceptance is forbidden'
+                    )
         if candidate['conflict_reasons'] and (not allow_conflicts):
             raise IdentityError(f"candidate has conflicts: {candidate['conflict_reasons']}")
         prospective = self._prospective_members(row['entity_a'], row['entity_b'])

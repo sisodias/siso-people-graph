@@ -111,6 +111,45 @@ def is_auto_resolvable(scheme: str) -> bool:
     )
 
 
+# Values that are syntactically valid for their scheme but encode "absent",
+# "deleted", or "unknown" rather than one account. Measured on the shipped
+# graph-v2 asset: 58,509 crates.io-derived rows carry github_id=0 or -1 as a
+# "no GitHub account" sentinel, which made 18 distinct humans share one
+# "unique" identifier. Treating absence as an identity is the failure mode
+# METHOD_CARD lists as blind spot 2 ("identifier reuse"), so it is blocked
+# here, at the policy layer, rather than in any one caller.
+_NUMERIC_SENTINELS = {"0", "-1", "-99", "99999999"}
+_TEXT_SENTINELS = {
+    "none", "null", "nil", "n/a", "na", "unknown", "undefined", "ghost",
+    "deleted", "deleted-user", "anonymous", "unclaimed", "placeholder",
+}
+
+
+def is_sentinel_value(scheme: str, normalized_value: str) -> bool:
+    """True when a normalized identifier encodes absence rather than identity."""
+    text = (normalized_value or "").strip()
+    if not text:
+        return True
+    folded = text.casefold()
+    if folded in _TEXT_SENTINELS:
+        return True
+    key = (scheme or "").strip().casefold()
+    if key in {"github_id", "github_node_id"} and text in _NUMERIC_SENTINELS:
+        return True
+    # A purely numeric account id of 0 or negative is never a real account.
+    if key == "github_id":
+        try:
+            if int(text) <= 0:
+                return True
+        except ValueError:
+            pass
+    if key == "orcid" and set(text) <= {"0", "-", "X"}:
+        return True
+    if key == "wikidata" and folded in {"q0", "q"}:
+        return True
+    return False
+
+
 def normalize_identifier(scheme: str, value: object) -> str:
     """Normalize source identifiers without turning names into identifiers."""
     text = unicodedata.normalize("NFKC", str(value or "")).strip()
