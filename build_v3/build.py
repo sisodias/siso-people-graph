@@ -106,6 +106,16 @@ def build_fixture(out_dir, observed_at=FIXTURE_OBSERVED_AT, run_id=None):
         "--snapshot", fixtures_mod.FIXTURE_SNAPSHOT,
     ], "load_owner_topics")
 
+    # The crates load must run AFTER load_owners: person_person has FK
+    # references into person, and a dependency edge can only be written once
+    # both owners exist as rows.
+    steps["load_crates"] = _run([
+        sys.executable, str(repo / "loaders" / "load_crates_into_people_graph.py"),
+        "--crates", fx["crates"], "--graph", str(graph),
+        "--apply", "--observed-at", observed_at,
+        "--snapshot", fixtures_mod.FIXTURE_SNAPSHOT,
+    ], "load_crates_into_people_graph")
+
     steps["projections"] = project_mod.compute_all(
         str(graph), computed_at=observed_at, apply_changes=True)
 
@@ -125,6 +135,12 @@ def build_fixture(out_dir, observed_at=FIXTURE_OBSERVED_AT, run_id=None):
          [manifest_mod.RowContract("repo_card", 1, None, ["full_name", "topics_json"])]),
         ("repo_category", fx["identity"],
          [manifest_mod.RowContract("repo_category", 1, None, ["full_name", "overall_value"])]),
+        ("crates_io", fx["crates"],
+         [manifest_mod.RowContract("crate", 1, None, ["name", "owner_login"])]),
+        ("crates_io_dependencies", fx["crates"],
+         [manifest_mod.RowContract("crate_dependency", 1, None, ["crate", "depends_on"])]),
+        ("crates_io_teams", fx["crates"],
+         [manifest_mod.RowContract("crate_team", 1, None, ["team_login", "crate"])]),
     ):
         m = manifest_mod.SourceManifest(
             source_id=source_id,

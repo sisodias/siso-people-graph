@@ -190,6 +190,40 @@ Recorded here rather than quietly corrected, because a digest is a trust
 instrument: the interesting fact is not that it is right now, but that it was
 confidently wrong in a way nothing else would have caught.
 
+### A second, larger false pass: the build was reproducing an incomplete graph
+
+The `person_content` bug above was a digest that covered less than it claimed.
+This one is the same shape one level up, and it was bigger.
+
+`EXPECTED_TABLES` in `build_v3/validate.py` listed **eight** tables. The shipped
+`graph-v2` asset contains **twelve**. The four missing ones —
+`person_person` (1,272,495 rows), `organisation_content` (13,533),
+`organisation` (1,131) and `person_organisation` (0) — appeared in **no tracked
+file on any branch**, because the crates.io loader that created and populated
+them was never committed. Full account:
+[`schema-divergence.md`](schema-divergence.md).
+
+The consequence, stated plainly: **the build validated a graph missing four
+shipped tables and 1,287,159 rows, and reported `pass`.** Two clean builds then
+agreed with each other — not because the build was correct, but because both
+were incomplete in exactly the same way. The acceptance criterion was being met
+over a subset nobody had declared.
+
+Note what was *not* at fault. `digest.covered_tables()` enumerates tables
+dynamically and would have digested all four had they been built. The blindness
+was entirely in the hand-maintained expectation. That is the generalisable
+lesson: **a hand-written list of what should exist drifts from what does exist,
+and nothing catches it.** `stage_shipped_coverage` now parses the schema file
+and cross-checks `EXPECTED_TABLES` against it in both directions, so the list is
+verified against reality rather than trusted. It earned its keep immediately —
+on its first run it caught `person_search` missing from the list, an omission
+made while writing the fix itself.
+
+Verified by breaking it, not by reading it: removing `person_person` from
+`EXPECTED_TABLES` produces 4 test failures; skipping the crates load so the
+table exists but is empty produces 1; removing the table from the schema
+produces 22 errors. All reverted, suite green at 44/44.
+
 ### Remaining non-reproducible inputs — stated explicitly
 
 1. **Real source snapshots are not content-addressed yet.** Manifests record a

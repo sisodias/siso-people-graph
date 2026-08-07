@@ -128,6 +128,13 @@ class TestDigest(unittest.TestCase):
             must_cover = {
                 "person", "person_content", "person_topic", "external_ids",
                 "identity_claim", "person_observation", "person_projection",
+                # Added 2026-08-08. These four shipped in the graph-v2 release
+                # with 1,287,159 rows between them while appearing in no
+                # tracked schema, so the build validated a graph missing them
+                # and two equally-incomplete builds agreed. See
+                # docs/handoffs/schema-divergence.md.
+                "person_person", "organisation", "organisation_content",
+                "person_organisation",
             }
             missing = must_cover - covered
             self.assertEqual(
@@ -155,6 +162,130 @@ class TestDigest(unittest.TestCase):
             self.assertNotEqual(
                 before, digest.logical_digest(res["graph"])["overall"],
                 "a changed content edge did not change the digest")
+
+    def test_dropping_a_shipped_table_is_detected(self):
+        """The drop-detection guard, proven by actually dropping tables.
+
+        C4's rule: a test that cannot fail guards nothing. The previous
+        coverage test asserted a hardcoded set against itself, so it would have
+        passed just as happily on a graph with no person_person at all -- which
+        is exactly the state that shipped.
+
+        This test therefore performs the failure rather than describing it. For
+        each shipped table it drops the table from a real built graph and
+        asserts the covered set notices. If the guard ever stops working, this
+        stops failing, and that is visible.
+        """
+        shipped = ("person_person", "organisation", "organisation_content",
+                   "person_organisation", "person_content", "person_topic")
+        with tempfile.TemporaryDirectory() as td:
+            for i, table in enumerate(shipped):
+                res = build.build_fixture(pathlib.Path(td) / f"drop{i}")
+                covered_before = set(digest.covered_tables(res["graph"]))
+                self.assertIn(table, covered_before,
+                              f"{table} must be covered before it is dropped, "
+                              "or this test proves nothing")
+                c = sqlite3.connect(res["graph"])
+                try:
+                    c.execute(f"DROP TABLE {table}")
+                    c.commit()
+                finally:
+                    c.close()
+                covered_after = set(digest.covered_tables(res["graph"]))
+                self.assertNotIn(
+                    table, covered_after,
+                    f"dropping {table} did not change the covered set: the "
+                    "drop-detection guard is not guarding anything")
+
+    def test_dropping_a_shipped_table_fails_validation(self):
+        """A dropped shipped table must FAIL the build, not merely be absent.
+
+        Coverage noticing a drop is necessary but not sufficient -- the
+        original defect was a build that reported `pass` while incomplete. The
+        gate must turn the observation into a failure.
+        """
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            self.assertEqual(res["validation_status"], "pass",
+                             "baseline build must pass before we break it")
+            c = sqlite3.connect(res["graph"])
+            try:
+                c.execute("DROP TABLE person_person")
+                c.commit()
+            finally:
+                c.close()
+            report = validate.validate(res["graph"],
+                                       str(pathlib.Path(res["out_dir"]) / "manifests"))
+            self.assertEqual(
+                report["status"], "fail",
+                "a graph missing person_person must FAIL validation. This is "
+                "the exact state the shipped build reported as passing.")
+            self.assertIn("schema", report["failed_stages"])
+            missing = next(s for s in report["stages"]
+                           if s["stage"] == "schema")["missing_tables"]
+            self.assertIn("person_person", missing)
+
+    def test_expected_tables_matches_the_tracked_schema(self):
+        """The list-vs-reality cross-check, which is what actually drifted.
+
+        EXPECTED_TABLES was hand-maintained and fell four tables behind the
+        shipped graph with nothing to catch it. stage_shipped_coverage compares
+        it against the schema file in both directions; this test asserts that
+        comparison is clean, so adding a table to one and not the other breaks
+        the build immediately instead of silently narrowing what is certified.
+        """
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            report = validate.validate(res["graph"])
+            stage = next(s for s in report["stages"]
+                         if s["stage"] == "shipped_coverage")
+            self.assertEqual(stage["undeclared_but_expected"], [],
+                             "EXPECTED_TABLES names a table the schema never creates")
+            self.assertEqual(stage["declared_but_unexpected"], [],
+                             "the schema creates a table nothing requires -- "
+                             "exactly how person_person went missing")
+            self.assertEqual(stage["status"], "pass")
+
+    def test_person_person_semantics_are_recorded_not_inherited(self):
+        """person_person must carry package-dependency semantics, not social.
+
+        The registry cited this table as a relational layer and the release
+        title calls the rows "person-to-person edges". Measured against the
+        shipped asset every row is relation='depends_on',
+        source='crates_io_dependencies', confidence=0.95 flat -- crates.io
+        package dependencies projected onto owners.
+
+        This test pins that, so a future loader cannot quietly start writing
+        social edges into the same table and inherit the old overclaim.
+        """
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            c = sqlite3.connect(res["graph"])
+            try:
+                rows = c.execute(
+                    "SELECT relation, source, confidence FROM person_person"
+                ).fetchall()
+            finally:
+                c.close()
+            self.assertTrue(rows, "person_person built empty: the fixture no "
+                                  "longer exercises the table it is meant to cover")
+            for relation, source, confidence in rows:
+                self.assertEqual(relation, "depends_on")
+                self.assertEqual(source, "crates_io_dependencies")
+                self.assertEqual(confidence, 0.95)
+
+    def test_no_self_edges_in_person_person(self):
+        """CHECK (person_a <> person_b) must hold: an owner depending on their
+        own crate is common, and the fixture includes that case."""
+        with tempfile.TemporaryDirectory() as td:
+            res = build.build_fixture(pathlib.Path(td) / "a")
+            c = sqlite3.connect(res["graph"])
+            try:
+                n = c.execute("SELECT COUNT(*) FROM person_person "
+                              "WHERE person_a = person_b").fetchone()[0]
+            finally:
+                c.close()
+            self.assertEqual(n, 0, "self-edges violate the schema CHECK")
 
     def test_fts_shadows_are_still_excluded(self):
         """The fix must not over-correct into including the shadows."""

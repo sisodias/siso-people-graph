@@ -113,6 +113,62 @@ GH_CATEGORIES = [
 ]
 
 
+# --- crates.io: packages, owners, teams and DEPENDENCIES ---------------------
+# This fixture exists because the production graph's four largest undeclared
+# tables all came from a crates.io load whose loader was never committed (see
+# docs/handoffs/schema-divergence.md). Without it those tables build empty, and
+# a digest over empty tables certifies nothing -- the same false-pass shape as
+# the original defect, one level down.
+#
+# The dependency edges deliberately encode the semantic trap. quietcrafter's
+# serde-ish is depended on by BOTH megacorp packages, so the projection onto
+# owners produces person_person edges between people who have no relationship
+# whatsoever. That is exactly what the 1,272,495 production rows are, and the
+# fixture makes it visible instead of letting "person_person" read as social.
+CRATES_PACKAGES = [
+    # name, owner_login, owner_kind, downloads
+    ("serde-ish", "quietcrafter", "user", 90000000),
+    ("macro-ish", "quietcrafter", "user", 45000000),
+    ("bigthing-rs", "megacorp-labs", "team", 1200000),
+    ("otherthing-rs", "megacorp-labs", "team", 800000),
+    ("perl-bridge", "dtolnay-like", "user", 5000),
+]
+CRATES_DEPENDENCIES = [
+    # crate, depends_on_crate
+    ("bigthing-rs", "serde-ish"),
+    ("bigthing-rs", "macro-ish"),
+    ("otherthing-rs", "serde-ish"),
+    ("perl-bridge", "serde-ish"),
+    # A self-referential pair must NOT produce an edge: person_person carries
+    # CHECK (person_a <> person_b), so an owner depending on their own crate is
+    # the boundary case that would violate it.
+    ("macro-ish", "serde-ish"),
+]
+CRATES_TEAMS = [
+    # team login, display name, crate it publishes
+    ("megacorp-labs", "MegaCorp Labs", "bigthing-rs"),
+    ("megacorp-labs", "MegaCorp Labs", "otherthing-rs"),
+]
+
+
+def write_crates(path):
+    """Synthetic crates.io snapshot: packages, ownership, teams, dependencies."""
+    if pathlib.Path(path).exists():
+        pathlib.Path(path).unlink()
+    c = sqlite3.connect(path)
+    _w(c, """CREATE TABLE crate (name TEXT PRIMARY KEY, owner_login TEXT,
+             owner_kind TEXT, downloads INTEGER)""")
+    _w(c, """CREATE TABLE crate_dependency (crate TEXT, depends_on TEXT)""")
+    _w(c, """CREATE TABLE crate_team (team_login TEXT, team_name TEXT,
+             crate TEXT)""")
+    _w(c, "INSERT INTO crate VALUES (?,?,?,?)", CRATES_PACKAGES)
+    _w(c, "INSERT INTO crate_dependency VALUES (?,?)", CRATES_DEPENDENCIES)
+    _w(c, "INSERT INTO crate_team VALUES (?,?,?)", CRATES_TEAMS)
+    c.commit()
+    c.close()
+    return path
+
+
 def _w(conn, sql, rows=None):
     if rows is None:
         conn.execute(sql)
@@ -190,6 +246,7 @@ def write_all(directory):
         "books_people": str(write_books_people(d / "fixture_bkpeople.sqlite")),
         "books": str(write_books(d / "fixture_books.sqlite")),
         "identity": str(write_identity(d / "fixture_identity.sqlite")),
+        "crates": str(write_crates(d / "fixture_crates.sqlite")),
     }
 
 
