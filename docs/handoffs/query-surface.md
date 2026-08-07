@@ -29,6 +29,27 @@ shape — a failure that presented as a success:
 | FTS | `WHERE people.person_search MATCH ?` raised `no such column`, swallowed by a bare `except`, silently degraded to a LIKE scan | unaliased-table MATCH; `execution.search_path` declares which path ran |
 | truncation | `--works` capped at 200, reported `count = len(rows)` | `returned: 200, total_matched: 250, truncated: true` |
 
+## Necessary, and currently latent
+
+PG-BASELINE measured the production database directly and found **`identity_claim`
+holds zero rows** — no proposed, no accepted, no rejected. Two consequences,
+stated plainly so nobody reads more into this PR than it delivers:
+
+- This fix is **necessary but not yet sufficient**. On today's production data it
+  changes nothing visible, because there are no accepted decisions to honour.
+  What it removes is the reason not to produce any: until now, populating
+  `identity_claim` would have been pointless work, since no read path consumed it.
+  The matcher (`loaders/match_identities.py`) and Lane 4's `identity_v3/` now
+  have a consumer.
+- The `person.merged_into` half of the resolver is live regardless: it applies to
+  any merge a build has already written, independent of the claim table.
+
+The fix is demonstrated against fixtures that contain the decisions production
+lacks. That is the correct order — a read path that cannot honour a decision is a
+defect whether or not a decision currently exists — but it does mean the
+production-visible payoff arrives with the first accepted claim, not with this
+merge.
+
 ## Architecture
 
 `query_v3/` is the single source of truth. The CLI (`loaders/ask.py`), HTTP API
