@@ -1,0 +1,53 @@
+Prompt 2 — People Graph forensic red-team and executable failure fixtures
+
+You are the forensic red-team agent for sisodias/siso-people-graph. You are running simultaneously with the architecture, identity, build, query, source, and reasoning agents. Do not wait for any of them and do not modify their code.
+
+REPOSITORIES
+- Read/write: sisodias/siso-people-graph
+- Read-only context: sisodias/siso-book-library, sisodias/great-library-of-siso
+- Oracle is out of scope.
+
+BRANCH
+`pg/red-team-fixtures-20260806`
+
+EXCLUSIVE PATH OWNERSHIP
+- `tests/red_team/**`
+- `docs/audits/**`
+- `docs/handoffs/red-team.md`
+- one lane-local test runner under `tests/red_team/run.py`
+Do not edit schema, loaders, query code, README, or root configuration. Use Python stdlib tooling if necessary to remain isolated.
+
+PARALLEL RULE
+Base all findings on current `main`. Inspect open PRs for awareness only. Do not rely on their code. A finding must be reproducible against current main with a tiny local fixture.
+
+MISSION
+Turn the dangerous assumptions in the current People Graph into executable fixtures and a severity-ranked audit. Diagnose only; do not fix production behavior.
+
+REQUIRED TESTS
+Create tiny offline SQLite/JSON fixtures that demonstrate or falsify:
+1. Whether `build_people_graph_v2.py` finds its schema from a clean checkout.
+2. Whether the builder silently merges unrelated people on normalized name.
+3. Whether `shared_external_id` can treat company, location, real name, or another non-unique attribute as near-certain identity evidence.
+4. Whether accepted identity claims affect canonical query results or remain inert.
+5. Whether each loader is idempotent across two runs: no repeated rank additions, duplicate claims, stale edges, or unrelated-field mutation.
+6. Whether topics/enrichment work for a canonical entity whose ID is not `gh:*` or whose origin is not `github`.
+7. Unicode/non-Latin name preservation and collision behavior.
+8. Whether aliases/raw variants reach FTS search.
+9. GitHub account rename and repository-transfer behavior when stable numeric IDs exist.
+10. Ambiguous common names, shared employers, shared locations, organisations with human-looking names, and pseudonyms.
+11. Whether `rank_score` currently mixes incompatible units.
+12. Whether the current `v_contemporaries` assumptions create implausible results for unknown death years.
+13. Whether query inventory and missing-domain behavior can mislead a caller.
+14. Cross-repo assumptions from the Book Library export that can corrupt People Graph attribution or roles.
+
+DELIVERABLES
+- Offline test suite with explicit pass, expected-failure, and invariant labels.
+- `docs/audits/people-graph-v2-red-team-2026-08-06.md` containing stable finding IDs, severity, file/function, reproduction, violated invariant, blast radius, and suggested owning lane.
+- `docs/audits/people-graph-v2-findings.json` with the same stable IDs.
+- No speculative claim without exact source evidence or a fixture.
+
+ACCEPTANCE
+- Tests run from a clean checkout with no database asset and no network.
+- Preserve expected failures honestly rather than weakening assertions to make CI green.
+- Commit, push, and open a draft PR titled `Test: codify current People Graph failure modes`.
+- Final response: branch, commits, PR, command, counts, P0/P1 findings, and what must block bulk ingestion.

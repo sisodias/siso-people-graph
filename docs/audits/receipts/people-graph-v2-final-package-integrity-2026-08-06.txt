@@ -1,0 +1,17 @@
+# People Graph v2 final provenance package integrity receipt
+# command: python3 tests/red_team/verify_final_package.py --run
+# baseline: sisodias/siso-people-graph@de048bb3b34bf931b56fd741cb46c1334acdfb98
+# archive: docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt.gz
+
+PASS lossless assignment archive and exact Prompt 2 verified
+PASS runner exposes 22 unique executable cases
+PASS 16 findings, P0/P1 counts, and blocker set verified
+PASS 14 requirements map exactly to 22 cases and 16 findings
+PASS machine-readable Prompt 2 contract verified
+PASS source-to-decision ledger covers all findings
+PASS normalized receipt and three positive controls verified
+PASS all 9 local production sources match baseline Git blobs
+PASS cross-repository Book export seam is pinned
+PASS narrative, worklog, and handoff coverage verified
+PASS live 22-case non-volatile evidence replay matches receipt
+SUMMARY ok=true checks=11 errors=0

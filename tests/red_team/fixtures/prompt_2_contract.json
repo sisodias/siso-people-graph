@@ -1,0 +1,297 @@
+{
+  "acceptance": [
+    {
+      "evidence": [
+        "docs/audits/receipts/people-graph-v2-red-team-run-2026-08-06.json",
+        "docs/audits/people-graph-v2-source-manifest.json"
+      ],
+      "id": "PGRT-A01",
+      "text": "Tests run from a clean checkout with no database asset and no network."
+    },
+    {
+      "evidence": [
+        "tests/red_team/run.py",
+        "docs/audits/people-graph-v2-traceability.json"
+      ],
+      "id": "PGRT-A02",
+      "text": "Expected failures remain explicit and are not weakened to make the suite green."
+    },
+    {
+      "evidence": [
+        "docs/handoffs/red-team.md"
+      ],
+      "id": "PGRT-A03",
+      "text": "Changes are committed and pushed on the assigned branch with a draft PR titled exactly as requested."
+    },
+    {
+      "evidence": [
+        "docs/handoffs/red-team.md"
+      ],
+      "id": "PGRT-A04",
+      "text": "Final reporting includes branch, commits, PR, command, counts, severity totals, and bulk-ingestion blockers."
+    }
+  ],
+  "audited_result": {
+    "bulk_ingestion_blockers": [
+      "PGRT-001",
+      "PGRT-002",
+      "PGRT-003",
+      "PGRT-004",
+      "PGRT-006",
+      "PGRT-009",
+      "PGRT-011",
+      "PGRT-016"
+    ],
+    "cases": 22,
+    "counts": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 3,
+      "XFAIL": 19,
+      "XPASS": 0
+    },
+    "findings": 16,
+    "severity_counts": {
+      "P0": 8,
+      "P1": 8
+    }
+  },
+  "deliverables": [
+    {
+      "id": "PGRT-D01",
+      "paths": [
+        "tests/red_team/run.py",
+        "tests/red_team/cases_build.py",
+        "tests/red_team/cases_identity.py",
+        "tests/red_team/cases_loaders.py"
+      ],
+      "text": "Offline test suite with explicit pass, expected-failure, and invariant labels."
+    },
+    {
+      "id": "PGRT-D02",
+      "paths": [
+        "docs/audits/people-graph-v2-red-team-2026-08-06.md"
+      ],
+      "text": "Narrative audit with stable IDs, severity, source location, reproduction, invariant, blast radius, and suggested owning lane."
+    },
+    {
+      "id": "PGRT-D03",
+      "paths": [
+        "docs/audits/people-graph-v2-findings.json"
+      ],
+      "text": "Machine-readable findings with the same stable IDs."
+    },
+    {
+      "id": "PGRT-D04",
+      "paths": [
+        "docs/audits/people-graph-v2-source-manifest.json",
+        "docs/audits/source-evidence-ledger.json",
+        "docs/audits/people-graph-v2-traceability.json",
+        "docs/audits/receipts/people-graph-v2-red-team-run-2026-08-06.json",
+        "docs/audits/people-graph-v2-forensic-worklog-2026-08-06.md",
+        "tests/red_team/verify_audit.py"
+      ],
+      "text": "No speculative claim without exact source evidence or a fixture."
+    }
+  ],
+  "lane": {
+    "branch": "pg/red-team-fixtures-20260806",
+    "execution_constraints": [
+      "current main baseline",
+      "tiny local fixtures",
+      "offline",
+      "Python standard library only",
+      "diagnose only",
+      "do not rely on parallel PR code"
+    ],
+    "forbidden_production_edits": [
+      "schema/**",
+      "loaders/**",
+      "query code",
+      "README.md",
+      "root configuration"
+    ],
+    "name": "People Graph forensic red-team and executable failure fixtures",
+    "out_of_scope": [
+      "oracle"
+    ],
+    "owned_paths": [
+      "tests/red_team/**",
+      "docs/audits/**",
+      "docs/handoffs/red-team.md"
+    ],
+    "read_only_context": [
+      "sisodias/siso-book-library",
+      "sisodias/great-library-of-siso"
+    ],
+    "read_write_repository": "sisodias/siso-people-graph"
+  },
+  "mission": "Turn dangerous assumptions in current People Graph v2 into executable fixtures and a severity-ranked audit without fixing production behavior.",
+  "requirements": [
+    {
+      "finding_ids": [
+        "PGRT-001"
+      ],
+      "requirement_id": "PGRT-R01",
+      "test_cases": [
+        "PGRT-T001"
+      ],
+      "text": "Whether build_people_graph_v2.py finds its schema from a clean checkout."
+    },
+    {
+      "finding_ids": [
+        "PGRT-002"
+      ],
+      "requirement_id": "PGRT-R02",
+      "test_cases": [
+        "PGRT-T002"
+      ],
+      "text": "Whether the builder silently merges unrelated people on normalized name."
+    },
+    {
+      "finding_ids": [
+        "PGRT-003"
+      ],
+      "requirement_id": "PGRT-R03",
+      "test_cases": [
+        "PGRT-T003"
+      ],
+      "text": "Whether shared_external_id can treat company, location, real name, or another non-unique attribute as near-certain identity evidence."
+    },
+    {
+      "finding_ids": [
+        "PGRT-004"
+      ],
+      "requirement_id": "PGRT-R04",
+      "test_cases": [
+        "PGRT-T004"
+      ],
+      "text": "Whether accepted identity claims affect canonical query results or remain inert."
+    },
+    {
+      "finding_ids": [
+        "PGRT-005",
+        "PGRT-006",
+        "PGRT-007",
+        "PGRT-011",
+        "PGRT-013"
+      ],
+      "requirement_id": "PGRT-R05",
+      "test_cases": [
+        "PGRT-T005",
+        "PGRT-T006",
+        "PGRT-T007",
+        "PGRT-T008",
+        "PGRT-T009",
+        "PGRT-T010",
+        "PGRT-T011"
+      ],
+      "text": "Whether each loader is idempotent across two runs: no repeated rank additions, duplicate claims, stale edges, or unrelated-field mutation."
+    },
+    {
+      "finding_ids": [
+        "PGRT-008"
+      ],
+      "requirement_id": "PGRT-R06",
+      "test_cases": [
+        "PGRT-T012"
+      ],
+      "text": "Whether topics/enrichment work for a canonical entity whose ID is not gh:* or whose origin is not github."
+    },
+    {
+      "finding_ids": [
+        "PGRT-009"
+      ],
+      "requirement_id": "PGRT-R07",
+      "test_cases": [
+        "PGRT-T013"
+      ],
+      "text": "Unicode/non-Latin name preservation and collision behavior."
+    },
+    {
+      "finding_ids": [
+        "PGRT-010"
+      ],
+      "requirement_id": "PGRT-R08",
+      "test_cases": [
+        "PGRT-T014"
+      ],
+      "text": "Whether aliases/raw variants reach FTS search."
+    },
+    {
+      "finding_ids": [
+        "PGRT-011"
+      ],
+      "requirement_id": "PGRT-R09",
+      "test_cases": [
+        "PGRT-T008",
+        "PGRT-T015"
+      ],
+      "text": "GitHub account rename and repository-transfer behavior when stable numeric IDs exist."
+    },
+    {
+      "finding_ids": [
+        "PGRT-003",
+        "PGRT-012"
+      ],
+      "requirement_id": "PGRT-R10",
+      "test_cases": [
+        "PGRT-T003",
+        "PGRT-T016",
+        "PGRT-T017"
+      ],
+      "text": "Ambiguous common names, shared employers, shared locations, organisations with human-looking names, and pseudonyms."
+    },
+    {
+      "finding_ids": [
+        "PGRT-013"
+      ],
+      "requirement_id": "PGRT-R11",
+      "test_cases": [
+        "PGRT-T006",
+        "PGRT-T010",
+        "PGRT-T018"
+      ],
+      "text": "Whether rank_score currently mixes incompatible units."
+    },
+    {
+      "finding_ids": [
+        "PGRT-014"
+      ],
+      "requirement_id": "PGRT-R12",
+      "test_cases": [
+        "PGRT-T019"
+      ],
+      "text": "Whether the current v_contemporaries assumptions create implausible results for unknown death years."
+    },
+    {
+      "finding_ids": [
+        "PGRT-015"
+      ],
+      "requirement_id": "PGRT-R13",
+      "test_cases": [
+        "PGRT-T020"
+      ],
+      "text": "Whether query inventory and missing-domain behavior can mislead a caller."
+    },
+    {
+      "finding_ids": [
+        "PGRT-016"
+      ],
+      "requirement_id": "PGRT-R14",
+      "test_cases": [
+        "PGRT-T021",
+        "PGRT-T022"
+      ],
+      "text": "Cross-repo assumptions from the Book Library export that can corrupt People Graph attribution or roles."
+    }
+  ],
+  "schema_version": "people-graph-red-team-prompt-contract-1",
+  "source": {
+    "full_bundle_path": "docs/audits/sources/parallel-slam-gpt-5.6-agent-prompts-2026-08-06.txt",
+    "full_bundle_sha256": "077e5096298b776b5df33aba7ac8fa159296b3671c570a92a64ad74ebe53674d",
+    "interpretation_policy": "The exact UTF-8 source text is authoritative. This JSON is a replay aid, not a replacement.",
+    "prompt_2_path": "docs/audits/sources/prompt-02-people-graph-red-team.txt",
+    "prompt_2_sha256": "5f490d41ebe26f768131ec9d1f08b8ba6c0736a316ed4336250a104a48298f00"
+  }
+}

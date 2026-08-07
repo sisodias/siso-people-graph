@@ -1,0 +1,572 @@
+{
+  "baseline": {
+    "book_library_commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+    "commit": "de048bb3b34bf931b56fd741cb46c1334acdfb98",
+    "repository": "sisodias/siso-people-graph"
+  },
+  "counts": {
+    "ERROR": 0,
+    "FAIL": 0,
+    "PASS": 3,
+    "XFAIL": 19,
+    "XPASS": 0
+  },
+  "offline": true,
+  "repo": "<clean-checkout>",
+  "results": [
+    {
+      "case_id": "PGRT-T001",
+      "elapsed_ms": 524,
+      "evidence": {
+        "resolved_schema_exists": false,
+        "returncode": 1,
+        "stderr_tail": "FileNotFoundError: [Errno 2] No such file or directory: '<clean-checkout>/loaders/people_schema_v2.sql'",
+        "tracked_schema_exists": true
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-001"
+      ],
+      "invariant": "The tracked schema path must be resolvable without a database asset or local topology.",
+      "status": "XFAIL",
+      "title": "v2 builder resolves its schema from a clean checkout"
+    },
+    {
+      "case_id": "PGRT-T002",
+      "elapsed_ms": 53,
+      "evidence": {
+        "book_edge": {
+          "content_ref": "1",
+          "domain": "book",
+          "person_id": "reg:alex"
+        },
+        "identity_claims": 0,
+        "normalized_labels": [
+          "alex lee",
+          "alex lee"
+        ],
+        "people": [
+          {
+            "name": "Alex Lee",
+            "origin": "registry",
+            "person_id": "reg:alex"
+          }
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-002"
+      ],
+      "invariant": "A source-native person remains separate until an explicit identity decision is accepted.",
+      "status": "XFAIL",
+      "title": "v2 builder does not silently merge normalized names"
+    },
+    {
+      "case_id": "PGRT-T003",
+      "elapsed_ms": 73,
+      "evidence": {
+        "accepted_nonunique_claims": {
+          "company": [
+            {
+              "confidence": 0.98,
+              "evidence": "company=acme",
+              "method": "shared_external_id",
+              "status": "accepted"
+            }
+          ],
+          "location": [
+            {
+              "confidence": 0.98,
+              "evidence": "location=london",
+              "method": "shared_external_id",
+              "status": "accepted"
+            }
+          ],
+          "real_name": [
+            {
+              "confidence": 0.98,
+              "evidence": "real_name=alex smith",
+              "method": "shared_external_id",
+              "status": "accepted"
+            }
+          ]
+        }
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-003"
+      ],
+      "invariant": "Company, location, and real-name attributes are never eligible stable identifiers.",
+      "status": "XFAIL",
+      "title": "non-unique profile attributes cannot auto-resolve identity"
+    },
+    {
+      "case_id": "PGRT-T004",
+      "elapsed_ms": 31,
+      "evidence": {
+        "accepted_claim_present": true,
+        "who_match_ids": [
+          "reg:jordan",
+          "bk:jordan"
+        ],
+        "works_count": 1,
+        "works_person_id": "reg:jordan"
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-004"
+      ],
+      "invariant": "An accepted identity decision must create a queryable canonical cluster or redirect.",
+      "status": "XFAIL",
+      "title": "accepted identity claims affect canonical reads"
+    },
+    {
+      "case_id": "PGRT-T005",
+      "elapsed_ms": 27,
+      "evidence": {
+        "first_run_claims": 1,
+        "rows": [
+          {
+            "method": "exact_name",
+            "person_a": "a",
+            "person_b": "b",
+            "status": "proposed"
+          },
+          {
+            "method": "exact_name",
+            "person_a": "a",
+            "person_b": "b",
+            "status": "proposed"
+          }
+        ],
+        "second_run_claims": 2
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-005"
+      ],
+      "invariant": "Re-running a source-equivalent matcher must not duplicate claims.",
+      "status": "XFAIL",
+      "title": "identity matcher is idempotent across two runs"
+    },
+    {
+      "case_id": "PGRT-T006",
+      "elapsed_ms": 34,
+      "evidence": {
+        "rank_after_first": 108.0,
+        "rank_after_second": 116.0,
+        "topics_after_first": 2,
+        "topics_after_second": 2
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-006",
+        "PGRT-013"
+      ],
+      "invariant": "Re-running a source-equivalent topic load must not add rank repeatedly.",
+      "status": "XFAIL",
+      "title": "topic loader is idempotent across two runs"
+    },
+    {
+      "case_id": "PGRT-T007",
+      "elapsed_ms": 28,
+      "evidence": {
+        "edges": 1,
+        "external_ids": 1,
+        "people": 1
+      },
+      "expectation": "PASS",
+      "finding_ids": [],
+      "invariant": "An identical owner-source rerun must not duplicate people, identifiers, or edges.",
+      "status": "PASS",
+      "title": "owner loader exact rerun remains duplicate-free"
+    },
+    {
+      "case_id": "PGRT-T008",
+      "elapsed_ms": 35,
+      "evidence": {
+        "edges_after_replacement": [
+          "neworg/project",
+          "oldorg/project"
+        ],
+        "people_after_replacement": [
+          "gh:neworg",
+          "gh:oldorg"
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-006",
+        "PGRT-011"
+      ],
+      "invariant": "Source replacement must not retain stale owners or repository edges.",
+      "status": "XFAIL",
+      "title": "owner loader removes or tombstones stale source rows"
+    },
+    {
+      "case_id": "PGRT-T009",
+      "elapsed_ms": 25,
+      "evidence": {
+        "gids_after_source_replacement": [
+          1,
+          2
+        ],
+        "people_after_source_replacement": [
+          "Doe, Jane",
+          "Roe, Richard"
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-006"
+      ],
+      "invariant": "Rebuilding against a replaced source must not retain deleted people or works.",
+      "status": "XFAIL",
+      "title": "book-person builder removes stale source rows"
+    },
+    {
+      "case_id": "PGRT-T010",
+      "elapsed_ms": 46,
+      "evidence": {
+        "canonical_row_after_enrichment": {
+          "built_at": "2026-08-06T16:11:10Z",
+          "kind": "human",
+          "name": "Alice Example",
+          "rank_score": 12.0
+        },
+        "observed_external_ids": [
+          {
+            "platform": "github_id",
+            "value": "42"
+          },
+          {
+            "platform": "github_login",
+            "value": "alice"
+          },
+          {
+            "platform": "real_name",
+            "value": "Alice Example"
+          }
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-007",
+        "PGRT-013"
+      ],
+      "invariant": "Enrichment observations must not overwrite canonical name, build time, or unrelated rank.",
+      "status": "XFAIL",
+      "title": "GitHub enrichment preserves unrelated canonical fields"
+    },
+    {
+      "case_id": "PGRT-T011",
+      "elapsed_ms": 240,
+      "evidence": {
+        "fetch_calls": [],
+        "platforms_after": [
+          "real_name"
+        ],
+        "stats": {
+          "considered": 0,
+          "errors": 0,
+          "external_ids_total": 1,
+          "fetched": 0,
+          "orgs": 0,
+          "rate_limited": false,
+          "users": 0,
+          "with_real_name": 0,
+          "with_twitter": 0,
+          "with_website": 0
+        }
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-007"
+      ],
+      "invariant": "One existing enrichment field must not block collection of other missing observations.",
+      "status": "XFAIL",
+      "title": "GitHub enrichment fills each missing field independently"
+    },
+    {
+      "case_id": "PGRT-T012",
+      "elapsed_ms": 27,
+      "evidence": {
+        "canonical_id": "reg:alice",
+        "fetch_calls": [],
+        "github_id_count": 0,
+        "github_login_external_id": "alice",
+        "origin": "registry",
+        "topic_count": 0
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-008"
+      ],
+      "invariant": "A canonical entity linked by github_login must work regardless of ID prefix or origin.",
+      "status": "XFAIL",
+      "title": "topics and enrichment follow non-gh canonical IDs"
+    },
+    {
+      "case_id": "PGRT-T013",
+      "elapsed_ms": 15,
+      "evidence": {
+        "edge_count": 1,
+        "key_for_李白": ",",
+        "key_for_王維": ",",
+        "people_rows": [
+          {
+            "display_name": "李, 白",
+            "person_key": ",",
+            "raw_variants": "[\"李, 白\", \"王, 維\"]"
+          }
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-009"
+      ],
+      "invariant": "Comparison keys must preserve non-Latin distinctions and never become canonical IDs.",
+      "status": "XFAIL",
+      "title": "Unicode names survive identity-key construction"
+    },
+    {
+      "case_id": "PGRT-T014",
+      "elapsed_ms": 40,
+      "evidence": {
+        "fts_rows": [
+          {
+            "aliases": "",
+            "name": "Clemens, Samuel",
+            "person_id": "bk:clemens"
+          }
+        ],
+        "twain_matches": 0
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-010"
+      ],
+      "invariant": "Every retained raw name variant must be searchable without replacing the canonical label.",
+      "status": "XFAIL",
+      "title": "raw aliases reach FTS search"
+    },
+    {
+      "case_id": "PGRT-T015",
+      "elapsed_ms": 32,
+      "evidence": {
+        "edges": [
+          {
+            "content_ref": "newlogin/project",
+            "person_id": "gh:newlogin"
+          }
+        ],
+        "people": [
+          "gh:newlogin",
+          "gh:oldlogin"
+        ],
+        "stable_github_id": "42"
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-011"
+      ],
+      "invariant": "A login change must not split one numeric GitHub account into two people.",
+      "status": "XFAIL",
+      "title": "GitHub rename resolves through stable numeric account ID"
+    },
+    {
+      "case_id": "PGRT-T016",
+      "elapsed_ms": 40,
+      "evidence": {
+        "confidence": 0.55,
+        "method": "exact_name",
+        "status": "proposed"
+      },
+      "expectation": "PASS",
+      "finding_ids": [],
+      "invariant": "Exact-name evidence alone stays proposed at low confidence.",
+      "status": "PASS",
+      "title": "ambiguous common names remain review-only"
+    },
+    {
+      "case_id": "PGRT-T017",
+      "elapsed_ms": 81,
+      "evidence": {
+        "claims": [
+          {
+            "kind_a": "human",
+            "kind_b": "organisation",
+            "method": "exact_name",
+            "person_a": "human:alex-smith",
+            "person_b": "org:alex-smith",
+            "status": "proposed"
+          },
+          {
+            "kind_a": "human",
+            "kind_b": "pseudonym",
+            "method": "exact_name",
+            "person_a": "human:robin",
+            "person_b": "pseudonym:robin",
+            "status": "proposed"
+          }
+        ],
+        "incompatible_kind_candidates": [
+          {
+            "kind_a": "human",
+            "kind_b": "organisation",
+            "method": "exact_name",
+            "person_a": "human:alex-smith",
+            "person_b": "org:alex-smith",
+            "status": "proposed"
+          },
+          {
+            "kind_a": "human",
+            "kind_b": "pseudonym",
+            "method": "exact_name",
+            "person_a": "human:robin",
+            "person_b": "pseudonym:robin",
+            "status": "proposed"
+          }
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-012"
+      ],
+      "invariant": "Human, organisation, and pseudonym kind conflicts must be explicit negative evidence.",
+      "status": "XFAIL",
+      "title": "kind and pseudonym conflicts gate name candidates"
+    },
+    {
+      "case_id": "PGRT-T018",
+      "elapsed_ms": 32,
+      "evidence": {
+        "rank_score_trace": [
+          100.0,
+          108.0,
+          7.0
+        ],
+        "semantic_units": [
+          "sum(repo stars)",
+          "previous + mean repo rating",
+          "followers"
+        ]
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-013"
+      ],
+      "invariant": "Stars, ratings, followers, and work counts remain named observations or projections.",
+      "status": "XFAIL",
+      "title": "rank_score has one stable semantic unit"
+    },
+    {
+      "case_id": "PGRT-T019",
+      "elapsed_ms": 35,
+      "evidence": {
+        "assumed_end": 1980,
+        "derived_rows": [
+          {
+            "contemporary_id": "late-person",
+            "overlap_end": 1980,
+            "overlap_start": 1979,
+            "person_id": "unknown-death"
+          }
+        ],
+        "unknown_death_year": null
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-014"
+      ],
+      "invariant": "Missing death years must remain uncertain rather than silently becoming birth+80.",
+      "status": "XFAIL",
+      "title": "unknown death years do not create certain contemporaries"
+    },
+    {
+      "case_id": "PGRT-T020",
+      "elapsed_ms": 4,
+      "evidence": {
+        "domains_reported": [
+          "books"
+        ],
+        "inventory_keys": [
+          "domains"
+        ],
+        "who_output": {
+          "matches": [],
+          "query": "Alice"
+        }
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-015"
+      ],
+      "invariant": "An empty result caused by a missing domain must not look like an evidence-backed absence.",
+      "status": "XFAIL",
+      "title": "missing domains are explicit in query output"
+    },
+    {
+      "case_id": "PGRT-T021",
+      "elapsed_ms": 0,
+      "evidence": {
+        "expected_roles": [
+          "author",
+          "editor",
+          "translator"
+        ],
+        "exported_roles": [
+          "author"
+        ],
+        "merged_distinct_book_person_on_name": true,
+        "person_mapping": {
+          "alex-kim-1940": "gh:alex-kim",
+          "editor-chen": "bk:editor-chen",
+          "translator-rivera": "bk:translator-rivera"
+        },
+        "source": {
+          "blob_sha": "de4e9fd91c076fd514887c82bd334dde43271d7b",
+          "commit": "be9ab0831b9ea8802d6898f3a3dfa8a61c63e80b",
+          "observed_behaviors": [
+            "existing canonical people are indexed by whitespace-normalized lower-case name",
+            "a matching book display_name reuses that canonical person_id without an identity claim",
+            "AUTHORSHIP contains only author and filters all other contributor roles"
+          ],
+          "path": "scripts/load_into_people_graph.py",
+          "repository": "sisodias/siso-book-library"
+        }
+      },
+      "expectation": "EXPECTED_FAILURE",
+      "finding_ids": [
+        "PGRT-016"
+      ],
+      "invariant": "Book contributors remain source-native observations with all roles and no name-only merge.",
+      "status": "XFAIL",
+      "title": "Book Library export preserves identity boundaries and roles"
+    },
+    {
+      "case_id": "PGRT-T022",
+      "elapsed_ms": 36,
+      "evidence": {
+        "roles_in_v2_builder_output": [
+          "author",
+          "translator"
+        ]
+      },
+      "expectation": "PASS",
+      "finding_ids": [],
+      "invariant": "The v2 builder must retain distinct author and translator edges when supplied upstream.",
+      "status": "PASS",
+      "title": "v2 builder preserves supplied Book contributor roles"
+    }
+  ],
+  "suite": "people-graph-v2-red-team",
+  "suite_version": "1.0",
+  "validation": {
+    "checkout_contract": "all local People Graph production files used by the suite matched the baseline Git blob SHAs before execution",
+    "receipt_normalization": "absolute checkout root replaced with <clean-checkout>; elapsed times and run timestamps retained as diagnostics",
+    "source_blob_matches": 9,
+    "source_blob_mismatches": 0,
+    "source_manifest": "docs/audits/people-graph-v2-source-manifest.json"
+  }
+}
