@@ -327,6 +327,22 @@ class V2Resolver(Resolver):
                 # for no reviewer's benefit. Applied merges with NO claim keep
                 # their historical authority -- but they are labelled, so an
                 # unreviewed merge is never mistaken for a reviewed one.
+                #
+                # KNOWN LIMIT (accepted, tracked as follow-up debt): "absent"
+                # means only "no claim row for this pair". It cannot distinguish
+                # a genuine pre-claim-table merge from a NEWLY written bad one,
+                # so it is not proof of legacy provenance. The durable fix is an
+                # explicit migration cutoff timestamp or a legacy allowlist --
+                # NOT a "refuse absent once the claim table is non-empty" switch,
+                # which would let the first reviewed pair invalidate unrelated
+                # historical merges and make behaviour depend on migration order
+                # rather than on this pair's evidence.
+                #
+                # Precedence is deliberately PAIR-LEVEL: an explicit accepted
+                # claim authorizes, an explicit proposed/rejected claim blocks,
+                # and only a total absence of evidence falls through to legacy
+                # authority. Every future decision record therefore wins over
+                # legacy state without disturbing any other pair.
                 entry["claim_status"] = "absent"
                 entry["authority"] = "legacy_applied_merge"
                 entry["warning"] = (

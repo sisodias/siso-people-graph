@@ -235,6 +235,21 @@ and make reads contradict the database for no reviewer's benefit. This is the
 possible: it grants historical authority only where no decision record exists at
 all, never where one exists and disagrees.
 
+Precedence is **pair-level**, which is the property that makes this safe: an
+explicit accepted claim authorizes, an explicit proposed/rejected claim blocks,
+and only a total absence of evidence falls through to legacy authority. Every
+future decision record therefore wins over legacy state without disturbing any
+other pair.
+
+**Known limit, accepted and reviewed** — see follow-up debt below. `absent` means
+only "no claim row for this pair", so it cannot distinguish a genuine pre-claim
+merge from a newly written bad one; it is not intrinsically proof of legacy
+provenance. The durable tightening is an explicit **migration cutoff timestamp or
+a legacy allowlist**. It is specifically *not* a "refuse absent once the claim
+table is non-empty" switch — that was considered and rejected on review, because
+the first reviewed pair would invalidate unrelated historical merges and make
+behaviour depend on migration order rather than on the pair's own evidence.
+
 What remains unreviewed is *judgement*, not coverage: whether canonical selection
 is the right policy, and whether the v2/v3/none adapter split is the right seam.
 
@@ -257,6 +272,15 @@ its origin appears in the response — so "why did this machine answer different
 is always answerable from the output.
 
 ## What is NOT done
+
+- **Legacy-merge provenance needs a real cutoff (tracked debt, reviewed and
+  explicitly not a PR blocker).** `claim_status: "absent"` currently grants
+  legacy authority to any applied merge lacking a claim row, which cannot
+  distinguish a genuine pre-claim-table merge from a newly written bad one. Fix
+  it with a migration cutoff timestamp or an explicit legacy allowlist —
+  **never** with a table-nonempty switch, for the reason recorded above. Until
+  then, every such merge is labelled and carries a coverage gap, so it is
+  visible rather than silent.
 
 - **`--about` and `--contemporaries` are degraded.** Both resolve as name queries
   and say so in `coverage_gaps`. Namespaced topic vocabularies with explicit
