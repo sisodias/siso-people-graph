@@ -302,6 +302,67 @@ is always answerable from the output.
 - **Rights state is undeclared, not clean.** No `source_snapshot` table exists in
   v2; the response says `undeclared` rather than implying permissiveness.
 
+## Display representative (was "canonical selection")
+
+A cold review found that cluster selection bottomed out in `sorted(members)[0]`.
+Because entity ids carry an origin prefix, that string sort silently encoded
+`bk:` < `crates:` < `gh:` < `yt:` — books always beating GitHub, GitHub always
+beating YouTube. **An origin hierarchy nobody chose, produced by string sort,
+reading as policy.** The 76-test suite passed throughout, which was the problem:
+it proved the behaviour was consistent, not that it was correct.
+
+Three things changed, and the rename is the load-bearing one.
+
+**1. It is a display representative, not a canonical row.** v3's own design says
+entity ids are opaque and identity is a reversible cluster decision. A cluster
+does not need a king; it needs a stable row to render. `Resolution` now exposes
+`display_representative` and the response carries `display_representative` plus
+`representative_selection`. `canonical_id` is retained for callers written
+against the previous shape, but it is no longer the name the code thinks in.
+
+**2. The cluster is the answer.** Each match now carries `cluster`: every member
+with its own evidence, `is_display_representative` marking the rendering choice.
+A caller that disagrees with the choice has what it needs to make its own. A
+member with no `person` row is reported, never dropped.
+
+**3. The rule is explicit and versioned, never emergent.**
+`REPRESENTATIVE_RULE_VERSION = "display-representative-1.0.0"`, applied in order:
+liveness → applied merge winner → most independent strong identifiers → origin
+priority → earliest observation → alphabetical **last resort only**. Every answer
+ships `representative_selection` with the reason and, critically,
+`decided_by_alphabetical_tiebreak`. Every possible rule (most-recent,
+source-authority, most-evidence) is a policy that will be wrong for some person
+and wrong *invisibly*; that is exactly why the reason ships with the answer
+rather than living in a doc.
+
+The origin table is **adopted verbatim from Lane 4's**
+`identity_v3/_clusters.py::_canonical_sort_key`, not reinvented. Two
+independently invented rankings would make `identity_v3` and `query_v3` disagree
+about who a person is — the two-authorities failure this lane exists to prevent.
+It is duplicated rather than imported only because Lane 4 has not merged;
+`test_display_representative.py::TestRankingMatchesLaneFour` asserts the tables
+stay in step. **If Lane 4's table changes, this one must change with it.**
+
+Origin is read from the `person.origin` column, never parsed from the id prefix.
+Reading the prefix is how the alphabetical hierarchy got in the first time.
+
+Worked example — the two rules disagreeing:
+
+    aa:sparse  1 authority id   |  zz:rich  3 authority ids
+    alphabetical picks aa:sparse ......... zz:rich has 3x the evidence
+    display-representative-1.0.0 picks zz:rich, and says why
+
+Eleven tests in `tests/query_v3/test_display_representative.py` cover equal
+strong-id counts, alphabetical-vs-evidence disagreement, a non-Latin
+representative, org-vs-human, and the liveness guard. **Seven of them fail when
+`_representative` is reverted to the old alphabetical rule** — verified by
+patching it back and re-running. A test that passed both ways would guard
+nothing.
+
+**Still a latent issue, not an active one.** `identity_claim` holds zero rows in
+production, so every cluster is currently size 1 and no representative is
+contested today. This is designed for when that stops being true.
+
 ## For the integrator
 
 Exclusive paths owned by this lane: `query_v3/**`, `api/**`, `mcp/**`,
@@ -313,6 +374,15 @@ backward compatible; **its output shape is not** — every response is now wrapp
 in the truth-contract envelope, so `result.matches` replaces top-level `matches`.
 Any caller parsing the old shape needs updating. That break is the point: the old
 shape had nowhere to put identity resolution, truncation, or provenance.
+
+**MERGE NOTE — the output shape moved again, additively.** Each match gained a
+`cluster` array, and `identity` gained `display_representative`,
+`representative_selection`, and `cluster_size`. **No field was removed or
+renamed** — `identity.canonical_id` still resolves to the same row it always did
+for every uncontested cluster, so existing readers keep working. The change is
+that `canonical_id` is now documented as a rendering choice rather than a truth
+claim, and `display_representative` is its accurate name. Callers should migrate
+to the new name; the old one is kept deliberately, not accidentally.
 
 When Lane 3/4 merge, the v3 adapter should be exercised against a real v3
 database and its provisional warning removed.

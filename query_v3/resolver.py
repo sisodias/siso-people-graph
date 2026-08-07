@@ -41,9 +41,24 @@ from . import evidence as ev
 MAX_EXPANSION_PASSES = 8
 
 
+# The display-representative rule, VERSIONED. Bump this whenever the ordering
+# below changes, so a stored answer can be told apart from a current one.
+#
+# Why a version and a recorded reason at all: every possible rule (most-recent,
+# source-authority, most-evidence) is a POLICY that will be wrong for some
+# person, and wrong invisibly. A cluster of equals has no intrinsic king. What
+# callers actually need is a stable row to render plus the ability to see WHY it
+# was chosen and to disagree with it -- so the reason ships with the answer.
+REPRESENTATIVE_RULE_VERSION = "display-representative-1.0.0"
+
+
 @dataclass
 class Resolution:
-    """One canonical person plus the rows that fold into it."""
+    """One identity cluster, plus the member chosen to represent it on screen.
+
+    The cluster is the answer. The representative is a RENDERING CHOICE over
+    that cluster -- not a claim that one row is more truthful than its peers.
+    """
 
     canonical_id: str
     member_ids: list[str] = field(default_factory=list)
@@ -51,11 +66,24 @@ class Resolution:
     unresolved: list[dict] = field(default_factory=list)
     blocked: list[dict] = field(default_factory=list)
     complete: bool = True
+    representative_reason: dict = field(default_factory=dict)
+
+    @property
+    def display_representative(self) -> str:
+        """The member chosen for display. Preferred name for `canonical_id`."""
+        return self.canonical_id
 
     def as_dict(self) -> dict:
         return {
+            # New, accurate names. `display_representative` is what this IS.
+            "display_representative": self.canonical_id,
+            "representative_selection": self.representative_reason,
+            # Retained for callers written against the previous shape. This is a
+            # rendering choice, NOT an assertion that this row is canonical
+            # truth; `display_representative` is the name that says so.
             "canonical_id": self.canonical_id,
             "member_ids": sorted(self.member_ids),
+            "cluster_size": len(self.member_ids),
             "merged_row_count": max(0, len(self.member_ids) - 1),
             "decisions": self.decisions,
             "unresolved_candidates": self.unresolved,
@@ -107,7 +135,19 @@ class Resolver:
         """Map every input id to the Resolution that now represents it."""
         out: dict[str, Resolution] = {}
         for pid in person_ids:
-            out[pid] = Resolution(canonical_id=pid, member_ids=[pid])
+            out[pid] = Resolution(
+                canonical_id=pid,
+                member_ids=[pid],
+                representative_reason={
+                    "rule": REPRESENTATIVE_RULE_VERSION,
+                    "basis": "no_identity_machinery",
+                    "reason": (
+                        "No identity decisions are available, so every row is "
+                        "its own cluster and represents only itself."
+                    ),
+                    "contested": False,
+                },
+            )
         return out
 
     def warnings(self) -> list[str]:
@@ -396,7 +436,7 @@ class V2Resolver(Resolver):
 
         out: dict[str, Resolution] = {}
         for root, members in clusters.items():
-            canonical = self._canonical(members, winners)
+            canonical, rep_reason = self._representative(members, winners)
 
             # Direction is assigned HERE, once the canonical row is known --
             # never from the order the pair happens to be stored in.
@@ -428,6 +468,7 @@ class V2Resolver(Resolver):
                 member_ids=members,
                 decisions=cluster_decisions,
                 unresolved=unresolved_by_cluster.get(root, []),
+                representative_reason=rep_reason,
             )
             res.blocked = [b for b in blocked
                            if uf.find(b["person_a"]) == root
@@ -437,22 +478,104 @@ class V2Resolver(Resolver):
                 out[pid] = res
         return {pid: out[pid] for pid in person_ids if pid in out}
 
+    # Origin ranking, ADOPTED VERBATIM from Lane 4's identity_v3/_clusters.py
+    # `_canonical_sort_key`. It is duplicated rather than imported because Lane 4
+    # has not merged and query_v3 must not take a hard dependency on an unmerged
+    # module -- but it is deliberately the SAME table, because two independently
+    # invented rankings would make identity_v3 and query_v3 disagree about who a
+    # person is, which is precisely the two-authorities failure this lane exists
+    # to prevent. If Lane 4's table changes, this one must change with it; the
+    # cross-check is asserted in tests/query_v3/test_display_representative.py.
+    _ORIGIN_PRIORITY = {
+        "registry": 0, "curated": 0, "manual": 0,
+        "authority": 1,
+        "book": 2, "books": 2,
+        "github": 3, "youtube": 3,
+    }
+    _ORIGIN_UNRANKED = 9
+
+    def _origins(self, members: list[str]) -> dict[str, str]:
+        """Declared `person.origin` per row. NEVER parsed from the id.
+
+        Entity ids are OPAQUE by v3's own design, so `bk:` is not evidence of
+        anything -- the `origin` column is the declared fact. Reading the prefix
+        instead is how the alphabetical hierarchy got in the first time.
+        """
+        if not members:
+            return {}
+        marks = ",".join("?" * len(members))
+        try:
+            rows = self.con.execute(
+                f"SELECT person_id, origin FROM people.person "
+                f"WHERE person_id IN ({marks})",
+                members,
+            ).fetchall()
+        except sqlite3.Error:
+            return {}
+        return {pid: (o or "").casefold() for pid, o in rows}
+
+    def _strong_id_counts(self, members: list[str]) -> dict[str, int]:
+        """Distinct authority identifiers per row (viaf, wikidata, ...).
+
+        These are the corroboration that makes one row better evidenced than
+        another. Counted DISTINCT by kind so ten copies of one viaf id do not
+        outrank two independent authorities.
+        """
+        if not members or not self.caps.has("people", "external_ids"):
+            return {}
+        marks = ",".join("?" * len(members))
+        try:
+            rows = self.con.execute(
+                f"SELECT person_id, COUNT(DISTINCT platform) "
+                f"FROM people.external_ids "
+                f"WHERE person_id IN ({marks}) GROUP BY person_id",
+                members,
+            ).fetchall()
+        except sqlite3.Error:
+            return {}
+        return {pid: int(n) for pid, n in rows}
+
     def _canonical(self, members: list[str], winners: set[str]) -> str:
-        """Which row represents the cluster.
+        """Back-compat shim. Prefer `_representative`, which reports its reason."""
+        return self._representative(members, winners)[0]
 
-        Deterministic policy, not a truth claim (the identity method card makes
-        the same caveat about canonical selection).
+    def _representative(
+        self, members: list[str], winners: set[str]
+    ) -> tuple[str, dict]:
+        """Choose the row to DISPLAY for this cluster, and say why.
 
-        LIVENESS IS CHECKED FIRST, and the order matters. In a merge chain
-        A->B->C, every intermediate row is simultaneously a merge target (some
-        row merged into it) and itself merged away. Preferring "was merged into"
-        ahead of "is not merged" therefore elects a superseded row: a 12-long
-        chain resolved to bk:chain-1, a row with state='merged', while the only
-        live row bk:chain-11 was ignored. A superseded row must never be the
-        answer while a live row exists in the same cluster.
+        Returns (representative_id, reason). The reason is part of the answer,
+        not a debug aid: a caller must be able to see that the choice was policy
+        and disagree with it. This is a presentation decision over an unordered
+        cluster -- NOT a ranking of whose data is true.
+
+        Rule `display-representative-1.0.0`, applied in order:
+
+          1. LIVENESS. A superseded row is never shown while a live one exists.
+             Order matters: in a chain A->B->C every intermediate row is both a
+             merge target and itself merged away, so preferring "was merged into"
+             first elects a dead row -- a 12-long chain once resolved to
+             bk:chain-1 (state='merged') while live bk:chain-11 was ignored.
+          2. APPLIED WINNER. Among live rows, one that something merged INTO
+             carries an actual decision; an untouched peer carries none.
+          3. MOST INDEPENDENT STRONG IDENTIFIERS. The most corroborated row.
+          4. ORIGIN PRIORITY (Lane 4's table). Curated beats scraped.
+          5. EARLIEST OBSERVATION. The longest-standing row is the stablest
+             thing to render.
+          6. LEXICAL ID -- LAST RESORT ONLY, and reported as such.
+
+        Rung 6 previously did the work of all six. Because ids are prefixed by
+        origin, plain `sorted()` silently encoded bk: < crates: < gh: < yt:, an
+        origin hierarchy nobody chose, reading as policy. It is retained ONLY as
+        a final tie-break for genuine equals, where it means "stable", not "best".
         """
         if len(members) == 1:
-            return members[0]
+            return members[0], {
+                "rule": REPRESENTATIVE_RULE_VERSION,
+                "basis": "sole_member",
+                "reason": "Cluster has one member; no selection was made.",
+                "contested": False,
+            }
 
         marks = ",".join("?" * len(members))
         rows = self.con.execute(
@@ -462,21 +585,88 @@ class V2Resolver(Resolver):
         ).fetchall()
         states = dict(rows)
 
-        live = sorted(p for p in members if states.get(p) != "merged"
+        pool = sorted(p for p in members if states.get(p) != "merged"
                       and p in states)
-        if live:
-            # Among live rows, one that something merged INTO is the applied
-            # winner and beats an untouched peer.
-            live_winners = [p for p in live if p in winners]
-            return sorted(live_winners)[0] if live_winners else live[0]
+        basis = "live_row"
+        if pool:
+            live_winners = sorted(p for p in pool if p in winners)
+            if live_winners:
+                pool, basis = live_winners, "live_applied_merge_winner"
+        else:
+            # Every row is superseded (a cycle, or a chain whose head is absent).
+            pool = sorted(p for p in members if p in winners)
+            basis = "superseded_merge_target"
+            if not pool:
+                pool, basis = sorted(members), "all_rows_superseded"
 
-        # Every row in the cluster is superseded (a cycle, or a chain whose head
-        # is absent). Fall back to a merge target, then to lexical order, so the
-        # answer is at least stable and reproducible.
-        applied = sorted(p for p in members if p in winners)
-        if applied:
-            return applied[0]
-        return sorted(members)[0]
+        observed = self._first_observed(pool)
+        origins = self._origins(pool)
+        strong = self._strong_id_counts(pool)
+
+        def _discriminators(p: str) -> tuple:
+            """Every rung ABOVE the alphabetical last resort."""
+            return (
+                -strong.get(p, 0),
+                self._ORIGIN_PRIORITY.get(origins.get(p, ""),
+                                          self._ORIGIN_UNRANKED),
+                observed.get(p) or "9999",
+            )
+
+        ranked = sorted(pool, key=lambda p: (_discriminators(p), p))
+        chosen = ranked[0]
+
+        # Was the winner decided by a real signal, or did it come down to the
+        # alphabet? A caller must be able to tell those apart.
+        tied = [p for p in ranked if _discriminators(p) == _discriminators(chosen)]
+        by_alpha = len(tied) > 1
+
+        reason = {
+            "rule": REPRESENTATIVE_RULE_VERSION,
+            "basis": basis,
+            "strong_identifier_count": strong.get(chosen, 0),
+            "origin": origins.get(chosen) or None,
+            "origin_rank": self._ORIGIN_PRIORITY.get(origins.get(chosen, ""),
+                                                     self._ORIGIN_UNRANKED),
+            "first_observed": observed.get(chosen),
+            "decided_by_alphabetical_tiebreak": by_alpha,
+            "candidates_considered": list(pool),
+            "contested": len(pool) > 1,
+            "reason": (
+                f"Selected {chosen} to represent a {len(members)}-row cluster "
+                f"by {basis}"
+                + (
+                    f"; {len(tied)} members were otherwise equal, so the "
+                    "alphabetical last-resort tie-break decided it. This is a "
+                    "stable rendering choice, NOT a judgement that this row is "
+                    "more truthful."
+                    if by_alpha else
+                    "; discriminated by strong-identifier count, then origin "
+                    "priority, then earliest observation."
+                )
+            ),
+        }
+        return chosen, reason
+
+    def _first_observed(self, members: list[str]) -> dict[str, str]:
+        """Earliest observation per row: MIN(person_content.observed_at).
+
+        The longest-standing row is the most stable thing to render. This reads
+        observation history rather than `person.built_at`, which records when
+        the current build wrote the row and is usually identical across a
+        cluster -- a column that cannot discriminate is not a tie-break.
+        """
+        if not members or not self.caps.has("people", "person_content"):
+            return {}
+        marks = ",".join("?" * len(members))
+        try:
+            rows = self.con.execute(
+                f"SELECT person_id, MIN(observed_at) FROM people.person_content "
+                f"WHERE person_id IN ({marks}) GROUP BY person_id",
+                members,
+            ).fetchall()
+        except sqlite3.Error:
+            return {}
+        return {pid: ts for pid, ts in rows if ts}
 
     def warnings(self) -> list[str]:
         return []
@@ -545,11 +735,13 @@ class V3Resolver(V2Resolver):
             members = sorted(set(res.member_ids) | by_cluster.get(cid, set()))
             joined = merged.get(cid)
             if joined is None:
+                v3_rep, v3_reason = self._representative(members, set())
                 joined = Resolution(
-                    canonical_id=self._canonical(members, set()),
+                    canonical_id=v3_rep,
                     member_ids=members,
                     decisions=list(res.decisions),
                     unresolved=list(res.unresolved),
+                    representative_reason=v3_reason,
                 )
                 joined.blocked = list(res.blocked)
                 joined.complete = res.complete
@@ -568,6 +760,13 @@ class V3Resolver(V2Resolver):
                 merged[cid] = joined
             else:
                 joined.member_ids = sorted(set(joined.member_ids) | set(members))
+                # The cluster just grew, so the previous representative was
+                # chosen over a smaller pool. Re-run the rule over the whole
+                # membership -- a stale winner would silently outrank a better
+                # evidenced row that arrived with the second half of the cluster.
+                joined.canonical_id, joined.representative_reason = (
+                    self._representative(joined.member_ids, set())
+                )
             merged[pid] = joined
 
         return {pid: merged[pid] for pid in person_ids if pid in merged}

@@ -248,8 +248,17 @@ class QueryEngine:
                     "person_id": canonical,
                     "matched_rows": [],
                     "identity": (res.as_dict() if res else
-                                 {"canonical_id": canonical,
+                                 {"display_representative": canonical,
+                                  "representative_selection": {
+                                      "rule": resmod.REPRESENTATIVE_RULE_VERSION,
+                                      "basis": "unresolved_row",
+                                      "reason": ("Row was not resolved; it "
+                                                 "represents only itself."),
+                                      "contested": False,
+                                  },
+                                  "canonical_id": canonical,
                                   "member_ids": [canonical],
+                                  "cluster_size": 1,
                                   "merged_row_count": 0,
                                   "decisions": [],
                                   "unresolved_candidates": []}),
@@ -331,6 +340,51 @@ class QueryEngine:
         r.execution["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 2)
         return r.as_dict()
 
+    def _cluster_members(self, ident: dict, representative: str) -> list[dict]:
+        """Every row in the cluster, each with its own evidence.
+
+        Returned so the caller sees a cluster of people-rows rather than a
+        winner and some discarded losers. `is_display_representative` marks the
+        rendering choice; it is deliberately NOT called "canonical", because
+        nothing here asserts that one row is the true one.
+        """
+        members = ident.get("member_ids") or [representative]
+        if not members:
+            return []
+        marks = ",".join("?" * len(members))
+        rows = self.con.execute(
+            f"""SELECT person_id, name, kind, state, origin, merged_into
+                FROM people.person WHERE person_id IN ({marks})
+                ORDER BY person_id""",
+            members,
+        ).fetchall()
+        out = []
+        for pid, nm, kind, state, origin, merged_into in rows:
+            out.append({
+                "person_id": pid,
+                "name": nm,
+                "kind": kind,
+                "state": state,
+                "origin": origin,
+                "merged_into": merged_into,
+                "is_display_representative": pid == representative,
+                "evidence": ev.observed(
+                    source=origin,
+                    detail=f"person row {pid} as materialised by {origin}",
+                ).as_dict(),
+            })
+        # A member the person table no longer has is a real gap, not an absence.
+        seen = {r["person_id"] for r in out}
+        for missing in sorted(set(members) - seen):
+            out.append({
+                "person_id": missing,
+                "name": None,
+                "is_display_representative": missing == representative,
+                "note": ("Cluster member has no person row; it is reported "
+                         "rather than dropped."),
+            })
+        return out
+
     def _person_record(self, canonical: str, entry: dict) -> dict | None:
         row = self.con.execute(
             """SELECT person_id, name, birth_year, death_year, kind, origin,
@@ -367,6 +421,11 @@ class QueryEngine:
                                     detail="person row as materialised by the "
                                            "originating loader").as_dict(),
             "identity": entry["identity"],
+            # THE CLUSTER IS THE ANSWER. "Who is this" returns every member with
+            # its own evidence; `person_id` above is the member chosen to render,
+            # not the one member that is real. A caller that disagrees with the
+            # choice has everything here to make its own.
+            "cluster": self._cluster_members(entry["identity"], pid),
             "source_coverage": {
                 "domains": sorted(produced),
                 "by_domain": produced,
