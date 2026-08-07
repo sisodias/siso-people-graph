@@ -1,0 +1,30 @@
+{
+  "id": "TASK-0016",
+  "title": "N1: the fixture blind spot is only HALF fixed",
+  "status": "backlog",
+  "priority": "medium",
+  "domain": "backend",
+  "category": "gap",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "PR-JUDGEMENT-REVIEW.html finding N1, tests/query_v3/fixtures.py. Non-blocking.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [],
+  "spec": {
+    "description": "Disagreeing merged_into / identity_claim states exist ONLY in test_review_findings.py. The SHARED fixture is still all-agreeing, so 68 of 75 tests remain blind to exactly the condition that produced all six defects the cold review found.",
+    "context": "The suite is 75/75 green, which is real, but greenness across an all-agreeing fixture cannot detect the disagreement class. Related: N5 records that fixtures build from a schema that cannot produce the shipped graph (5 tracked tables vs 9 shipped), so the fixture is unrepresentative in two independent ways. Cold independent review 2026-08-07, reviewer did not author either PR, read-only. PR#23 @ 3d648aa5c7f40551fa9137fd385ca81de0a15fd5 (re-fetched mid-review), PR#24 @ e3df51d4374cd79295e7af3c1529499bb2a52550. Both verdicts FIX-FIRST, neither RETHINK. Receipt: .agents/tasks/consolidation-source/PR-JUDGEMENT-REVIEW.html",
+    "acceptance_criteria": [
+      "The shared fixture includes disagreeing identity states",
+      "At least one previously-blind test fails before the fix and passes after"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

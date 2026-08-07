@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cold judgement review — PG draft PRs #23 and #24</title>
+<style>
+  :root{--fg:#1a1a1a;--bg:#fdfdfc;--mut:#666;--rule:#e0ded9;--acc:#8a3324;--ok:#2d6a4f;--warn:#9a6700;--blk:#a4243b;--code:#f4f2ee;}
+  @media(prefers-color-scheme:dark){:root{--fg:#e6e4e0;--bg:#16181a;--mut:#9a978f;--rule:#2d3033;--acc:#e5896b;--ok:#7cc4a0;--warn:#e0b341;--blk:#f2718a;--code:#1e2124;}}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 ui-serif,Georgia,"Times New Roman",serif;}
+  .wrap{max-width:52rem;margin:0 auto;padding:2.5rem 1.25rem 6rem;}
+  h1{font-size:1.95rem;line-height:1.2;margin:0 0 .3rem;letter-spacing:-.01em}
+  h2{font-size:1.3rem;margin:2.8rem 0 .6rem;padding-bottom:.3rem;border-bottom:2px solid var(--rule)}
+  h3{font-size:1.05rem;margin:1.9rem 0 .4rem;color:var(--acc)}
+  .sub{color:var(--mut);font-size:.92rem;margin:0 0 2rem}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em}
+  code{background:var(--code);padding:.1em .35em;border-radius:3px}
+  pre{background:var(--code);padding:.85rem 1rem;border-radius:6px;overflow-x:auto;border:1px solid var(--rule);line-height:1.5}
+  pre code{background:none;padding:0}
+  table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--rule);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--code);font-weight:600}
+  .tag{display:inline-block;font:600 .72rem/1 ui-sans-serif,system-ui;padding:.3em .6em;border-radius:3px;letter-spacing:.04em;text-transform:uppercase;vertical-align:middle}
+  .t-blk{background:var(--blk);color:#fff}.t-ok{background:var(--ok);color:#fff}.t-warn{background:var(--warn);color:#1a1a1a}
+  .verdict{border:1px solid var(--rule);border-left:5px solid var(--acc);padding:1rem 1.2rem;margin:1.2rem 0;background:var(--code);border-radius:0 6px 6px 0}
+  .verdict p{margin:.4rem 0}
+  blockquote{margin:1rem 0;padding:.2rem 0 .2rem 1rem;border-left:3px solid var(--rule);color:var(--mut);font-style:italic}
+  .meta{font-size:.85rem;color:var(--mut)}
+  ul,ol{padding-left:1.3rem}li{margin:.3rem 0}
+  hr{border:0;border-top:1px solid var(--rule);margin:2.5rem 0}
+  .fn{font-size:.88rem;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Cold judgement review — PG draft PRs #23 and #24</h1>
+<p class="sub">
+Independent reviewer · did not author either PR · <strong>read-only, nothing merged, closed, commented or pushed</strong><br>
+Reviewed 2026-08-07 · <code>#23</code> @ <code>3d648aa5c7f40551fa9137fd385ca81de0a15fd5</code> (re-fetched mid-review) · <code>#24</code> @ <code>e3df51d4374cd79295e7af3c1529499bb2a52550</code>
+</p>
+
+<div class="verdict" style="border-left-color:var(--warn)">
+<p><strong>Note on revision.</strong> PR #23 moved during this review. I began at
+<code>7957503</code>; the branch advanced to <code>3d648aa</code>, "Fix six resolver defects
+found by independent cold review" — the gpt-sol review reported as never-returned did in fact
+return with a RETHINK verdict, and the author reproduced and fixed all six findings. I
+re-fetched and re-derived every affected conclusion against the new HEAD rather than patching
+my earlier reading. Suite re-run by hand: <strong>75/75 green</strong>. The six fixes are
+verified genuine below; my J1 blocking finding is <strong>unaffected</strong> — I confirmed
+<code>_canonical</code> is byte-identical across the two commits.</p>
+</div>
+
+<div class="verdict">
+<p><strong>PR #23 — query surface: <span class="tag t-warn">FIX-FIRST</span></strong><br>
+One blocking item. The canonical-selection policy reduces, in production's actual data
+shape, to alphabetical ordering of ID prefixes — which silently encodes a source hierarchy
+nobody chose. Everything else is sound and the FTS fix is the single highest-value line in
+either PR.</p>
+<p><strong>PR #24 — reproducible builds: <span class="tag t-warn">FIX-FIRST</span></strong><br>
+One blocking item. It fixes one of the <em>two</em> independent causes of the
+non-reproducibility P0 and its handoff reads as though the P0 is closed. The build produces
+a graph that is provably not the shipped graph.</p>
+<p class="meta">Neither is a RETHINK. Both are well-architected, unusually honest about their
+own limits, and the blocking items are narrow and fixable — in #24's case possibly by
+documentation alone.</p>
+</div>
+
+<h2>BLOCKING vs NON-BLOCKING — the whole split in one place</h2>
+
+<p><strong>BLOCKING</strong> means do not merge as-is. Two items, one per PR.</p>
+
+<table>
+<tr><th>#</th><th>PR</th><th>Finding</th><th>Where</th></tr>
+<tr><td><span class="tag t-blk">B1</span></td><td>#23</td>
+<td>Canonical selection collapses to lexical ID order in production's data shape, so
+origin-prefixed IDs impose a source hierarchy nobody chose. Survives <code>3d648aa</code>
+(<code>_canonical</code> byte-identical across both commits).</td>
+<td><code>query_v3/resolver.py:388-427</code> @ <code>3d648aa</code></td></tr>
+<tr><td><span class="tag t-blk">B2</span></td><td>#24</td>
+<td>Fixes one of the <em>two</em> independent causes of the reproducibility P0 while the handoff
+reads as though the P0 is closed. Builds and validates a graph missing the four shipped tables
+(1,287,159 rows).</td>
+<td><code>build_v3/validate.py:41-44</code></td></tr>
+</table>
+
+<p><strong>NON-BLOCKING</strong> — fix when convenient; none prevents a merge.</p>
+
+<table>
+<tr><th>#</th><th>PR</th><th>Finding</th><th>Where</th></tr>
+<tr><td>N1</td><td>#23</td><td>Blind spot only half broken: disagreeing identity states exist
+solely in <code>test_review_findings.py</code>; the shared fixture is still all-agreeing, so 68
+of 75 tests remain blind to that defect class.</td><td><code>tests/query_v3/fixtures.py</code></td></tr>
+<tr><td>N2</td><td>#23</td><td>v3 adapter elected on table presence alone — an empty or drifted
+v3 table promotes reads onto the never-validated path. Loud, not silent.</td><td><code>query_v3/capability.py:57-63</code></td></tr>
+<tr><td>N3</td><td>#23</td><td>Handoff still claims the <code>merged_into</code> half is "live
+regardless"; production has <code>merged_into</code> non-null = 0, so both halves are latent.</td><td><code>docs/handoffs/query-surface.md:44</code></td></tr>
+<tr><td>N4</td><td>#23</td><td>Handoff still reports "Ran 64 tests"; actual is 75.</td><td><code>docs/handoffs/query-surface.md:121</code></td></tr>
+<tr><td>N5</td><td>#23</td><td>Fixtures build from a schema that cannot produce the shipped graph
+(5 tracked tables vs 9 shipped).</td><td><code>tests/query_v3/fixtures.py:24-28</code></td></tr>
+<tr><td>N6</td><td>#23</td><td>Merge-and-flag on a proposed-only claim is correct (J9) <em>because</em>
+the flag is loud — comment that dependency at the flag site.</td><td><code>query_v3/resolver.py:262-277</code></td></tr>
+<tr><td>N7</td><td>#24</td><td>Logical digest is schema-blind: differing column types, constraints
+and indexes all yield identical digests (measured).</td><td><code>build_v3/digest.py:89-104</code></td></tr>
+<tr><td>N8</td><td>#24</td><td>Unbounded <code>fetchall</code> in the digest — measured 8× on-disk
+peak memory, ~2–3 GB on the real graph.</td><td><code>build_v3/digest.py:124-125</code></td></tr>
+</table>
+
+<hr>
+
+<h2>Why this review exists, and what "cold" means here</h2>
+
+<p>PG-LANE6-QUERY dispatched a reviewer for exactly this work and it never returned — no
+transcript, no findings. Rather than claim a review had happened, that author ran adversarial
+probes itself and stated plainly in its handoff that the review did not occur. That is the
+correct behaviour and it is why this is genuinely first-contact review.</p>
+
+<p>Coverage was already proven by the authors, so this review deliberately targets
+<strong>judgement</strong>: is the policy right, is the seam right, is the claim the code makes
+the claim the evidence supports. I re-derived every load-bearing number rather than accepting
+it, and I ran probes against the real fixtures rather than reasoning about the code in the
+abstract.</p>
+
+<h3>What I actually ran</h3>
+<pre><code># Two isolated local clones, so no collision with the live sibling panes
+git clone --local siso-people-graph review-wt/q &amp;&amp; git checkout origin/pg/query-surface-parallel-20260806
+git clone --local siso-people-graph review-wt/b &amp;&amp; git checkout origin/pg/reproducible-builds-parallel-20260806
+
+# Both suites, re-derived by hand rather than trusting the PR text
+PYTHONPATH=. python3 -m unittest discover -s tests/query_v3 -t . -p 'test_*.py'   # Ran 68 tests — OK
+PYTHONPATH=. python3 -m unittest discover -s tests/build_v3 -t . -p 'test_*.py'   # Ran 35 tests — OK</code></pre>
+
+<p>Both suites pass exactly as claimed: <strong>68/68</strong> and <strong>35/35</strong>.
+Minor doc drift — #23's handoff says <code>Ran 64 tests</code>; the real number is 68. Harmless,
+but it is the kind of stale number that erodes trust in the surrounding claims, so fix it.</p>
+
+<p>I also read <code>GQ-010-BASELINE.html</code> in full. It is the measured ground truth of the
+real 1.1 GB asset and it is the best document in this estate — it independently verified the
+339,217 person count that ESTATE-STATUS §9 had flagged as an unverified repository claim, and
+it is the reason several findings below can be stated as fact rather than suspicion.</p>
+
+<hr>
+
+<h2>J1 — Is canonical selection the right policy? <span class="tag t-blk">Blocking</span></h2>
+
+<h3>First: the brief's description of the policy does not match the code</h3>
+
+<p>The dispatch describes the resolver as preferring "registry/curated rows, then
+authority/book/platform origin, then strong-ID count, then lexical id." <strong>No such logic
+exists.</strong> I grepped the whole package: the words <code>registry</code>,
+<code>curated</code>, <code>authority</code> and <code>strong_id</code> appear nowhere in any
+selection path. The actual policy, <code>query_v3/resolver.py:388-427</code> @ <code>3d648aa</code>, is three rules:</p>
+
+<ol>
+<li><strong>Liveness first</strong> — a row with <code>state='merged'</code> can never win while a live row exists.</li>
+<li><strong>Applied winner</strong> — among live rows, one that something merged <em>into</em> beats an untouched peer.</li>
+<li><strong>Lexical</strong> — otherwise <code>sorted(live)[0]</code>.</li>
+</ol>
+
+<p>Rule 1 is genuinely good and non-obvious. The docstring records that it was found the hard
+way: a 12-long merge chain resolved to <code>bk:chain-1</code>, a superseded row, while the only
+live row was ignored. Ordering liveness ahead of winner-ness fixes that. Credit where due —
+that is exactly the kind of bug that ships silently.</p>
+
+<h3>The blocking problem: in production, the policy <em>is</em> rule 3</h3>
+
+<p>Rules 1 and 2 both depend on <code>person.merged_into</code>. The baseline measured the
+shipped asset directly:</p>
+
+<blockquote>merged_into non-null = 0. state='merged' = 0. identity_claim = 0 rows.</blockquote>
+
+<p>So on production data there are no merged rows and no applied winners. Every cluster is
+"all rows live, none a winner", and selection collapses to <code>sorted(members)[0]</code> —
+pure alphabetical ID order. I verified this against the PR's own fixtures rather than
+inferring it:</p>
+
+<pre><code>seed=[gh:lovelace] -&gt; canonical: bk:lovelace   members: ['bk:lovelace','gh:lovelace']
+  bk:lovelace: origin=book   state=linked
+  gh:lovelace: origin=github state=linked
+  # both live, no merged_into, winners empty -&gt; lexical smallest wins</code></pre>
+
+<p>And SISO's person IDs are prefixed by origin. So alphabetical order <em>is</em> an origin
+hierarchy, arrived at by accident:</p>
+
+<pre><code>bk:  &lt;  crates:  &lt;  gh:  &lt;  registry:  &lt;  yt:</code></pre>
+
+<p>Books beat crates beat GitHub beat registry beat YouTube — because "b" sorts before "g",
+not because anyone decided books are more authoritative. Note the irony: the brief believed
+registry/curated rows were preferred; lexically <code>registry:</code> loses to
+<code>bk:</code>, <code>crates:</code> and <code>gh:</code>. The intended policy and the actual
+policy are close to opposites.</p>
+
+<h3>What breaks when it is wrong</h3>
+
+<p>The canonical ID is what every downstream consumer stores, cites and links. Choosing it by
+prefix spelling means:</p>
+
+<ul>
+<li><strong>The richest row usually loses.</strong> The baseline's population shape is 245,171
+GitHub rows vs 35,363 book rows. A <code>gh:</code> row with 40 content edges yields its
+identity to a <code>bk:</code> row with 1, because "b" &lt; "g". <code>who()</code> already
+ranks matches by <code>content_count</code> (<code>engine.py:265</code>) — the engine knows
+which row is richer and the resolver ignores it.</li>
+<li><strong>It is silently unstable.</strong> Re-prefixing a source, or adding
+<code>arxiv:</code>, reshuffles canonical IDs across the corpus with no decision recorded and
+no diff to review.</li>
+<li><strong>It contradicts the module's own thesis.</strong> The file argues at length that it
+must never <em>decide</em> identity, only apply decisions. But picking the canonical ID <em>is</em>
+a decision, and here it is made by string sort with no evidence attached — while every other
+output in this PR carries a provenance grade. The one unattributed judgement in an
+evidence-first surface is this one.</li>
+</ul>
+
+<p>The docstring calls it "deterministic policy, not a truth claim". Deterministic it is. But
+determinism is not the property under question — <em>defensibility</em> is, and "alphabetically
+first" is not defensible as a source hierarchy.</p>
+
+<h3>What would unblock it</h3>
+
+<p>Small fix, no new machinery. In <code>_canonical</code>, before the lexical fallback, order
+live rows by an <strong>explicit, declared</strong> key — content count descending, then an
+explicitly ranked origin list, then lexical as the final tiebreak — and emit that choice as an
+evidence record like every other decision. Lexical stays as the last resort so determinism is
+preserved. The point is not that content-count is the one true rule; it is that the rule should
+be <em>chosen and stated</em> rather than inherited from ASCII.</p>
+
+<hr>
+
+<h2>J2 — Is v2/v3/none the right seam? <span class="tag t-ok">Right call</span> <span class="tag t-warn">one fix</span></h2>
+
+<p><strong>Three modes is correct, and it is not hedging.</strong> The three are not speculative
+variants of one idea — they are three states that demonstrably exist in this estate right now:
+<code>none</code> is any partial database (the baseline found only <code>people</code> attachable
+locally out of five domains); <code>v2</code> is production today; <code>v3</code> is Lane 3/4,
+written and unmerged. Deleting <code>none</code> would mean crashing or silently lying on a
+partial attach; deleting <code>v3</code> would mean this lane blocks on a merge it does not
+control — which is precisely the dependency that made v0 Prompt 5 unexecutable, per the handoff.
+Detection is by probing <code>sqlite_master</code> rather than reading a version number
+(<code>capability.py:80-95</code>), which is right for a database that has been additively
+upgraded.</p>
+
+<p>The real economy is elsewhere and the PR gets it: four surfaces (CLI, API, MCP, viewer) hold
+<em>zero</em> SQL and are enforced by <code>test_no_surface_contains_sql</code>. That is the
+abstraction that pays.</p>
+
+<h3>Non-blocking fix — v3 is elected on table presence alone</h3>
+
+<p><code>capability.identity_mode()</code> (<code>capability.py:57-63</code>) returns
+<code>"v3"</code> the moment <code>identity_decision</code> <em>or</em> <code>identity_cluster</code>
+exists — regardless of whether it has rows or matches the expected shape. Meanwhile
+<code>V3Resolver</code> admits it "has not been validated against a merged v3 database and is
+provisional." So an empty, half-migrated, or schema-drifted v3 table silently promotes every
+read onto the one adapter nobody has ever run for real.</p>
+
+<p>Mitigating factors, which is why this is not blocking: <code>V3Resolver</code> extends
+<code>V2Resolver</code> so v2 signals still apply; the cluster lookup is wrapped in
+<code>try/except sqlite3.Error</code> (<code>resolver.py:459</code> @ <code>3d648aa</code>, which the
+fix commit changed from swallowing to reporting — defect 6); and the mode is reported on
+every response with a provisional warning. The failure is loud, not silent. Still — gate v3 on
+the table being non-empty, or on a shape probe, and fall back to v2 otherwise.</p>
+
+<hr>
+
+<h2>J3 — Is merging a latent fix correct? <span class="tag t-ok">Yes — merge it</span></h2>
+
+<p><strong>The case against.</strong> It changes nothing observable. Zero
+<code>identity_claim</code> rows means zero behaviour delta on real data, and 4,061 lines of
+new read surface is real review burden, real maintenance, and real risk of bitrot before the
+first claim ever arrives. A fix you cannot observe working in production is a fix you cannot
+prove works in production — every guarantee rests on synthetic fixtures.</p>
+
+<p><strong>The case for, which I find stronger.</strong> This is a deadlock, and the PR is the
+only way out of it. The baseline puts it precisely: the matcher never ran, so no claims exist;
+no read path consumed claims, so producing them was pointless work. Neither side moves first
+unless someone breaks the cycle, and the read side is the correct side to break it on — a read
+path that cannot honour a reviewer's decision is a defect <em>whether or not</em> a decision
+currently exists. Ship the consumer, and populating <code>identity_claim</code> becomes
+worthwhile for the first time.</p>
+
+<p>Two things reinforce this. First, the baseline's D4 ("is this person the same as that
+account?") is the <em>only</em> one of five pre-registered decisions that is structurally
+unanswerable — not slow, impossible. Second, the safety argument: the README's feared "two
+John Murrays fuse into one" disaster has not happened, but as the baseline notes, that safety
+is <em>accidental</em> — it holds because the matcher never ran, not because a guard prevented
+it. 1,266 names are shared across rows. Landing the disciplined consumer <em>before</em> anyone
+turns on a matcher is the safe ordering. Reversing it — claims first, consumer later — is how
+you get silent bad merges.</p>
+
+<p><strong>Verdict: merge the latent fix</strong> (after J1), because it converts a deadlock into
+ordinary sequential work and it establishes the consumer's discipline before any producer can
+do damage.</p>
+
+<h3>One overclaim to correct — still present at <code>3d648aa</code></h3>
+<p>#23's handoff states, at <code>docs/handoffs/query-surface.md:44</code>:</p>
+<blockquote>The <code>person.merged_into</code> half of the resolver is live regardless: it applies to any merge a build has already written.</blockquote>
+<p>True in principle, misleading in fact. The baseline measured <code>merged_into</code> non-null
+= <strong>0</strong> and <code>state='merged'</code> = <strong>0</strong>. <em>Both</em> halves are
+latent today. The sentence reads as "half of this ships working"; nothing in the resolver
+changes any production read. Say so plainly — the PR is honest everywhere else, and this is the
+one line that lets a reader believe more shipped than did.</p>
+
+<hr>
+
+<h2>J4 — Is a logical digest sufficient for reproducibility? <span class="tag t-warn">Sound, with a measured blind spot</span></h2>
+
+<p><strong>The choice of logical over byte identity is correct and well-argued.</strong>
+<code>digest.py:4-29</code> names the actual sources of byte non-determinism — page allocation,
+freelist ghosts, the header change counter, WAL timing, <code>sqlite_sequence</code> — and
+<code>measure_binary_stability()</code> reports the byte answer as a measurement rather than
+assuming it. Every exclusion is justified in place rather than being an unexplained skip. This
+is the honest way to make the claim.</p>
+
+<h3>What could differ and still produce an identical digest — I tested rather than speculated</h3>
+
+<pre><code>H1 schema-blind (different column types, different NOT NULL, same values): True   ← IDENTICAL DIGEST
+H2 index-blind  (one DB has an extra index):                               True   ← IDENTICAL DIGEST
+H4 separator collision (\x01 injected into a value):                       False  ← safe
+</code></pre>
+
+<p>H4 is clean — the type-prefix rendering in <code>_render</code> prevents delimiter attacks, so
+that class of hole does not exist. Good design.</p>
+
+<p>But <strong>H1 and H2 confirm the digest is entirely schema-blind.</strong>
+<code>_table_names</code> (<code>digest.py:89-104</code>) reads <code>sqlite_master</code> for the
+<code>name</code> column only and never touches <code>sql</code>. Nothing anywhere in
+<code>build_v3/</code> digests DDL. Therefore two builds are certified "logically equivalent"
+across: changed column types, dropped or added <code>NOT NULL</code>/<code>CHECK</code>
+constraints, changed defaults, added or dropped indexes, changed foreign keys, and
+table-vs-view swaps.</p>
+
+<p>Also invisible: any table absent from <em>both</em> builds. The digest compares two artifacts
+to each other; it cannot notice that both are missing something the real graph has. That is
+exactly the J7 finding below.</p>
+
+<p>Why this matters more here than it would elsewhere: the P0 this PR exists to fix is a
+<em>schema</em> defect. The baseline's §3.3 finding is that four shipped tables exist in no
+tracked schema. A reproducibility gate that cannot see schema drift is blind to the precise
+failure class it was built to prevent. Not blocking on its own — the digest does what it says
+for row content, and constraints are stable in practice — but it should be closed and it is
+cheap: hash the normalised <code>sql</code> from <code>sqlite_master</code> into the overall
+digest as a <code>__schema__</code> pseudo-table, and add the H1/H2 cases as tests.</p>
+
+<hr>
+
+<h2>J5 — Does the 6-person / 56-row fixture mean anything at scale? <span class="tag t-warn">Partly</span></h2>
+
+<p><strong>The fixture is not meaningless.</strong> It proves the three things it was built to
+prove, and those are properties of <em>logic</em>, not of volume: timestamps are pinned rather
+than wall-clock, accumulation is <code>REPLACE</code>-keyed rather than
+<code>rank_score = rank_score + x</code>, and ties break by name rather than dict order. Each of
+those is scale-invariant — a build that depends on execution count does so at 56 rows and at 56
+million. Testing them small is correct, not a shortcut.</p>
+
+<h3>What the fixture cannot see</h3>
+
+<p><strong>1. Unbounded memory in the digest.</strong> <code>digest.py:124</code> does
+<code>SELECT &lt;all cols&gt; FROM &lt;table&gt;</code> then <code>.fetchall()</code> — the entire
+table into a Python list — and <code>:125</code> then builds a <em>second</em> full list of
+rendered strings and sorts it. I measured the ratio rather than guessing:</p>
+
+<pre><code>rows=200,000  db_bytes=7,598,080  peak_python_mem=60,751,798  ratio=8.00x</code></pre>
+
+<p>Eight times on-disk size, held live. The real graph's two largest tables alone
+(<code>person_topic</code> 2,050,629 + <code>person_person</code> 1,272,495 = 3.3M rows)
+extrapolate to roughly <strong>1 GB peak</strong>, and the full 5.6M-row graph to ~2–3 GB. That
+is survivable on a dev box and would likely not crash CI, so it is <em>not</em> blocking — but it
+is an unbounded fetch that a 56-row fixture can never surface, and the fix is mechanical:
+stream with <code>ORDER BY</code> in SQL and hash incrementally instead of sorting in Python.</p>
+
+<p><strong>2. Nothing exercises the production path at all.</strong> The handoff admits this
+squarely — "only the fixture path is one-command", production "was not run here because no
+production corpus was available offline, and claiming otherwise would be fabrication." That is
+exactly the right way to state a limit, and I want to be clear that I am not penalising it. But
+it does mean the reproducibility claim is proven for <code>--fixture</code> and asserted for
+everything else.</p>
+
+<hr>
+
+<h2>J8 — The six fixes at <code>3d648aa</code>, and whether the blind spot survives</h2>
+
+<p>I verified the fixes rather than taking them on trust. The suite runs
+<strong>75/75 green</strong> (was 68), with one new file,
+<code>tests/query_v3/test_review_findings.py</code>, carrying 7 tests.</p>
+
+<h3>The fixes are real</h3>
+
+<p>The headline one — defect 1, a rejected pair staying merged — is properly closed.
+<code>_contradicted_pairs</code> (<code>resolver.py:159-187</code>) now queries
+<code>status IN ('rejected','proposed')</code> and the application point
+(<code>resolver.py:262-277</code>) refuses the union outright when a rejection exists, emitting a
+<code>merge_refused</code> record rather than silently dropping it. The reasoning is stated
+where the code is: <em>"A rejected claim is an explicit decision NOT to merge and outranks a
+stale application."</em> That is correct. Defect 2 is likewise closed —
+<code>_merge_targets</code> now walks <strong>both</strong> directions, with the docstring
+naming the exact symptom (the winner's page omitted the merged row's works, so the same person
+returned different data depending which name you typed).</p>
+
+<p>Worth stating plainly: defect 1 meant the lane's headline guarantee — that only accepted
+decisions affect reads — <strong>was false as shipped</strong>. Finding that is what a cold
+review is for, and the author reproducing all six against the pushed clone rather than
+disputing them is the right response.</p>
+
+<p>I note without irony that defect 6 was a swallowed <code>sqlite3.Error</code> — the same
+defect class this lane exists to fix (the bare <code>except</code> that hid the FTS breakage),
+one schema version later. That is a pattern worth naming in the handoff, not just fixing.</p>
+
+<h3>The blind spot: broken where it was tested, surviving where it was not</h3>
+
+<p>The author's root-cause diagnosis is exactly right and unusually clear-eyed:</p>
+
+<blockquote>its fixtures only ever built states where <code>merged_into</code> and
+<code>identity_claim</code> AGREED, so trusting <code>merged_into</code> alone was
+indistinguishable from checking both</blockquote>
+
+<p>That is a test suite that cannot detect the difference it is testing. So: do the new
+fixtures break the agreement? <strong>Partly.</strong> I measured both.</p>
+
+<p><code>test_review_findings.py</code> builds disagreeing states <em>directly</em>, with local
+<code>INSERT</code>s (<code>:46-77</code>) — <code>r:rej-a</code> merged into
+<code>r:rej-b</code> under a <code>rejected</code> claim. The blind spot is genuinely broken
+there, and those 7 tests do fail against the old code. Good.</p>
+
+<p>But the <strong>shared</strong> fixture that the other 68 tests build on is unchanged. I
+enumerated every applied merge in it:</p>
+
+<pre><code>=== Every row with merged_into, and what the claim says ===
+  gh:kant -> bk:kant (state=merged) | claim=accepted
+
+=== any merged_into whose claim is NOT 'accepted'? ===
+  disagreeing pairs: NONE</code></pre>
+
+<p>Still exactly one merged row, still in agreement. So the corrective states live only in the
+file written to catch the known findings; the corpus the rest of the suite exercises retains the
+original property. The blind spot survives in a narrower shape — <strong>any future defect of
+this same class, in a path <code>test_review_findings.py</code> does not happen to cover, remains
+undetectable by 68 of the 75 tests.</strong></p>
+
+<p>This is not blocking — the specific defects are fixed and proven fixed. But the durable fix
+is to push a contradictory pair into <code>build_people_db</code> itself, so disagreement is a
+property of the corpus every test runs against rather than a special case remembered once.
+Fixtures that encode only coherent states will keep producing exactly this failure mode.</p>
+
+<h3>J1 is unaffected by the fix commit</h3>
+
+<p>I diffed and re-probed rather than assuming. <code>_canonical</code> is
+<strong>byte-identical</strong> between <code>7957503</code> and <code>3d648aa</code>; the six
+fixes changed <em>which rows cluster together</em>, never <em>which row wins</em>. Re-run against
+the new HEAD:</p>
+
+<pre><code>J1 @3d648aa: seed=[gh:lovelace] canonical= bk:lovelace
+   bk:lovelace: origin=book   state=linked
+   gh:lovelace: origin=github state=linked
+   -&gt; both live, no merged_into, no winner =&gt; sorted()[0]. J1 SURVIVES: True</code></pre>
+
+<p>The blocking finding stands unchanged, and so does the observation that the brief's
+description of the policy (registry/authority/strong-ID first) matches no code at any commit.</p>
+
+<hr>
+
+<h2>J9 — The open judgement: applied merge + only a <em>proposed</em> claim</h2>
+
+<p>The author asked for this call explicitly and could not settle it. Current behaviour,
+verified empirically at <code>3d648aa</code>:</p>
+
+<pre><code>PROPOSED + applied-merge -&gt; canonical: r:pb   members: ['r:pa','r:pb']
+   MERGED (not refused): True        # merges, and flags the inconsistency</code></pre>
+
+<p><strong>My call: merge-and-flag is correct. Keep it.</strong></p>
+
+<p>The case for refusing is real and I want to state it at its strongest, because it nearly
+persuaded me. This module's whole thesis is that <em>only accepted decisions affect reads</em>.
+A proposed claim is by construction not accepted. Merging on a pair whose only decision record
+is a hypothesis looks like the module doing exactly what its docstring forbids — and the
+symmetry is seductive: if a rejection outranks a stale application, why shouldn't the absence of
+an acceptance?</p>
+
+<p>It fails on three grounds.</p>
+
+<ol>
+<li><strong>Refusing is also a decision, and a worse-evidenced one.</strong> A rejection is an
+explicit human statement that these are different people, so letting it beat a stale merge
+honours a real decision. A <em>proposal</em> states nothing — it is a hypothesis awaiting
+review. Treating "someone wondered about this pair" as grounds to override a merge a build
+actually applied gives a hypothesis more authority than an applied state. The resolver's own
+docstring already draws this line correctly: <em>"A merely proposed claim over an applied merge
+is an inconsistent state that a caller must be told about, not one this module may resolve by
+picking a side."</em> Refusing <em>is</em> picking a side.</li>
+
+<li><strong>The asymmetry is principled, not arbitrary.</strong> Rejection and proposal are not
+two points on one scale. Rejection carries a decision; proposal carries a question. Outranking a
+stale application with a decision is honouring the review; outranking it with a question is
+inventing one.</li>
+
+<li><strong>The failure modes are not symmetric in cost.</strong> Wrongly merging shows the
+caller one person with a loud unresolved flag — recoverable, and the flag is what prompts the
+review. Wrongly splitting silently reverts a merge the build applied, reintroducing the exact
+duplicate-rows defect (PG-AUDIT-002) this lane exists to close, on data where <em>no reviewer
+ever said to split</em>. That is a regression disguised as caution.</li>
+</ol>
+
+<p>One condition on my answer: merge-and-flag is only right <em>because</em> the flag is loud.
+The current implementation satisfies that — the inconsistency surfaces in
+<code>identity_resolution</code> and raises a coverage gap. If that flag were ever softened to a
+log line or dropped, the calculus inverts and refusing becomes correct. Worth a comment at the
+flag site saying so, since the reasoning is not local to the code.</p>
+
+<hr>
+
+<h2>J6 — Do the two PRs conflict semantically? <span class="tag t-ok">No conflict</span> <span class="tag t-warn">but a shared false premise</span></h2>
+
+<p>File paths are disjoint, as stated — <code>query_v3/</code> + surfaces vs
+<code>build_v3/</code> + loaders — and I found no semantic disagreement between them. On the
+contrary they compose well: #24's <code>build_v3/paths.py</code> is exactly the
+environment-override discipline #23's <code>config.py</code> wants, and #24's validator checks
+<code>merged_into</code> referential integrity (<code>validate.py:129-130</code>) which is a real
+invariant for #23's resolver. Merging both is coherent.</p>
+
+<p>The shared problem is not a conflict between them but a premise both inherit:
+<strong>both treat <code>schema/people_schema_v2.sql</code> as the schema of record, and the
+baseline proves it is not.</strong> #23's fixtures build from it
+(<code>tests/query_v3/fixtures.py:24-28</code>); #24 builds and validates against it. It declares
+5 tables. The shipped asset has those plus four more holding 1,287,159 rows — more rows than the
+entire <code>person</code> table. So both PRs are correct with respect to a schema that cannot
+produce the shipped graph.</p>
+
+<p>For #23 this is a coverage gap and nothing worse: it never queries the four missing tables,
+so it is not wrong, merely narrower than production. For #24 it is the blocking item.</p>
+
+<hr>
+
+<h2>J7 — Overclaims and unadmitted limits</h2>
+
+<h3>#24's unadmitted limit — the blocking one <span class="tag t-blk">Blocking</span></h3>
+
+<p>#24's handoff opens with <strong>"1. A clean checkout could not build the graph at all — P0"</strong>
+and shows the <code>FileNotFoundError</code> reproduced and fixed. That fix is real and correct
+(<code>build_v3/paths.py:53</code>). But the baseline names <strong>two independent causes</strong>
+of non-reproducibility:</p>
+
+<blockquote>the published graph is not reproducible from the published source at all, by two independent causes</blockquote>
+
+<p>Cause 1 is the schema path. Cause 2 is §3.3: four shipped tables exist in no tracked schema,
+so <em>no commit on main can produce the asset</em>. #24 fixes cause 1 and does not mention
+cause 2 anywhere — not in the handoff's five explicitly-listed remaining limits, not in the
+code. I verified the consequence directly:</p>
+
+<pre><code>build_v3/validate.py:41  EXPECTED_TABLES = (
+    "person", "person_content", "person_topic", "external_ids",
+    "identity_claim", "person_observation", "person_projection", "build_run")
+
+# grep person_person|organisation across build_v3/*.py *.sql -> no build/validate reference</code></pre>
+
+<p>Eight expected tables, and <strong>none</strong> of <code>person_person</code> (1,272,495 rows),
+<code>organisation</code> (1,131), <code>organisation_content</code> (13,533),
+<code>person_organisation</code>. So <code>build_v3</code> builds a graph, validates it as
+complete, and digests it as reproducible — and that graph is <em>not the shipped graph</em>. The
+validator will report <code>pass</code> on an artifact missing 1.29M rows, because it does not
+know they should exist.</p>
+
+<p>The PR is not wrong about what it did; it is wrong about what that means. A reader of this
+handoff concludes the reproducibility P0 is closed. It is half closed, and the unclosed half is
+the one the baseline called structural. Given a graph "reproducible" but missing 23% of its
+rows, someone will eventually rebuild and ship it.</p>
+
+<p><strong>What would unblock it:</strong> this may be fixable by documentation alone. Either
+(a) bring the four tables into the tracked schema and the build, or (b) state explicitly in the
+handoff and in <code>validate.py</code> that <code>build_v3</code> reproduces the
+<em>tracked-schema subset</em> and cannot yet reproduce release <code>graph-v2</code>, naming the
+four tables and citing §3.3. Option (b) is honest and cheap; what is not acceptable is the
+current silence, because the digest's own blind spot (J4) guarantees nothing else will catch it.</p>
+
+<h3>Other items, none blocking</h3>
+
+<table>
+<tr><th>Item</th><th>Where</th><th>Note</th></tr>
+<tr><td>"merged_into half is live regardless"</td><td>#23 handoff <code>:44</code></td><td>Overclaim, persists at <code>3d648aa</code>. <code>merged_into</code> non-null = 0 in production; both halves are latent.</td></tr>
+<tr><td>"Ran 64 tests"</td><td>#23 handoff <code>:121</code></td><td>Stale, persists at <code>3d648aa</code> — actual 75. Trivial, but fix it.</td></tr>
+<tr><td>Blind spot survives in shared fixture</td><td><code>fixtures.py</code></td><td>Corrective disagreeing states live only in <code>test_review_findings.py</code>; the corpus 68 of 75 tests use is still all-agreeing.</td></tr>
+<tr><td>v3 elected on table presence alone</td><td><code>capability.py:57-63</code></td><td>Empty/drifted v3 table promotes reads to the unvalidated adapter. Loud, not silent.</td></tr>
+<tr><td>Digest is schema-blind</td><td><code>digest.py:89-104</code></td><td>Measured: type, constraint and index changes all give identical digests.</td></tr>
+<tr><td>Unbounded <code>fetchall</code></td><td><code>digest.py:124-125</code></td><td>Measured 8× on-disk peak memory; ~2–3 GB on the real graph.</td></tr>
+<tr><td>Fixture schema ≠ shipped schema</td><td><code>tests/query_v3/fixtures.py:24</code></td><td>#23's whole suite validates against a schema that cannot build the shipped graph.</td></tr>
+</table>
+
+<h3>What both authors got right, and should not be lost in the fixing</h3>
+<ul>
+<li><strong>The FTS fix is the single highest-value change in either PR.</strong>
+<code>engine.py:158-177</code> pins <em>both</em> plausible-but-wrong MATCH forms in a comment,
+verified against SQLite rather than assumed, and reports degradation instead of swallowing it
+in a bare <code>except</code>. The baseline measured the defect at 222.1 ms vs 1.7 ms —
+<strong>130× on the graph's most common entry point</strong>. This is the one place a genuine,
+honest retrieval-time improvement exists today.</li>
+<li><strong>The liveness-first ordering in <code>_canonical</code></strong> is a real bug found
+the hard way and correctly fixed.</li>
+<li><strong>Zero SQL in four surfaces</strong>, enforced by a test that fails the build. The
+original defect had four copies; now it has one.</li>
+<li><strong>#24's naming of the three non-determinism sources</strong> — wall-clock, accumulation,
+dict-order tie-breaking — is precise, and each was silent.</li>
+<li><strong>Both handoffs volunteer limits that a less careful author would have omitted</strong>,
+including #23 recording that its own cold review never returned. That is the behaviour that
+made this review possible.</li>
+</ul>
+
+<hr>
+
+<h2>Verdicts</h2>
+
+<h3>PR #23 — query surface <span class="tag t-warn">FIX-FIRST</span></h3>
+<p><strong>Blocking:</strong></p>
+<ol>
+<li><strong>J1 — canonical selection.</strong> Replace the implicit lexical policy with an
+explicit, declared ordering (content count → declared origin rank → lexical tiebreak) and emit
+it as an evidence record. As written, production canonical IDs are chosen by ID-prefix
+spelling.</li>
+</ol>
+<p><strong>Non-blocking:</strong> push a contradictory <code>merged_into</code>/claim pair into the
+<em>shared</em> fixture so the blind spot cannot recur outside
+<code>test_review_findings.py</code> (J8); gate v3 on more than table presence; note that
+fixtures use a schema that cannot build the shipped graph; comment at the proposed-claim flag
+site that merge-and-flag depends on the flag staying loud (J9); name the recurrence of the
+swallowed-<code>sqlite3.Error</code> pattern in the handoff.</p>
+<p><strong>Two stale claims persist at <code>3d648aa</code> — I re-checked rather than assuming
+the fix commit swept them up, and it did not:</strong> the handoff still asserts
+<em>"The <code>person.merged_into</code> half of the resolver is live regardless"</em>
+(<code>docs/handoffs/query-surface.md:44</code>), which the baseline falsifies —
+<code>merged_into</code> non-null = 0, so both halves are latent; and it still reports
+<em>"Ran 64 tests"</em> (<code>:121</code>) when the suite is now 75. Both are one-line edits.</p>
+<p class="meta">Resolved at <code>3d648aa</code>: the six review defects, verified fixed.</p>
+
+<h3>PR #24 — reproducible builds <span class="tag t-warn">FIX-FIRST</span></h3>
+<p><strong>Blocking:</strong></p>
+<ol>
+<li><strong>J7 — the second cause of the P0.</strong> Either build the four shipped tables, or
+state explicitly that <code>build_v3</code> reproduces only the tracked-schema subset and not
+release <code>graph-v2</code>. Currently the handoff implies a P0 is closed when half of it is
+untouched, and <code>validate.py</code> will pass an artifact missing 1.29M rows.</li>
+</ol>
+<p><strong>Non-blocking:</strong> fold normalised DDL into the digest and add the H1/H2 tests;
+stream the digest instead of <code>fetchall</code>.</p>
+
+<h3>On the possibility that "ship it" was the right answer</h3>
+<p>It was not, but the margin is narrower than the finding count suggests. Across ~7,000 changed
+lines I found <strong>two</strong> blocking items, and one of them (#24) may be closable with a
+paragraph of honest documentation. Both PRs are better-engineered and more forthcoming about
+their own limits than most merged code.</p>
+
+<p>The two blockers share a shape worth naming: each is a place where the code is
+<em>correct</em> but the <em>claim around it</em> is wider than the evidence — a policy presented
+as neutral that encodes an accidental hierarchy, and a P0 presented as closed that is half
+closed. That is precisely the class of defect a coverage-proving test suite cannot catch, which
+is why judgement review is a different job from test review.</p>
+
+<p>The <code>3d648aa</code> episode is the strongest evidence for that claim, and it cuts against
+my own verdict in a way worth stating. A suite that was 68/68 green concealed six real defects,
+one of which falsified the lane's headline guarantee outright — and it concealed them for a
+structural reason, not a careless one: the fixtures encoded only states where the two identity
+signals agreed, so the code could trust one signal and every test still passed. Green tests
+measured coverage of the states the author imagined, which is exactly the thing a cold reader
+supplies and a suite cannot. My J8 finding is that the same shape survives in miniature, and my
+J1 finding is of the same family — a policy nobody chose, invisible to every test because every
+test agrees with it.</p>
+
+<p>Two process notes. First, the author's response to the returned review — reproduce all six,
+fix, and publish the root cause — is the correct behaviour and should be said plainly. Second,
+this review began against a commit that was superseded mid-flight; had I written the verdict
+without re-fetching, four of my findings would have been wrong and one fix would have gone
+uncredited. That the earlier gpt-sol review was believed lost, and was not, is its own argument
+for confirming a reviewer's silence before recording it as absence.</p>
+
+<hr>
+<p class="fn"><strong>Read-only confirmation.</strong> Nothing was merged, closed, commented on,
+or pushed. No tracked file in either repository was modified. Work was done in two throwaway
+local clones (<code>review-wt/q</code> @ <code>7957503</code>, <code>review-wt/q2</code> @
+<code>3d648aa</code>, <code>review-wt/b</code>), each verified at close with <strong>zero
+tracked-file modifications</strong>. The only writes anywhere were <code>__pycache__</code> from
+running the test suites and scratch databases under <code>/tmp/dgtest</code> for the digest
+probes. The shared clone that the sibling lane panes are working in was used only as a
+<code>git clone --local</code> source and a <code>git fetch</code> target; it currently shows
+modifications at commit <code>dccb174</code>, which are that lane's live work, not mine.</p>
+
+<h3 style="color:var(--mut);font-size:.95rem">Probes run, for replication</h3>
+<pre><code># Suites, re-derived by hand rather than read off the PR text
+tests/query_v3  @7957503 -> Ran 68 tests OK   @3d648aa -> Ran 75 tests OK
+tests/build_v3  @e3df51d -> Ran 35 tests OK
+
+# J1: canonical selection collapses to lexical in the production data shape (both commits)
+resolve(["gh:lovelace"]) -> canonical bk:lovelace, both rows live, no winner
+git diff 7957503 3d648aa -- query_v3/resolver.py  # _canonical byte-identical
+
+# J4: digest blind spots, measured not assumed
+H1 differing column types + NOT NULL, same values -> IDENTICAL digest
+H2 extra index                                    -> IDENTICAL digest
+H4 \x01 injected into a value                     -> distinct (safe)
+
+# J5: digest memory scaling
+rows=200,000  db=7,598,080 B  peak_python=60,751,798 B  ratio=8.00x
+
+# J8: does the shared fixture break merged_into/claim agreement?
+build_people_db -> one merged row (gh:kant->bk:kant), claim=accepted -> NO disagreement
+
+# J9: applied merge + proposed-only claim
+resolve(["r:pa"]) -> merged, members ['r:pa','r:pb'], inconsistency flagged</code></pre>
+
+</div>
+</body>
+</html>

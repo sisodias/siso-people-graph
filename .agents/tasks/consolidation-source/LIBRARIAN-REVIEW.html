@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Independent review — sisodias/siso-librarian, 17 proposals</title>
+<style>
+  :root { --fg:#1a1a1a; --bg:#fdfdfc; --mut:#666; --rule:#ddd; --accent:#8a3d00; }
+  @media (prefers-color-scheme: dark){ :root{ --fg:#e8e6e3; --bg:#161614; --mut:#9a978f; --rule:#333; --accent:#e0975a; } }
+  body{ background:var(--bg); color:var(--fg); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif; max-width:60rem; margin:0 auto; padding:2rem 1.25rem 6rem; }
+  h1{ font-size:1.75rem; line-height:1.25; margin:0 0 .25rem; }
+  h2{ font-size:1.25rem; margin:2.75rem 0 .75rem; padding-top:.75rem; border-top:1px solid var(--rule); }
+  h3{ font-size:1.05rem; margin:1.5rem 0 .4rem; }
+  .sub{ color:var(--mut); margin:0 0 2rem; }
+  table{ border-collapse:collapse; width:100%; font-size:.875rem; }
+  th,td{ text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+  th{ font-weight:600; }
+  code{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.85em; background:rgba(128,128,128,.13); padding:.1em .35em; border-radius:3px; }
+  pre{ background:rgba(128,128,128,.1); padding:.85rem 1rem; border-radius:5px; overflow-x:auto; font-size:.8rem; line-height:1.5; }
+  .scroll{ overflow-x:auto; }
+  .v{ font-weight:700; white-space:nowrap; font-size:.8rem; letter-spacing:.02em; }
+  .acc{ color:#1a7a3d; } .rej{ color:#a11; } .sup{ color:var(--mut); } .hum{ color:var(--accent); } .awc{ color:#8a6d00; }
+  @media (prefers-color-scheme: dark){ .acc{color:#68d391;} .rej{color:#fc8181;} .awc{color:#e6c34a;} }
+  blockquote{ margin:1rem 0; padding:.6rem 0 .6rem 1rem; border-left:3px solid var(--accent); color:var(--mut); }
+  .box{ border:1px solid var(--rule); border-left:3px solid var(--accent); padding:1rem 1.15rem; border-radius:4px; margin:1.25rem 0; }
+  .verdict-hero{ border:2px solid var(--accent); border-radius:6px; padding:1.25rem 1.4rem; margin:1.5rem 0; }
+  ul{ padding-left:1.25rem; } li{ margin:.3rem 0; }
+  .meta{ font-size:.8rem; color:var(--mut); }
+</style>
+</head>
+<body>
+
+<h1>Independent review — <code>sisodias/siso-librarian</code></h1>
+<p class="sub">17 proposals · first review by anyone other than the author · 2026-08-07</p>
+
+<div class="box">
+<strong>Standing of this review.</strong> The librarian wrote: <em>"There are now 17 proposals in this repo and zero have been independently reviewed. I am the only reader."</em> This is the missing reader. It is adversarial by design — I went looking for reasons to reject, and I found one that matters.
+<br><br>
+<strong>Read-only respected.</strong> Repo cloned to a scratch path, <code>git status --porcelain</code> empty at close, HEAD unchanged at <code>d519a82</code>. No script in the repo was executed — in particular <em>not</em> <code>minimax-cache-route.sh apply</code>. No file in <code>~/.config/bifrost/</code> was written; no <code>*.bak-route-*</code> exists on this machine.
+</div>
+
+<h2>The headline finding</h2>
+
+<div class="verdict-hero">
+<p style="margin-top:0"><strong>The MiniMax cache proposal is right about the world and wrong about the code.</strong></p>
+<p>The measurement is sound and I would accept the finding. But the <code>apply</code> script is written against a version of the shim that no longer matches the one I can inspect. Its patch anchor is a single exact-match string, and that string is <strong>absent</strong> from the shim at <code>~/.config/bifrost/claude-model-catalog.mjs</code> on this host.</p>
+<p style="margin-bottom:0">The script fails <em>safe</em> — it aborts before touching anything — so the risk is a wasted run, not damage. But the proposal's central promise, "one command to apply, one to undo," is <strong>not currently true</strong>, and nobody would have discovered that without executing it. Verdict: <span class="v awc">ACCEPT-WITH-CHANGES</span>, not ACCEPT.</p>
+</div>
+
+<h3>What I checked, and how</h3>
+<p>The patch is an exact string replacement that raises <code>SystemExit('anchor not found')</code> if its anchor is missing:</p>
+<pre>old="      const upstreamPath = effectiveModel === 'MiniMax-M3' ? '/v1/chat/completions' : bifrostUpstreamPath(req.url);"
+...
+if old not in s: raise SystemExit('anchor not found — shim may already be patched')</pre>
+<p>Against the live shim:</p>
+<pre>$ grep -n "upstreamPath" ~/.config/bifrost/claude-model-catalog.mjs
+(no output)
+
+$ grep -n "MiniMax-M3" ~/.config/bifrost/claude-model-catalog.mjs
+(no output)
+
+$ ls -la ~/.config/bifrost/claude-model-catalog.mjs
+-rw-r--r--  24419  6 Aug 00:58</pre>
+<p>Not merely a whitespace drift — the identifier <code>upstreamPath</code> does not occur anywhere in the file, and neither does the literal <code>MiniMax-M3</code>. The routing code now reads:</p>
+<pre>const candidateRequest = http.request({ ..., path: bifrostUpstreamPath(req.url), headers }, ...)</pre>
+<p>The path is computed inline at the call site. There is no <code>upstreamPath</code> variable to replace, and no model-gated branch. <strong>All traffic, MiniMax included, goes to Bifrost via <code>bifrostUpstreamPath</code>.</strong> The second replacement (the <code>sendUpstream</code> signature change) <em>would</em> match — <code>const sendUpstream = (target, allowFallback, transportAttempt = 0) =&gt; {</code> is present at line 347 — but it never executes, because the first anchor aborts the script first. That ordering is what makes the failure safe.</p>
+
+<h3>A second claim that no longer holds</h3>
+<p>The GQ-008 evidence file states the shim already does half the work:</p>
+<blockquote>"The 8081 catalog shim now preserves cache_control in request translation and surfaces cache_read_input_tokens in responses"</blockquote>
+<pre>$ grep -n "cache_control\|cache_read_input_tokens\|cache_creation" ~/.config/bifrost/claude-model-catalog.mjs
+(no output)</pre>
+<p>Neither string appears. So the stated precondition — "those changes are in place and currently inert" — is <strong>not true of this shim</strong>. If it were applied as-is, the annotation would have to survive on its own rather than via shim support the proposal believes exists.</p>
+
+<h3>The honest limit on that finding</h3>
+<div class="box">
+<p style="margin-top:0"><strong>I am on the laptop; the librarian runs on the Mac mini.</strong> <code>hostname</code> → <code>shaans-MacBook-Pro-9.local</code>, <code>hw.model</code> → <code>MacBookPro17,1</code>. The charter's first line is <em>"You run continuously on the Mac mini."</em> The mini did not answer on the tailnet (<code>ping 100.66.34.21</code> → 100% loss), so I could not read <em>its</em> copy of the shim.</p>
+<p style="margin-bottom:0">So the accurate claim is narrower than "the script is broken": <strong>the script's anchor does not match the shim on at least one machine that runs this exact file at this exact path, and the divergence is structural rather than cosmetic.</strong> Two shims that were once identical have drifted. On a script whose whole value proposition is "reviewed, reversible, safe," an unverified anchor on a second host is exactly the gap a reviewer exists to catch. <strong>The required change is one line of pre-flight: assert the anchor is present before claiming the operation is reversible</strong> — and re-verify on the mini before <code>apply</code> is ever run.</p>
+</div>
+
+<h2>Did I reproduce the cache numbers, or just read them? <span class="meta">(V2)</span></h2>
+<p>I reproduced the <em>reasoning and the method</em>; I did not re-run the experiment, because doing so requires the mini's proxy and would spend live tokens. Specifically:</p>
+<ul>
+<li><strong>The 12–95% range is honest, and better than the claim it replaced.</strong> Four runs are recorded: 128/1,078 (11.9%), 896/1,078 (83.1%), 1,024/1,078 (95.0%), 2,944/3,033 (97.1%). The librarian demoted its own "~97%" headline to a point observation — a self-correction against its own interest, which raises rather than lowers my confidence.</li>
+<li><strong>The load-bearing quantity is the direction, not the magnitude.</strong> Proxy non-zero on every run; Bifrost exactly 0 on every run. A flat zero across four independent runs is a categorical result and cannot be cache-age variance. This is the right thing to rest the claim on, and the claim does rest on it.</li>
+<li><strong>The experiment design survives the obvious attack.</strong> My first instinct was that the two arms might differ by more than the path — and the script anticipates it: identical body, identical credential, identical prompt, two calls per arm (first populates, second reads). It records <code>prompt_tokens</code> on both arms and they match (3,033/3,033; 1,078/1,078), which is the check that proves the comparison is like-for-like.</li>
+<li><strong>The strongest evidence of good faith is the refusal path.</strong> The script exits 75 rather than record a result if either arm errored, with the reasoning written in the source: a rejected request and a stripped <code>cache_control</code> both produce "no cached tokens" while meaning opposite things. The librarian hit exactly this trap (Bifrost rejects the bare model name; the prefix is case-sensitive) and built the guard instead of quietly banking the confirmation. That is the difference between reproducing a finding and manufacturing one.</li>
+<li><strong>Blast radius 3.7% — I accept it, with a caveat the librarian already stated.</strong> 73 of 1,986 requests, gated on <code>effectiveModel === 'MiniMax-M3'</code>. The librarian's own correction is the right one: the risk is <em>a shared file being edited</em>, not <em>shared routing changing</em>. I agree, and note the 3.7% is a one-day traffic sample, so it sizes today's exposure rather than a constant.</li>
+</ul>
+<p><strong>Where the rollback is genuinely safe:</strong> timestamped <code>cp -p</code> backup before any write; <code>node --check</code> with restore-on-failure; auto-rollback if the post-probe returns a wrong model or zero cache reads; plist backed up and restored alongside. The design is better than most human-written migrations. <strong>Where it is not proven:</strong> the plist backup/restore lines are, by the librarian's own admission, unexecuted — and <code>rollback</code> restores only <em>the most recent</em> backup, so a second <code>apply</code> over an already-patched shim would make the newest backup a patched file. The anchor guard makes that unlikely rather than impossible.</p>
+
+<h2>Verdicts — all 17 <span class="meta">(V1)</span></h2>
+<div class="scroll">
+<table>
+<thead><tr><th>#</th><th>Proposal</th><th>Verdict</th><th>Reasoning &amp; receipt</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>minimax-cache-route<br><span class="meta">(decision #1)</span></td><td class="v awc">ACCEPT-<br>WITH-CHANGES</td><td>Finding sound, direction reproduces on 4 runs, rollback well-designed. But patch anchor <code>upstreamPath</code> absent from the live shim, and the claimed <code>cache_control</code> preservation is absent too. <em>Receipt:</em> two <code>grep</code>s returning empty against <code>claude-model-catalog.mjs</code> (24,419 b, 6 Aug). Add a pre-flight anchor assertion; re-verify on the mini.</td></tr>
+<tr><td>2</td><td>gap4-gap7-rescue</td><td class="v acc">ACCEPT</td><td>Rescue-by-copy, explicitly no deletes/pushes/rewrites. Bundle <code>git bundle verify</code>'d; the proposal states its own falsifier (local verify proves object completeness, not cross-machine restore) — which is the correct caveat. Superseded in part by decision #2's later measurement.</td></tr>
+<tr><td>3</td><td>passage-index-vault-backup</td><td class="v acc">ACCEPT</td><td>23 GB single-copy index → verified vault copy, SHA-256 both ends, live DB untouched. Textbook reversible durability work. <em>Receipt:</em> non-goals explicitly forbid mutating/deleting the source.</td></tr>
+<tr><td>4</td><td>mac-mini-settlement</td><td class="v sup">SUPERSEDED</td><td>Survey-only, "deletion performed: 0 by design". Its findings were absorbed by later, better-measured work (notably #8 oracle-gate, which corrected this proposal's own 8.5 G figure by actually opening the directory).</td></tr>
+<tr><td>5</td><td>minimax-routing-repair</td><td class="v acc">ACCEPT</td><td>Backups first, verification by round trip rather than banner, and it names the banner-trust failure explicitly. Its stated falsifier (HTTP passing but a real worker still failing) is the right one.</td></tr>
+<tr><td>6</td><td>minimax-fleet-ab</td><td class="v sup">SUPERSEDED</td><td>Investigation that produced the GQ-008 cache question. Its open question — why <code>cached_read_tokens = 0</code> — was answered by the cache-block experiment. Done its job.</td></tr>
+<tr><td>7</td><td>cached-minimax-runner</td><td class="v acc">ACCEPT</td><td>Bounded, additive, fails loudly if the response model isn't <code>MiniMax-M3</code>. <em>Receipt:</em> <code>scripts/mm-bulk-runner.mjs</code> present (3,470 b) plus a smoke <code>.jsonl</code> in metrics — it shipped and was exercised.</td></tr>
+<tr><td>8</td><td>observatory-first-page</td><td class="v acc">ACCEPT</td><td>Static page + loopback server, explicitly refuses to edit tunnel routing blind. Correctly noted <code>/tmp/people_v2_gh.sqlite</code> was a zero-byte stub and read the real DB instead — a trap it caught itself.</td></tr>
+<tr><td>9</td><td>claim-layer-contract</td><td class="v acc">ACCEPT</td><td>The foundation the rest stands on. Schema + valid/invalid fixtures + verifier. <em>Receipt:</em> <code>claims/</code> holds 11 packets, <code>verify-claim-packets.mjs</code> is 14,229 b. Non-goals correctly fence off corpus storage and runtime.</td></tr>
+<tr><td>10</td><td>question-portfolio-index</td><td class="v acc">ACCEPT</td><td>Makes loose packets discoverable; verifier enforces the referential link. Cites the negative Gutenberg↔GitHub result to justify <em>not</em> doing graph work — reasoning from evidence against its own expansion.</td></tr>
+<tr><td>11</td><td>refresh-invalidation-ledger</td><td class="v acc">ACCEPT</td><td>Turns "continuously updated" into a checkable invariant. States a genuine falsifier: if the entry only duplicates packet data it is premature. The invariant (freshness recorded <em>outside</em> the packet) is real and non-trivial.</td></tr>
+<tr><td>12</td><td>contract-schemas</td><td class="v acc">ACCEPT</td><td>Hardening over features — correct priority call. Falsifier is sharp: the schemas must be validated by the same validator as the packet, or they're comments. <em>Receipt:</em> <code>schemas/</code> populated.</td></tr>
+<tr><td>13</td><td>ia-adapter-contract</td><td class="v acc">ACCEPT</td><td>Contract-not-loader, by design. Encodes the post-<em>Hachette v. IA</em> public-domain filter as non-negotiable. The <code>pdftotext</code> 3,707-words vs sidecar 131,713-words datum is a real, load-bearing quality finding.</td></tr>
+<tr><td>14</td><td>ia-live-metadata-probe</td><td class="v acc">ACCEPT</td><td>Metadata-only, no body downloads, tiny named want-list. The right next step after a contract: test the rules against the network before building on them.</td></tr>
+<tr><td>15</td><td>ia-contract-live-findings</td><td class="v acc">ACCEPT</td><td>Probe contradicted the contract; contract updated rather than the result discarded. Routes HEAD 401/403 to <em>review</em> rather than rejection — the conservative direction. Loop closing properly.</td></tr>
+<tr><td>16</td><td>awesome-signal-staging</td><td class="v acc">ACCEPT</td><td>Staged on a copy, canonical explicitly untouched, idempotency tested. Names the failure that would stop promotion (second apply changes counts ⇒ loader not idempotent). Correct order of operations.</td></tr>
+<tr><td>17</td><td>awesome-signal-canonical-<br>promotion</td><td class="v hum">NEEDS-HUMAN</td><td>The only proposal that <strong>writes a canonical 1.1 GB production DB</strong>. Procedure is right (backup → verify → apply → integrity → idempotency) and the deltas are pre-measured from staging. But baselines were taken 2026-08-03; the DB has had four days to move. <strong>Re-measure the before-counts immediately prior to applying</strong> — if they don't match the staged baseline, stop.</td></tr>
+</tbody>
+</table>
+</div>
+<p class="meta">Counts: 12 ACCEPT · 1 ACCEPT-WITH-CHANGES · 2 SUPERSEDED · 1 NEEDS-HUMAN · 1 (the decisions file, #18 below) is a register, not a proposal. Zero outright REJECT — see the note on that below, because it is the result I trust least.</p>
+
+<h3>The 18th file, and why I did not score it</h3>
+<p><code>2026-08-04-decisions-awaiting-shaan.md</code> is the decision register, not a proposal — reviewing it as one would be a category error. It is, however, the most interesting document in the repo: it is a record of an agent <em>repeatedly talking itself out of needing you</em>. Decisions #3 and #5 are struck through and resolved by the librarian itself; #2 downgraded from "rescue" to "preference" after measurement; #6 half-closed; #7 re-scoped from a plan to a done thing. The self-correction rate is the strongest evidence in the repo that the loop works.</p>
+
+<h2>Should GQ-009 watch trigger 5 fire? <span class="meta">(V3)</span></h2>
+<blockquote>"A standing agent proposes a change to the Library or Foundry and it survives independent review — the first evidence that self-improvement is real rather than asserted."</blockquote>
+
+<div class="verdict-hero">
+<p style="margin-top:0"><strong>YES — fire it. But record what actually happened, which is better than a clean pass.</strong></p>
+<p>The trigger's verb is <em>survives</em>, not <em>passes unchanged</em>. Sixteen of seventeen proposals survived adversarial review intact. The seventeenth — the flagship cache proposal — survived <em>as a finding</em> and <strong>failed as an executable</strong>: its measurement is sound and reproducible, and its patch anchor no longer matches the code it patches.</p>
+<p style="margin-bottom:0">A rubber stamp would have been weak evidence. A review that found a real, specific, previously-unknown defect in the strongest proposal — and still concluded the underlying work is sound — is <em>strong</em> evidence, because it demonstrates the review was capable of failing the proposal and didn't need to.</p>
+</div>
+
+<p><strong>The falsifier I could not rule out, stated plainly.</strong> Trigger 5 says "a standing agent proposes a change… and it survives independent review." I am a Claude instance reviewing another Claude instance's work. That is <em>independent</em> in the sense that matters mechanically — separate context, no shared state, adversarial instruction, and I did find something the author missed — but it is not independent in the sense of a different mind with different blind spots. If GQ-009 intends the stronger reading, this review fires the trigger only partially, and a human or a non-Claude reviewer would be needed to fire it fully. I flag it rather than let the trigger fire on a definition I quietly chose.</p>
+
+<p><strong>The result I trust least in my own review:</strong> zero outright REJECTs. I went looking for one. The reason I did not find it is structural rather than generous — nearly every proposal is scoped as <em>measure, stage, or contract</em> rather than <em>mutate</em>, and it is hard to reject a proposal whose action is "write down what is true, on a copy." The one proposal that does mutate production (#17) is the one I would not wave through. That pattern is consistent with a genuinely conservative author, but a reader should weigh it: <strong>a proposal set this safe is also a proposal set that has not taken many risks.</strong></p>
+
+<h2>What still genuinely needs you <span class="meta">(T6 — credential or authority only)</span></h2>
+<p>Stripped of everything that resolved itself. Three items, one of which I have downgraded.</p>
+
+<h3>1. Cloudflare dashboard route — pure credential <span class="v hum">(only true blocker)</span></h3>
+<p>Machine side is finished: loopback and tailnet both 200, <code>cloudflared</code> running as a <code>--token</code> tunnel, which reads routes from the dashboard — so there is no local file that could define one. Point a hostname at <code>http://127.0.0.1:8765</code>. Nothing else is left. <em>Incidental, worth knowing:</em> the tunnel token is visible in <code>ps</code> output — normal for cloudflared, not introduced by the librarian, but anything that can read the process table can read that credential.</p>
+<p class="meta">Caveat from my side: I could not re-verify the 200s, as those endpoints live on the mini and it was unreachable from here. On this laptop <code>127.0.0.1:8765</code> returns <code>000</code> and nothing is listening on that port — as expected for the wrong host.</p>
+<p class="meta"><strong>One correction to the proposal's framing, found on second pass.</strong> The decision register describes cloudflared here as <em>"a <code>--token</code> tunnel (pid 8611)"</em>, whose routes live only in the dashboard. The cloudflared process actually running on this laptop is <strong>not</strong> a token tunnel: <code>cloudflared tunnel --url http://127.0.0.1:7676</code> (pid 83677) — a quick/ephemeral tunnel pointed at an unrelated local node service on 7676. That does not refute the mini-side claim, which I could not check, but it does mean <em>"cloudflared here is token-managed"</em> is host-specific and was stated without that qualifier. Anyone acting on this decision should confirm which tunnel type is running on the mini before concluding the dashboard is the only lever.</p>
+
+<h3>2. <code>disable_content_logging</code> — policy, not housekeeping</h3>
+<p>Currently <code>0</code>, so full request bodies are stored; <code>raw_request</code> alone was 3,681 MB of 8,986 MB. The question is genuinely yours because it decides whether you can inspect what your agents actually sent. Retention now bounds the cost either way, so this is a preference, not an emergency. <em>Note:</em> the librarian's own correction stands — the retention setting is configured, not self-enforcing, and the file stops growing rather than shrinking.</p>
+
+<h3>3. MiniMax cache routing — now blocked on a fix, not on you</h3>
+<p>I am <strong>downgrading this from "awaiting Shaan" to "awaiting a code change."</strong> It was presented as needing only your approval. It needs the anchor mismatch resolved first — approving it today would authorise a command that aborts. Sequence: re-check the anchor on the mini → repair the anchor or the script → <em>then</em> it is your call. Do not run <code>apply</code> before that.</p>
+
+<h3>Downgraded off the list</h3>
+<ul>
+<li><strong>Rescue refs remote</strong> (#2) — the librarian measured the fallback and proved all 5 SHAs restorable from a verified 621 MB bundle. There is no loss risk to decide about. A third copy is a preference; decide it whenever, or never.</li>
+<li><strong>SEC-F16</strong> (#3) and <strong>God Question contracts</strong> (#5) — resolved by the librarian, confirmed by the file's own strike-throughs. Contracts now 7 of 7.</li>
+<li><strong>oracle-gate 13.7 GB</strong> (#8) — genuinely still an authority question (it is a repo the librarian does not own), but it is <em>not urgent and not risky</em>: the irreplaceable 7.9 MB is already preserved and verified by extract-and-diff. Reclaim it when disk pressure warrants, using <code>git worktree remove</code>.</li>
+<li><strong>15 HTML-recoverable books</strong> — the librarian answered its own question by reading the constraint properly (C6 permits it, the copy exists) and leans to deferring. 15 of 77,540 is 0.02%. I agree with deferring; no decision needed.</li>
+<li><strong>Twain / sparse IA metadata</strong> — a real copyright judgement, but the cost of leaving it is now precisely known and small: everything with an explicit rights field already flows. Not blocking.</li>
+</ul>
+
+<h2>Review method &amp; limits</h2>
+<ul>
+<li>Repo cloned read-only; all 17 proposals plus the 407-line decision register read in full; <code>GQ-008</code> claim packet v2, 5 metrics files, and both cache scripts read line by line.</li>
+<li>Load-bearing machine claims re-derived by me directly rather than delegated — the anchor check, the <code>cache_control</code> check, the shim topology, and the host identity.</li>
+<li><strong>Independently corroborated.</strong> A separate worker with no knowledge of my findings ran the machine checks blind and returned matching results: same shim file (24,419 b, 6 Aug 00:58), no listener on 8081, <code>go-llm-proxy</code> on 8789 and Bifrost on 8080 both live, observatory <code>000</code>, and no vault / <code>passages.sqlite</code> / <code>oracle-gate</code> / <code>foundry-data</code> on this host. It also surfaced the shim's own backup history — <code>bak-model-window-20260724</code>, <code>bak-probe-224118</code>, <code>bak-pre-fable-unlock-20260805</code>, sizes moving 5,714 → 22,098 → 24,419 bytes — which is direct evidence that <strong>this file is actively edited by other processes</strong>, and the most likely mechanical explanation for the anchor drift. Critically, <strong>no <code>bak-route-*</code> backup exists</strong>, confirming <code>apply</code> has never run here.</li>
+<li><strong>Principal limit:</strong> executed on the laptop, not the mini. Mini unreachable on the tailnet during review, so mini-local claims (observatory 200s, disk figures, oracle-gate, vault paths, the mini's own shim) could not be re-verified. Where a claim depends on the mini I have said so rather than passing it silently.</li>
+<li><strong>I did not run the experiment.</strong> I audited its design, its recorded runs, and its refusal path. The direction (Bifrost flat zero) is what I am endorsing; the magnitude I treat as a point observation, exactly as the librarian re-framed it.</li>
+<li><strong>Confidence: 90%</strong> on the anchor finding as it applies to the machine I inspected — the greps are unambiguous. <strong>~70%</strong> that it also holds on the mini, which is why the verdict is "verify before apply" rather than "the script is broken." The one thing that would settle it is reading <code>~/.config/bifrost/claude-model-catalog.mjs</code> on the mini.</li>
+</ul>
+
+<p class="meta" style="margin-top:2.5rem">Reviewer: independent Claude instance, no shared context with the librarian. Repo HEAD at review: <code>d519a82</code>. Read-only respected throughout; no repo writes, no script execution, no configuration changes.</p>
+
+</body>
+</html>

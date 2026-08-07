@@ -1,0 +1,30 @@
+{
+  "id": "TASK-0019",
+  "title": "claim_status='absent' is not proof of legacy provenance",
+  "status": "backlog",
+  "priority": "medium",
+  "domain": "data",
+  "category": "gap",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "PR-JUDGEMENT-REVIEW.html, PR#23. Durable fix required.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [],
+  "spec": {
+    "description": "Treating claim_status='absent' as evidence that a row is legacy conflates 'no claim was recorded' with 'this predates the claim layer'. Those are different facts and the first does not imply the second.",
+    "context": "Durable fix per the review: a migration cutoff TIMESTAMP or an explicit allowlist, so legacy status is asserted from a recorded boundary rather than inferred from a missing value. Absence-as-evidence is the same reasoning error the declassified-records department names in its four-truth model. Cold independent review 2026-08-07, reviewer did not author either PR, read-only. PR#23 @ 3d648aa5c7f40551fa9137fd385ca81de0a15fd5 (re-fetched mid-review), PR#24 @ e3df51d4374cd79295e7af3c1529499bb2a52550. Both verdicts FIX-FIRST, neither RETHINK. Receipt: .agents/tasks/consolidation-source/PR-JUDGEMENT-REVIEW.html",
+    "acceptance_criteria": [
+      "Legacy provenance is determined by a recorded cutoff or allowlist, not by absence",
+      "Existing rows relying on the inference are re-derived against the new boundary"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

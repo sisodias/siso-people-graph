@@ -1,0 +1,33 @@
+{
+  "id": "TASK-0018",
+  "title": "Record Lane 6's fix as NECESSARY BUT LATENT, and do not overstate it",
+  "status": "backlog",
+  "priority": "high",
+  "domain": "lifecycle",
+  "category": "content",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "PR-JUDGEMENT-REVIEW.html finding N3, docs/handoffs/query-surface.md:44. Production identity_claim = 0 rows, merged_into non-null = 0.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [
+    "TASK-0006"
+  ],
+  "spec": {
+    "description": "The handoff still claims the merged_into half is 'live regardless'. Production has merged_into non-null = 0, so BOTH halves are latent. Lane 6's fix changes NOTHING VISIBLE TODAY; what it does is remove the reason not to populate the table.",
+    "context": "Record it in exactly those words. This is a documentation-accuracy task with real consequences: if a merge narrative says Lane 6 'fixed identity resolution', the estate will believe a capability exists that has zero rows behind it - which is the overclaim class this whole consolidation has been correcting. Pairs with TASK-0006 (identity_claim is empty). Cold independent review 2026-08-07, reviewer did not author either PR, read-only. PR#23 @ 3d648aa5c7f40551fa9137fd385ca81de0a15fd5 (re-fetched mid-review), PR#24 @ e3df51d4374cd79295e7af3c1529499bb2a52550. Both verdicts FIX-FIRST, neither RETHINK. Receipt: .agents/tasks/consolidation-source/PR-JUDGEMENT-REVIEW.html",
+    "acceptance_criteria": [
+      "The handoff states both halves are latent in production",
+      "No merge narrative claims a visible identity-resolution improvement",
+      "The 'Ran 64 tests' figure is corrected to 75 (finding N4)"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}
