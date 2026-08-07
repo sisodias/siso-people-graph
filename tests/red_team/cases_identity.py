@@ -169,7 +169,17 @@ def case_common_name_review_only(ctx: Context) -> tuple[bool, dict[str, Any]]:
             )
         finally:
             con.close()
-        holds = row == {"method": "exact_name", "confidence": 0.55, "status": "proposed"}
+        # The invariant is that exact-name evidence alone stays PROPOSED at LOW
+        # confidence -- not that the score equals one particular constant. The
+        # identity_v3 matcher scores this at 0.52 with auto_eligible=False
+        # (identity_v3/_candidates.py), replacing the previous 0.55; that is
+        # strictly more conservative, so pinning the old constant would fail a
+        # tightening of the very property under test.
+        holds = (
+            row["method"] == "exact_name"
+            and row["status"] == "proposed"
+            and 0.0 < row["confidence"] < 0.6
+        )
         return holds, row
 
 def case_kind_and_pseudonym_conflicts(ctx: Context) -> tuple[bool, dict[str, Any]]:
