@@ -37,5 +37,7 @@
       "by": "GLS-CONSOLIDATION",
       "notes": "Superseded in part by the GQ-010 baseline measured against the real 1.1GB shipped asset. See consolidation-source/GQ-010-BASELINE.html."
     }
-  ]
+  ],
+  "progress_note": "Lane 6's work EXISTS after all -- it is PR #23, not unwritten. PG-P0-003 (query surface does not consume identity_claim) is fixed there and confirmed still reproducing on merged main by tools/verify_audit_findings.py. This task is therefore not 'write Lane 6' but 'resolve B1 and merge PR #23' -- see TASK-0014.",
+  "reverified_at": "2026-08-07T17:45:00Z"
 }

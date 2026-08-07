@@ -1,14 +1,14 @@
 {
   "id": "TASK-0003",
   "title": "Merge the nine draft PRs in dependency order",
-  "status": "backlog",
+  "status": "done",
   "priority": "high",
   "domain": "lifecycle",
   "category": "infrastructure",
   "created_at": "2026-08-07T00:00:00Z",
   "created_by": "GLS-CONSOLIDATION",
   "evidence": "Zero exact file-path conflicts verified across PRs #1-#8; only shared directory is docs/handoffs/ where each lane writes a differently-named file.",
-  "verified": false,
+  "verified": true,
   "target_agent": "",
   "dependencies": [
     "TASK-0001",
@@ -30,5 +30,7 @@
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
     }
-  ]
+  ],
+  "completed_at": "2026-08-07T17:45:00Z",
+  "completion_evidence": "Eight of the nine merged in dependency order, each verified against merged main before the next: #8 integration contract (a01ae38), #1 red-team (c760558), #4 identity (74880db), #3 v3 schema (4610143), #2 software/AI pilot (ae43f9f), #5 creators/media pilot (6156a52), #6 dossier (e28072b), #7 audit+verifier (88858bc). main de048bb -> 88858bc. Zero path collisions across all 248 paths -- the exclusive-path-ownership design held exactly as designed. The ninth (#9 claims-temporal) was CLOSED, see TASK-0004. PG main has NO CI, so every suite was run by hand on the merged result rather than trusting GitHub's CLEAN status: red_team PASS=3 XFAIL=15 FAIL=0 XPASS=4 ERROR=0, schema_v3 26/26, identity_v3 15/15, sources_software_ai 18/18, sources_creators_media 18/18, integration contract check true with 0 blocking risks. One regression was caught and fixed (27ee554): merging #4 turned red-team PGRT-T016 red because the case asserted an exact dict including confidence==0.55, while identity_v3 scores exact-name evidence at 0.52 with auto_eligible=False. The invariant -- exact-name evidence stays proposed at LOW confidence -- still holds and holds more strongly, since 0.52 is more conservative. Rewritten to assert the property rather than the constant, and confirmed with a negative control that the check still fails when the property is genuinely violated. Also recorded: four cases moved XFAIL -> XPASS, meaning #4 fixed PGRT-003, PGRT-005 and PGRT-007."
 }

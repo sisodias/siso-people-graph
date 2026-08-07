@@ -1,14 +1,14 @@
 {
   "id": "TASK-0004",
   "title": "Decide the fate of Lane 12: finish it or close it",
-  "status": "backlog",
+  "status": "done",
   "priority": "medium",
   "domain": "lifecycle",
   "category": "gap",
   "created_at": "2026-08-07T00:00:00Z",
   "created_by": "GLS-CONSOLIDATION",
   "evidence": "Branch pg/claims-temporal-relations-20260806 declared claims/**, projections/**, tests/claims/** and docs/reasoning/** and shipped 165 lines consisting of 2 GitHub Actions files only.",
-  "verified": false,
+  "verified": true,
   "target_agent": "",
   "dependencies": [],
   "spec": {
@@ -26,5 +26,7 @@
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
     }
-  ]
+  ],
+  "completed_at": "2026-08-07T17:45:00Z",
+  "completion_evidence": "DECIDED: CLOSED, with the reason recorded in PR #9. The lane declared claims/**, projections/**, tests/claims/** and docs/reasoning/** and shipped exactly two GitHub Actions workflows (165 lines) and nothing under any declared path. Those two workflows are not the lane's output but self-referential scaffolding intended to PRODUCE it: both trigger only on pushes to pg/claims-temporal-relations-20260806, gated on the literal commit message 'chore: stage Prompt 12 finalizer', and one of them opens the PR itself. Merging would land two permanently-dead workflows holding contents:write and pull-requests:write on main -- write permissions with no reachable trigger. The generation step never ran, so no claims or projections work exists to preserve. The DESIGN survives: the category-collapse diagnosis is on main via PR #6, and PG-P1-009 (lifespan overlap presented as contemporaneity) is a red-team case confirmed still reproducing by tools/verify_audit_findings.py. Branch preserved untouched."
 }

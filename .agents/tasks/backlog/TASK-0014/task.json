@@ -28,5 +28,7 @@
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
     }
-  ]
+  ],
+  "reverified_at": "2026-08-07T17:45:00Z",
+  "reverification": "STILL BLOCKING, re-verified independently against PR #23 HEAD dccb174 (unchanged since the cold review, so nothing moved under the finding). query_v3/resolver.py still ends in lexical order at :471 `sorted(live_winners)[0] if live_winners else live[0]` and :479 `sorted(members)[0]`. With production measured at merged_into non-null = 0, state='merged' = 0 and identity_claim = 0 rows, every cluster reaches sorted(members)[0], making canonical selection an origin hierarchy chosen by ASCII (bk: < crates: < gh: < registry: < yt:). The suite is 76/76 GREEN at this commit, which is the point: no fixture disagrees with the accidental ordering. PR left as draft with the finding documented on it. Merge state vs current main: CLEAN -- only B1 holds it."
 }

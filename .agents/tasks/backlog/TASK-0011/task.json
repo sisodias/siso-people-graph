@@ -28,5 +28,7 @@
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
     }
-  ]
+  ],
+  "progress_note": "UNCHANGED but now MEASURABLE on main. tools/verify_audit_findings.py landed via PR #7 (88858bc) and reports PG-P1-006 as STILL REPRODUCING on merged main. The fix exists in PR #23, which is held as a draft on the unrelated B1 blocker (TASK-0014). Unblocking #23 also closes this.",
+  "reverified_at": "2026-08-07T17:45:00Z"
 }

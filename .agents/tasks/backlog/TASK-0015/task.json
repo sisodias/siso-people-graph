@@ -29,5 +29,7 @@
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
     }
-  ]
+  ],
+  "reverified_at": "2026-08-07T17:45:00Z",
+  "reverification": "STILL BLOCKING, re-verified independently against PR #24 HEAD ff3d444. build_v3/validate.py:41 EXPECTED_TABLES still lists only 8 tables, and person_person appears in NO file under build_v3/ (grepped the whole package; same for organisation, organisation_content and person_organisation). So build_v3 builds, validates as complete and digests as reproducible a graph missing four shipped tables holding 1,287,159 rows -- more rows than the entire person table. The digest cannot catch it because it compares two builds to each other and is schema-blind, so a table absent from BOTH is invisible. May be closable by documentation alone: state in the handoff and in validate.py that build_v3 reproduces the tracked-schema SUBSET and cannot reproduce release graph-v2. PR left as draft with the finding documented on it. Merge state vs current main: CLEAN -- only B2 holds it."
 }
