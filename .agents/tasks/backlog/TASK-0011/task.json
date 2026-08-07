@@ -1,0 +1,32 @@
+{
+  "id": "TASK-0011",
+  "title": "FTS silent failure costs 130x on the most common query path",
+  "status": "backlog",
+  "priority": "high",
+  "domain": "backend",
+  "category": "bugfix",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "GQ-010-BASELINE.html §4.3. PGRT-005 reproduced and quantified: LIKE scan 222.1ms vs FTS 1.7ms.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [
+    "TASK-0002"
+  ],
+  "spec": {
+    "description": "ask.py queries FTS with a schema-qualified table name that SQLite rejects; the OperationalError is swallowed by a bare 'except sqlite3.Error' and the code falls through to a LIKE scan. The query looks like it works. 130x slower on the graph's single most common entry point, while the FTS index is fully built, functional, and simply never reached.",
+    "context": "The schema comment predicted this exactly - 'measured 57ms at 36k people, and it grows linearly' - and at 339k people it is now 222ms, tracking that prediction. This is a ONE-LINE FIX and the one place a genuine, honest 80%+ retrieval-time improvement is available today. Belongs with TASK-0002 (Lane 6, which owns ask.py). Record the measured cost as the justification. Caution from the same baseline: sub-second SQL is NOT the GQ-010 bottleneck, so do not present this as satisfying criterion #4 - the real operator cost is the analyst loop around the query. Measured 2026-08-07 by PG-BASELINE against the shipped graph-v2 asset: people_graph_v2.sqlite, 1,113,350,144 bytes, db SHA-256 9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b, at repo commit de048bb3b34bf931b56fd741cb46c1334acdfb98. Receipt: .agents/tasks/consolidation-source/GQ-010-BASELINE.html",
+    "acceptance_criteria": [
+      "FTS path is actually reached, proven by a test asserting WHICH path ran",
+      "The bare except no longer swallows a schema error silently"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

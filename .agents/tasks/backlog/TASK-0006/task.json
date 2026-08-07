@@ -1,0 +1,33 @@
+{
+  "id": "TASK-0006",
+  "title": "identity_claim is EMPTY: D4 is structurally unanswerable",
+  "status": "backlog",
+  "priority": "critical",
+  "domain": "data",
+  "category": "gap",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "GQ-010-BASELINE.html §4.1. identity_claim = 0 rows. merged_into non-null = 0. state='merged' = 0.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [
+    "TASK-0002"
+  ],
+  "spec": {
+    "description": "The recorded defect PG-AUDIT-002/PGRT-004 says 'ask.py never reads identity_claim', which implies claims exist and are ignored. The truth is worse: there are NO CLAIMS TO IGNORE. Both halves are broken - ask.py contains no reference to identity_claim across all 357 lines, AND the table holds zero rows. This makes TASK-0002 (Lane 6) NECESSARY BUT NOT SUFFICIENT: wiring ask.py to read the table changes nothing until something writes to it.",
+    "context": "The README calls identity claims its central safety design: 'Every proposed match is a row in identity_claim with a method, a confidence and the literal evidence.' The table exists, is correctly designed, is indexed on status, and is empty. Live consequence: ask.py --who 'Spinoza' returns 'baruch-spinoza' (registry) and 'bk:spinoza, benedictus de|1632-1677' (books) as two unrelated matches. They are the same human. The graph ranks neither, proposes no claim, and offers no adjudication path. One point in its favour: the John Murray fusion disaster has NOT happened - but that safety is accidental, holding because the matcher never ran, not because a guard prevented it. 31 (platform,value) pairs map to multiple people and 1,266 names are shared across rows, so the blast radius is latent, not absent. Measured 2026-08-07 by PG-BASELINE against the shipped graph-v2 asset: people_graph_v2.sqlite, 1,113,350,144 bytes, db SHA-256 9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b, at repo commit de048bb3b34bf931b56fd741cb46c1334acdfb98. Receipt: .agents/tasks/consolidation-source/GQ-010-BASELINE.html",
+    "acceptance_criteria": [
+      "A claim producer writes rows to identity_claim with method, confidence and literal evidence",
+      "ask.py exposes accepted vs proposed state AND the Spinoza case returns an adjudication path",
+      "Reversibility is proven: a merge can be undone"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

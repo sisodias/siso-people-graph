@@ -13,7 +13,7 @@
   "dependencies": [],
   "spec": {
     "description": "Lane 5 was designed with a complete 11-item work order and never pushed, so a designed fix for a P0 does not exist in any branch. Execute the surviving spec; this is not a re-derivation.",
-    "context": "ROOT CAUSE: loaders/build_people_graph_v2.py resolves people_schema_v2.sql relative to loaders/, but the tracked file lives at schema/. A clean checkout therefore cannot build. Specs survive in TWO independent places, both on branch agent/people-graph-audit-record-20260806 of sisodias/great-library-of-siso: research/people-graph-program-record/prompts/parallel-slam.md and research/people-graph-program-record/prompts/dependency-ordered-superseded.md. Cite both and reconcile any difference rather than silently picking one. Canonical lane numbering is parallel-slam; see .docs/lane-numbering-map.html in the Great Library, and note the off-by-one A(n)===B(n+1).",
+    "context": "ROOT CAUSE: loaders/build_people_graph_v2.py resolves people_schema_v2.sql relative to loaders/, but the tracked file lives at schema/. A clean checkout therefore cannot build. Specs survive in TWO independent places, both on branch agent/people-graph-audit-record-20260806 of sisodias/great-library-of-siso: research/people-graph-program-record/prompts/parallel-slam.md and research/people-graph-program-record/prompts/dependency-ordered-superseded.md. Cite both and reconcile any difference rather than silently picking one. Canonical lane numbering is parallel-slam; see .docs/lane-numbering-map.html in the Great Library, and note the off-by-one A(n)===B(n+1). MEASURED UPDATE: the clean-checkout failure is reproduced in baseline §4.4. Separately, four shipped tables exist in no tracked schema (§3.3) - see TASK-0009. Fixing only the path leaves the graph unreproducible.",
     "files_affected": [
       "loaders/build_people_graph_v2.py",
       "schema/people_schema_v2.sql"
@@ -30,6 +30,12 @@
       "action": "seeded",
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    },
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "amended",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Superseded in part by the GQ-010 baseline measured against the real 1.1GB shipped asset. See consolidation-source/GQ-010-BASELINE.html."
     }
   ]
 }

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GQ-010 Baseline — the measured BEFORE state of the SISO People Graph</title>
+<style>
+  :root { --fg:#1a1a1a; --mut:#666; --line:#ddd; --bad:#b3261e; --ok:#1b5e20; --warn:#8a6100; --bg:#fff; --code:#f6f6f4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e8e8e8; --mut:#9a9a9a; --line:#333; --bad:#f2b8b5; --ok:#a5d6a7; --warn:#e0c068; --bg:#121212; --code:#1c1c1c; }
+  }
+  body { max-width:60rem; margin:0 auto; padding:2rem 1.25rem 6rem; background:var(--bg); color:var(--fg);
+         font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; }
+  h1 { font-size:1.9rem; line-height:1.2; margin:0 0 .25rem; }
+  h2 { font-size:1.3rem; margin:2.75rem 0 .75rem; padding-bottom:.3rem; border-bottom:2px solid var(--line); }
+  h3 { font-size:1.05rem; margin:1.75rem 0 .5rem; }
+  .sub { color:var(--mut); margin:0 0 2rem; }
+  code, pre { background:var(--code); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.86em; }
+  code { padding:.1em .35em; border-radius:3px; }
+  pre { padding:.8rem 1rem; border-radius:6px; overflow-x:auto; border:1px solid var(--line); }
+  table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; display:block; overflow-x:auto; }
+  th, td { border:1px solid var(--line); padding:.45rem .6rem; text-align:left; vertical-align:top; }
+  th { background:var(--code); font-weight:600; }
+  .bad { color:var(--bad); font-weight:600; }
+  .ok { color:var(--ok); font-weight:600; }
+  .warn { color:var(--warn); font-weight:600; }
+  .box { border:1px solid var(--line); border-left:4px solid var(--mut); padding:.85rem 1rem; margin:1.25rem 0; border-radius:0 6px 6px 0; }
+  .box.red { border-left-color:var(--bad); }
+  .box.green { border-left-color:var(--ok); }
+  .box.amber { border-left-color:var(--warn); }
+  .num { font-variant-numeric:tabular-nums; }
+  dt { font-weight:600; margin-top:.6rem; }
+  dd { margin:0 0 0 1.2rem; color:var(--mut); }
+  footer { margin-top:4rem; padding-top:1rem; border-top:1px solid var(--line); color:var(--mut); font-size:.88rem; }
+</style>
+</head>
+<body>
+
+<h1>GQ-010 Baseline — the measured <em>before</em> state</h1>
+<p class="sub">SISO People Graph · captured 2026-08-07, before any consolidation PR was merged · read-only</p>
+
+<div class="box red">
+<strong>Why this document exists.</strong> GQ-010's own <code>evidence_gaps[0]</code> states:
+<em>"There is no agreed baseline for current evidence-retrieval time, decision changes, or
+operator utility."</em> Without a baseline, nothing downstream is measurable — the estate could
+merge every open PR and never know whether the 100× happened. Once those PRs land, the
+before-state is unrecoverable. This is that before-state, measured rather than asserted.
+</div>
+
+<h2>0. What was measured, and how it was obtained</h2>
+
+<p>The critical enabling fact, which the prior estate survey had not established: <strong>the
+published graph is obtainable.</strong> It ships as a GitHub release asset rather than in git, and
+is downloadable with one command. Every number below therefore comes from the real shipped
+database, not from documentation.</p>
+
+<pre>gh release download graph-v2 -R sisodias/siso-people-graph -p 'people_graph_v2.sqlite.gz'
+gunzip -k people_graph_v2.sqlite.gz</pre>
+
+<table>
+<tr><th>Artifact</th><th>Value</th></tr>
+<tr><td>Repo commit measured</td><td><code>de048bb3b34bf931b56fd741cb46c1334acdfb98</code> — exactly the commit GQ-010 <code>source_scopes</code> pins</td></tr>
+<tr><td>Release tag</td><td><code>graph-v2</code>, published 2026-08-04T14:21:01Z</td></tr>
+<tr><td>Asset</td><td><code>people_graph_v2.sqlite.gz</code>, 278,859,777 bytes</td></tr>
+<tr><td>gz SHA-256</td><td><code>85a0f1e4f44ae4b5843be919bee236146b8fe73bb3bf67928f6a1507be557a3c</code></td></tr>
+<tr><td>Decompressed</td><td><code>people_graph_v2.sqlite</code>, 1,113,350,144 bytes</td></tr>
+<tr><td>db SHA-256</td><td><code>9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b</code></td></tr>
+<tr><td>SQLite</td><td>3.43.2</td></tr>
+</table>
+
+<p>Pinning both digests matters: the release asset is mutable by design (<code>.gitignore</code>
+says <em>"Assets can be replaced"</em>), so a future re-measurement must confirm it is comparing
+against the same bytes.</p>
+
+<h2>1. The five pre-registered decisions</h2>
+
+<p>Written to <code>PREREGISTERED-DECISIONS.md</code> <strong>before</strong> any query was run,
+so they could not be retrofitted to whatever the graph happened to answer well. GQ-010 success
+criterion #4 requires exactly this: <em>"in at least five pre-registered operator or research
+decisions, the graph changes the selected action or reduces evidence-retrieval time by at least
+80% against a measured baseline."</em></p>
+
+<table>
+<tr><th></th><th>Decision</th><th>Real action it changes</th></tr>
+<tr><td><strong>D1</strong></td><td>Who maintains the packages my project depends on, and is any a single point of failure?</td><td>Adopt, vendor, or fund a dependency</td></tr>
+<tr><td><strong>D2</strong></td><td>Who should I talk to about topic X?</td><td>Who gets the email, DM, or podcast invite</td></tr>
+<tr><td><strong>D3</strong></td><td>Who wrote the work this idea came from?</td><td>What you cite — originator vs populariser</td></tr>
+<tr><td><strong>D4</strong></td><td>Is this person the same as that account?</td><td>Whether two records merge — every downstream count depends on it</td></tr>
+<tr><td><strong>D5</strong></td><td>Who works across two domains — ships code <em>and</em> writes or speaks?</td><td>Shortlist for a role, collaboration, or interview</td></tr>
+</table>
+
+<h2>2. Results — the baseline table</h2>
+
+<table>
+<tr><th></th><th>Answerable</th><th>Wall clock</th><th>Steps</th><th>Provenance of the answer</th><th>What was missing</th></tr>
+<tr><td><strong>D1</strong></td><td class="warn">Partially</td><td>0.067s → 0.845s</td><td>4</td><td class="ok">Good — every edge carries <code>source</code></td><td><code>kind='unknown'</code> for all top maintainers; 87,079 crates edges have empty <code>observed_at</code></td></tr>
+<tr><td><strong>D2</strong></td><td class="warn">Partially</td><td>0.381s / 0.330s</td><td>3</td><td class="warn">Topic edge only, no citation</td><td>Top results are organisations, not people you can talk to; weights incomparable across schemes</td></tr>
+<tr><td><strong>D3</strong></td><td class="ok">Yes</td><td>0.042s → 0.131s</td><td>3</td><td class="ok">Strong — role on the edge, fetchable route</td><td>No claim layer: you get authorship, never "what this person argued"</td></tr>
+<tr><td><strong>D4</strong></td><td class="bad">No</td><td>0.151s</td><td>5</td><td class="bad">None — nothing to cite</td><td><code>identity_claim</code> is <strong>empty</strong>. Adjudication is structurally impossible.</td></tr>
+<tr><td><strong>D5</strong></td><td class="ok">Yes</td><td>0.668s</td><td>4</td><td class="ok">Derivable and checkable</td><td>Nothing missing — but the documented answer is wrong (see §4)</td></tr>
+</table>
+
+<p><strong>Read the timings correctly.</strong> Raw SQL against a local 1.1 GB file is fast —
+sub-second everywhere. The retrieval bottleneck for GQ-010's 80% target is therefore
+<em>not</em> query latency, and any future claim of "80% faster evidence retrieval" measured as
+SQL wall-clock would be measuring the wrong thing. The real cost today is the analyst work
+around the query: knowing which of several same-named rows is the right human (D4),
+and deciding whether a result is a person or an organisation (D1, D2). Those are the
+minutes-to-hours costs, and they are exactly what the empty claim layer fails to reduce.</p>
+
+<h2>3. Structural baseline — the shipped graph as it actually is</h2>
+
+<h3>3.1 Counts, with provenance</h3>
+
+<pre>sqlite3 people_graph_v2.sqlite "SELECT 'person', COUNT(*) FROM person UNION ALL
+  SELECT 'person_content', COUNT(*) FROM person_content UNION ALL
+  SELECT 'person_topic', COUNT(*) FROM person_topic UNION ALL
+  SELECT 'external_ids', COUNT(*) FROM external_ids UNION ALL
+  SELECT 'identity_claim', COUNT(*) FROM identity_claim;"</pre>
+
+<table>
+<tr><th>Table</th><th class="num">Rows</th><th>Status</th></tr>
+<tr><td><code>person</code></td><td class="num">339,217</td><td class="ok">Verified in asset</td></tr>
+<tr><td><code>person_content</code></td><td class="num">901,524</td><td class="ok">Verified</td></tr>
+<tr><td><code>person_topic</code></td><td class="num">2,050,629</td><td class="ok">Verified</td></tr>
+<tr><td><code>external_ids</code></td><td class="num">442,499</td><td class="ok">Verified</td></tr>
+<tr><td><code>person_person</code></td><td class="num">1,272,495</td><td class="warn">Verified, but mislabelled — see §3.3</td></tr>
+<tr><td><code>organisation</code></td><td class="num">1,131</td><td class="ok">Verified</td></tr>
+<tr><td><code>organisation_content</code></td><td class="num">13,533</td><td class="ok">Verified</td></tr>
+<tr><td><code>person_organisation</code></td><td class="num">0</td><td class="bad">Empty</td></tr>
+<tr><td><code>identity_claim</code></td><td class="num">0</td><td class="bad">Empty — see §4.1</td></tr>
+</table>
+
+<div class="box green">
+<strong>Resolves an open estate question.</strong> ESTATE-STATUS §9 and CONSOLIDATION-PLAN both
+flag that <code>339,217</code> "appears in no file on any branch" and treat it as an unverified
+repository claim. It is now verified: <strong>the number is correct and lives in the shipped
+asset.</strong> The reason it greps to nothing is that it is stated in the <em>release title</em>
+("People Graph v2 — 339,217 people, 1.27M person-to-person edges"), which is not a tracked file.
+The registry's <code>verified:true</code> on the person count is defensible. The
+<code>person_person</code> half of that same claim is not — see §3.3.
+</div>
+
+<h3>3.2 What the README says vs what shipped</h3>
+
+<table>
+<tr><th>README claim</th><th>Measured</th><th>Verdict</th></tr>
+<tr><td>280,708 people</td><td class="num">339,217</td><td class="bad">Stale — that is the <code>graph-v1</code> figure</td></tr>
+<tr><td>564,486 works</td><td class="num">901,524 content edges</td><td class="bad">Stale</td></tr>
+<tr><td>253,815 platform identities</td><td class="num">442,499</td><td class="bad">Stale</td></tr>
+<tr><td>2,050,629 topic edges</td><td class="num">2,050,629</td><td class="ok">Exact</td></tr>
+<tr><td>37,647 human / 7,329 organisations</td><td class="num">37,647 / 7,329</td><td class="ok">Exact</td></tr>
+<tr><td>27,583 with life dates</td><td class="num">27,583</td><td class="ok">Exact</td></tr>
+<tr><td>Five topic vocabularies</td><td>Six — <code>bridge</code> (26,480) undocumented</td><td class="warn">Incomplete</td></tr>
+<tr><td>Plato: 71 works</td><td class="num">75</td><td class="warn">Wrong on its own flagship example</td></tr>
+<tr><td>"Cross-domain stitch is 3"</td><td class="num">9,818</td><td class="bad">Materially misleading — see §4.2</td></tr>
+</table>
+
+<p>The pattern: <strong>the README describes v1 while the repo ships v2.</strong> The figures that
+match are the ones the crates_io load did not touch. Anyone reading the repo's front door today
+forms a materially wrong picture of the asset behind it.</p>
+
+<h3>3.3 The shipped graph cannot be built from the tracked schema</h3>
+
+<p>Four tables exist in the asset that appear <strong>nowhere</strong> in
+<code>schema/people_schema_v2.sql</code>: <code>person_person</code>,
+<code>organisation</code>, <code>organisation_content</code>, <code>person_organisation</code>.
+Between them they hold 1,287,159 rows — more rows than the entire tracked <code>person</code>
+table. The tracked schema is not the shipped schema.</p>
+
+<p>And the largest of them is mislabelled. The release title calls them
+"person-to-person edges":</p>
+
+<pre>sqlite3 people_graph_v2.sqlite "SELECT relation,COUNT(*),MIN(confidence),MAX(confidence)
+  FROM person_person GROUP BY 1;"
+→ depends_on|1272495|0.95|0.95
+
+sqlite3 people_graph_v2.sqlite "SELECT source,COUNT(*) FROM person_person GROUP BY 1;"
+→ crates_io_dependencies|1272495</pre>
+
+<div class="box red">
+<strong>All 1,272,495 "person-to-person" edges are crates.io <em>package</em> dependencies</strong>
+projected onto owners at a flat 0.95 confidence. Package A depends on package B does not mean
+person A has any relationship with person B. This is a textbook instance of the consolidation
+plan's own diagnosis — the <code>owner → creator</code> category collapse — and the flat
+confidence means the number carries no discriminating information at all. Any downstream
+"social graph" or "who knows whom" feature built on this table is built on sand.
+</div>
+
+<h3>3.4 Population shape</h3>
+
+<pre>sqlite3 people_graph_v2.sqlite "SELECT kind, COUNT(*) FROM person GROUP BY 1 ORDER BY 2 DESC;"</pre>
+
+<table>
+<tr><th>kind</th><th class="num">rows</th><th></th></tr>
+<tr><td><code>unknown</code></td><td class="num">294,241</td><td class="bad">86.7% of the graph</td></tr>
+<tr><td><code>human</code></td><td class="num">37,647</td><td>11.1%</td></tr>
+<tr><td><code>organisation</code></td><td class="num">7,329</td><td>2.2%</td></tr>
+</table>
+
+<p><strong>For 86.7% of the graph, we do not know whether the row is a person or a company.</strong>
+The README frames the human/organisation split as a solved design decision ("870 'authors' that
+are institutions... conflating them corrupts any question of the form 'what does this person
+believe'"). The design is right; the data does not implement it. This is the single largest
+quality deficit by row count, and it directly degrades D1 and D2.</p>
+
+<p>Origin and state, for completeness:</p>
+<table>
+<tr><th>origin</th><th class="num">rows</th><th>state</th><th class="num">rows</th></tr>
+<tr><td>github</td><td class="num">245,171</td><td><code>linked</code></td><td class="num">280,595</td></tr>
+<tr><td>crates_io</td><td class="num">58,509</td><td><code>tracked</code></td><td class="num">58,622</td></tr>
+<tr><td>books</td><td class="num">35,363</td><td><code>merged</code></td><td class="num">0</td></tr>
+<tr><td>registry</td><td class="num">140</td><td><code>disputed</code></td><td class="num">0</td></tr>
+<tr><td>youtube</td><td class="num">34</td><td colspan="2"><code>merged_into</code> non-null: <span class="num">0</span></td></tr>
+</table>
+
+<h2>4. The findings that matter most</h2>
+
+<h3>4.1 <span class="bad">D4 is structurally unanswerable: identity_claim is empty</span></h3>
+
+<p>The README calls identity claims its central safety design: <em>"Every proposed match is a row
+in <code>identity_claim</code> with a method, a confidence and the literal evidence."</em> The
+table exists, is correctly designed, is indexed on <code>status</code> — and holds
+<strong>zero rows</strong>. Zero proposed, zero accepted, zero rejected. Nothing has ever been
+merged (<code>merged_into</code> non-null = 0; <code>state='merged'</code> = 0).</p>
+
+<p>This is materially worse than the known defect. PG-AUDIT-002 / PGRT-004 is recorded as
+"<code>ask.py</code> never reads <code>identity_claim</code>" — implying claims exist but are
+ignored. Both halves are broken: <code>ask.py</code> contains no reference to
+<code>identity_claim</code> anywhere (verified by grep across all 357 lines), <em>and</em> there
+are no claims to read.</p>
+
+<p>The consequence is visible in the live query. Asking the graph about Spinoza:</p>
+
+<pre>python3 loaders/ask.py --who "Spinoza"
+→ "baruch-spinoza"                        kind=human, origin=registry, produced={}
+→ "bk:spinoza, benedictus de|1632-1677"   kind=human, origin=books,    produced={book:13}
+→ "gh:luisespinoza"                       kind=unknown, origin=github, produced={github:1}</pre>
+
+<p>The first two are the same human. The graph returns them as two unrelated matches, ranks
+neither, proposes no claim, and offers the operator no adjudication path. The third is a
+substring artifact of the LIKE fallback. An operator asking "is this the same person?" — the
+literal D4 question — gets no answer, and no mechanism by which an answer could ever be recorded.</p>
+
+<p>One honest note in the graph's favour: the "two humans named John Murray would fuse into one"
+disaster the README warns about <strong>has not happened</strong>. Only two John Murray rows
+exist and they are correctly distinct. But that safety is accidental — it holds because the
+matcher never ran, not because a guard prevented it. Only 31 <code>(platform,value)</code> pairs
+map to multiple people, and 1,266 names are shared by more than one row. The blast radius is
+latent, not absent.</p>
+
+<h3>4.2 <span class="bad">The README's headline limitation is wrong by 3,272×</span></h3>
+
+<p>The README's most-quoted claim: <em>"Cross-domain stitch is 3. Not 3%, three people —
+Karpathy, Jensen Huang, Simon Willison."</em> Measured:</p>
+
+<pre>sqlite3 people_graph_v2.sqlite "SELECT COUNT(*) FROM (SELECT person_id FROM person_content
+  GROUP BY person_id HAVING COUNT(DISTINCT domain)>=2);"
+→ 9818</pre>
+
+<table>
+<tr><th>Domain pair</th><th class="num">People</th></tr>
+<tr><td>crates + github</td><td class="num">9,815</td></tr>
+<tr><td>github + youtube_video</td><td class="num">3</td></tr>
+<tr><td>youtube_channel + youtube_video</td><td class="num">1</td></tr>
+<tr><td>crates + youtube_video</td><td class="num">1</td></tr>
+<tr><td><strong>book + anything</strong></td><td class="num bad">0</td></tr>
+</table>
+
+<p>The named three are exactly right (Karpathy, Huang, Willison) — but they are only the
+github+youtube pair. The crates_io load added 9,815 crates+github people the README never
+mentions. <strong>The true limitation is sharper and more interesting than the documented
+one:</strong> books overlap with <em>nothing at all</em>. Zero book+github, zero book+crates.
+The real statement is not "stitch is 3" but "the corpus splits cleanly into a living-software
+population that stitches well and a dead-books population that cannot stitch at all" — which the
+README's own analysis (20,246 book people died before 1950) actually explains, while its headline
+number contradicts.</p>
+
+<p>Note also that 9,815 of the 9,818 come from a single source load, and both sides of that pair
+are <code>kind='unknown'</code>-dominated. This is breadth from one source class, not four —
+GQ-010 criterion #1 requires <em>four distinct source classes</em>.</p>
+
+<h3>4.3 <span class="bad">PGRT-005 reproduced and quantified: a silent 130× slowdown</span></h3>
+
+<p><code>ask.py</code> queries FTS with a schema-qualified table name, which SQLite rejects. The
+error is caught by a bare <code>except sqlite3.Error</code> and the code falls through to a LIKE
+scan. The query <em>looks</em> like it works.</p>
+
+<pre>SELECT ... FROM people.person_search s ... WHERE people.person_search MATCH ?
+→ OperationalError: no such column: people.person_search   (caught, silently)
+
+LIKE scan : 222.1 ms
+FTS       :   1.7 ms</pre>
+
+<p><strong>130× slower on the graph's single most common entry point</strong>, and the FTS index
+is fully built and functional — it is simply never reached. The schema comment predicted this
+exactly: <em>"measured 57ms at 36k people, and it grows linearly."</em> At 339k people it is now
+222ms, tracking that prediction. This is the one place where a genuine, honest 80%+ retrieval-time
+improvement is available today, and it is a one-line fix.</p>
+
+<h3>4.4 <span class="bad">PG-AUDIT-004 reproduced from a genuine clean checkout</span></h3>
+
+<pre>git clone &lt;repo&gt; /tmp/pgclean && cd /tmp/pgclean
+python3 loaders/build_people_graph_v2.py --v1 ... --out ...
+→ FileNotFoundError: '/private/tmp/pgclean/loaders/people_schema_v2.sql'</pre>
+
+<p>The builder resolves the schema relative to <code>loaders/</code>; the file is tracked at
+<code>schema/people_schema_v2.sql</code>. A clean checkout fails on the first thing it does.
+Combined with §3.3 — four shipped tables absent from the tracked schema — <strong>the published
+graph is not reproducible from the published source at all</strong>, by two independent causes.
+GQ-010 criterion #6 (reproducibility) currently scores zero.</p>
+
+<h3>4.5 <span class="bad">No rights, licence, or privacy field exists anywhere</span></h3>
+
+<pre>sqlite3 people_graph_v2.sqlite "SELECT sql FROM sqlite_master WHERE type='table';" \
+  | grep -ci "rights\|licen\|privacy\|consent"
+→ 0</pre>
+
+<p>GQ-010 criterion #5 requires that <em>"every promoted observation has an explicit rights
+state."</em> No table has a rights, licence, privacy, or consent column. The criterion is not
+partially met — it is unrepresentable in the current schema. 35 people are living
+(<code>death_year IS NULL AND birth_year &gt; 1950</code>) and carry no rights state; the
+practical exposure is small today, but the structural gap is total and every new source pilot
+inherits it.</p>
+
+<h3>4.6 <span class="warn">Observation completeness gap</span></h3>
+
+<pre>SELECT domain, COUNT(*), SUM(CASE WHEN observed_at IS NULL OR observed_at='' THEN 1 ELSE 0 END)
+  FROM person_content GROUP BY 1;</pre>
+
+<table>
+<tr><th>domain</th><th class="num">edges</th><th class="num">no source</th><th class="num">no observed_at</th></tr>
+<tr><td>github</td><td class="num">463,230</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><td>crates</td><td class="num">337,038</td><td class="num">0</td><td class="num bad">87,079</td></tr>
+<tr><td>book</td><td class="num">101,124</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><td>youtube_video</td><td class="num">97</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><td>youtube_channel</td><td class="num">35</td><td class="num">0</td><td class="num">0</td></tr>
+</table>
+
+<p>Source attribution is <span class="ok">100% complete</span> — a genuine strength, and the
+foundation the whole programme's provenance story rests on. Temporal attribution is not:
+87,079 crates edges (25.8% of that domain) carry no <code>observed_at</code>, so GQ-010
+criterion #1's "observed-at time" requirement fails for the newest and fastest-growing source.</p>
+
+<h3>4.7 <span class="ok">What genuinely works — do not break these</span></h3>
+
+<p>An honest baseline records strengths, because the merge could regress them.</p>
+<dl>
+<dt>Roles are correctly on the edge, not the person.</dt>
+<dd>Gutenberg gid 54161 carries Cicero as <code>author</code> and Featherstonhaugh as
+<code>translator</code> — the same work, two people, two roles, no flattening. 12 distinct roles
+in use. This is the design decision the README defends, and it is genuinely implemented.</dd>
+
+<dt>Source attribution is complete.</dt>
+<dd>Zero edges with a missing or <code>unknown</code> source, across 901,524 rows.</dd>
+
+<dt>BCE handling is correct.</dt>
+<dd>Plato stored as <code>-428 → -348</code>; <code>v_contemporaries</code> returns 16 rows for
+him. Century filters over the classical corpus work.</dd>
+
+<dt>Fetchability is real.</dt>
+<dd><code>fetchable()</code> returns a live Gutenberg URL for every book edge, so an answer
+routes to actual bytes on a machine holding none of the corpus.</dd>
+
+<dt>Nothing derived is stored, and no bad merge exists.</dt>
+<dd>No stamped tier alongside score, so the 96.6% contradiction failure of the sibling system is
+avoided by construction. <code>merged_into</code> non-null = 0.</dd>
+</dl>
+
+<h2>5. Scoring GQ-010's six criteria at baseline</h2>
+
+<table>
+<tr><th>Criterion</th><th>Baseline</th><th>Evidence</th></tr>
+<tr><td>1. Breadth — 10× across four source classes, every observation with source, native id, observed-at, rights, provenance, receipts</td><td class="bad">Fails</td><td>3 real source classes (github, crates, books); youtube is 132 edges. No rights field at all. 87,079 edges missing observed-at.</td></tr>
+<tr><td>2. Resolution quality — ≥99.5% precision on a versioned benchmark, recall/abstention reported, merges reversible</td><td class="bad">Unmeasurable</td><td><code>identity_claim</code> = 0 rows. No benchmark exists. Precision is undefined because no links were auto-accepted.</td></tr>
+<tr><td>3. Research depth — 100 people or 25 questions with observation → cited claim → adjudication</td><td class="bad">Fails</td><td>No claim layer in the schema. The graph holds authorship and topics, never "what this person argued".</td></tr>
+<tr><td>4. Decision value — 5 pre-registered decisions, 80% retrieval-time cut or changed action</td><td class="warn">Baseline set</td><td>This document. 2 of 5 fully answerable, 2 partial, 1 structurally impossible.</td></tr>
+<tr><td>5. Rights and privacy — explicit rights state on every promoted observation</td><td class="bad">Fails</td><td>Zero rights/licence/privacy columns in any table.</td></tr>
+<tr><td>6. Reproducibility and cost — rebuilds from versioned manifests</td><td class="bad">Fails</td><td>Clean checkout dies with FileNotFoundError; four shipped tables absent from tracked schema.</td></tr>
+</table>
+
+<p><strong>Baseline score: 0 of 6 met, 1 now measurable.</strong> That is the honest starting
+line, and it is good news rather than bad — it means every one of the six has headroom, and the
+falsifiers can now actually fire.</p>
+
+<h3>Falsifier status at baseline</h3>
+<table>
+<tr><th>GQ-010 falsifier</th><th>Status</th></tr>
+<tr><td>F1 — 10× rows but no decision improvement</td><td class="warn">Armed. person_content grew 901k while D4 stayed unanswerable; person_person added 1.27M edges of zero decision value. The pattern F1 describes is already visible in the v1→v2 step.</td></tr>
+<tr><td>F2 — auto-accept precision &lt;99.5%, or silent merges</td><td class="ok">Not triggered</td><td></td></tr>
+<tr><td>F3 — record lacking rights state</td><td class="bad">TRIGGERED. Every record lacks a rights state.</td></tr>
+<tr><td>F4 — pilots duplicate low-signal entities without replayable observations</td><td class="warn">Partially. crates_io added 58,509 people, overwhelmingly <code>kind='unknown'</code>.</td></tr>
+<tr><td>F5 — names and topics without cited claims, temporal context, contradiction handling, adjudication</td><td class="bad">TRIGGERED. This is a precise description of the graph as shipped.</td></tr>
+<tr><td>F6 — cost exceeds budget without proportional improvement</td><td class="warn">Unmeasurable — no declared budget.</td></tr>
+</table>
+
+<div class="box amber">
+<strong>Two falsifiers already fire against the current graph.</strong> This is not a reason to
+stop; it is the baseline doing its job. F3 and F5 were <em>designed</em> to detect exactly the
+state the graph is in, and they detected it on first contact. A merge that does not clear F3 and
+F5 has not moved the question forward regardless of how many rows it adds.
+</div>
+
+<h2>6. What I could <em>not</em> measure, and why</h2>
+
+<p>Stated explicitly so no future reader mistakes silence for a passing grade.</p>
+<dl>
+<dt>Identity-resolution precision, recall, and abstention.</dt>
+<dd>Undefined at baseline, not merely unmeasured. With <code>identity_claim</code> empty, there
+are no accepted links to score. A future 99.5% precision claim will have <em>no baseline to beat</em>
+— it starts from an empty set, which is a measurement trap worth flagging now.</dd>
+
+<dt>Human evidence-retrieval time.</dt>
+<dd>I measured machine query latency, which is sub-second and not the bottleneck. The real
+operator cost — deciding which of several same-named rows is the right human — requires timing a
+human or an agent on the task, which I could not do read-only in one session. <strong>Any future
+"80% faster" claim must measure the analyst loop, not <code>sqlite3</code> wall-clock</strong>,
+or it will be measuring a number that was already fast.</dd>
+
+<dt>Whether <code>graph-v2</code> is reproducible from any commit.</dt>
+<dd>I proved HEAD cannot build it. I did not search history for a commit that could, because §3.3
+shows four shipped tables exist in no tracked schema on this branch — so no commit on <code>main</code>
+can produce the asset. Whether an unmerged branch can, I did not test.</dd>
+
+<dt>Cost and refresh budget.</dt>
+<dd>No declared per-source acquisition budget exists, so criterion #6's cost half has nothing to
+compare against.</dd>
+
+<dt>The other three open PR branches' effect.</dt>
+<dd>Out of scope by C1 (read-only) and by design — this is the <em>before</em> picture.</dd>
+
+<dt>Book Library and GitHub identity databases.</dt>
+<dd><code>ask.py</code> resolves five domains; only <code>people</code> was present locally, so
+cross-database routing was exercised for one domain rather than five.</dd>
+</dl>
+
+<h2>7. Every command behind every number</h2>
+
+<pre>gh release list -R sisodias/siso-people-graph
+gh release download graph-v2 -R sisodias/siso-people-graph -p 'people_graph_v2.sqlite.gz'
+gunzip -k people_graph_v2.sqlite.gz
+shasum -a 256 people_graph_v2.sqlite
+
+sqlite3 DB "SELECT type,name FROM sqlite_master WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%';"
+sqlite3 DB "SELECT 'person',COUNT(*) FROM person UNION ALL SELECT 'identity_claim',COUNT(*) FROM identity_claim;"
+sqlite3 DB "SELECT kind,COUNT(*) FROM person GROUP BY 1 ORDER BY 2 DESC;"
+sqlite3 DB "SELECT state,COUNT(*) FROM person GROUP BY 1;"
+sqlite3 DB "SELECT origin,COUNT(*) FROM person GROUP BY 1;"
+sqlite3 DB "SELECT domain,COUNT(*) FROM person_content GROUP BY 1;"
+sqlite3 DB "SELECT COUNT(*) FROM person WHERE merged_into IS NOT NULL;"
+sqlite3 DB "SELECT relation,COUNT(*),MIN(confidence),MAX(confidence) FROM person_person GROUP BY 1;"
+sqlite3 DB "SELECT source,COUNT(*) FROM person_person GROUP BY 1;"
+sqlite3 DB "SELECT scheme,COUNT(*) FROM person_topic GROUP BY 1;"
+sqlite3 DB "SELECT scheme,MIN(weight),MAX(weight),AVG(weight) FROM person_topic GROUP BY 1;"
+sqlite3 DB "SELECT domain,COUNT(*),SUM(CASE WHEN source IS NULL OR source='' OR source='unknown'
+            THEN 1 ELSE 0 END),SUM(CASE WHEN observed_at IS NULL OR observed_at='' THEN 1 ELSE 0 END)
+            FROM person_content GROUP BY 1;"
+sqlite3 DB "SELECT role,COUNT(*) FROM person_content GROUP BY 1 ORDER BY 2 DESC;"
+sqlite3 DB "SELECT COUNT(*) FROM (SELECT person_id FROM person_content GROUP BY person_id
+            HAVING COUNT(DISTINCT domain)>=2);"
+sqlite3 DB "SELECT a.domain||' + '||b.domain,COUNT(*) FROM (SELECT DISTINCT person_id,domain FROM person_content) a
+            JOIN (SELECT DISTINCT person_id,domain FROM person_content) b
+            ON a.person_id=b.person_id AND a.domain&lt;b.domain GROUP BY 1 ORDER BY 2 DESC;"
+sqlite3 DB "SELECT name,COUNT(*) n FROM person GROUP BY name HAVING n>1 ORDER BY n DESC LIMIT 10;"
+sqlite3 DB "SELECT COUNT(*) FROM (SELECT platform,value FROM external_ids GROUP BY 1,2
+            HAVING COUNT(DISTINCT person_id)>1);"
+sqlite3 DB "SELECT platform,COUNT(*) FROM external_ids GROUP BY 1 ORDER BY 2 DESC;"
+sqlite3 DB "SELECT COUNT(*) FROM person WHERE death_year IS NULL AND birth_year>1950;"
+sqlite3 DB "SELECT sql FROM sqlite_master WHERE type='table';" | grep -ci "rights\|licen\|privacy\|consent"
+
+python3 loaders/ask.py --who "Spinoza"
+git clone &lt;repo&gt; /tmp/pgclean && cd /tmp/pgclean &&
+  python3 loaders/build_people_graph_v2.py --v1 /dev/null --people /tmp/x.sqlite --books /dev/null --out /tmp/out.sqlite</pre>
+
+<p>FTS-vs-LIKE timing used a short Python harness executing both paths against the same
+read-only connection and reporting <code>time.time()</code> deltas in milliseconds; the FTS
+failure was captured by catching <code>sqlite3.Error</code> explicitly rather than swallowing it,
+which is the only difference from <code>ask.py</code>'s own code path.</p>
+
+<h2>8. The one-paragraph version</h2>
+
+<p>The SISO People Graph as shipped on 2026-08-07 holds <strong>339,217 people and 901,524
+content edges</strong>, and the person count — long treated as an unverified repository claim —
+is <strong>correct</strong>; it simply lives in a release title rather than a file. Of five
+pre-registered real decisions, it fully answers two, partly answers two, and <strong>cannot
+answer the identity question at all</strong>, because <code>identity_claim</code> — the table the
+project describes as its central safety design — is empty. Its documented headline limitation
+("cross-domain stitch is 3") is wrong: the real figure is <strong>9,818</strong>, and the true
+limitation is sharper — books overlap with nothing. Its 1.27M "person-to-person edges" are
+crates.io package dependencies at flat 0.95 confidence, not relationships between humans.
+<strong>86.7% of rows do not know whether they are a person or a company.</strong> The graph
+cannot be rebuilt from its own source by two independent causes, no rights field exists anywhere,
+and the query surface silently runs 130× slower than the index it already built. What genuinely
+works — roles on the edge, 100% source attribution, BCE handling, reversible-by-construction
+merges, fetchable routes — is real and should be protected through the merge. Against GQ-010's
+six criteria the baseline is <strong>0 of 6</strong>, with falsifiers F3 and F5 already firing.
+That is the line every future 100× claim gets measured against.</p>
+
+<footer>
+<p>Captured by PG-BASELINE, 2026-08-07, read-only. No commits, pushes, PR changes, or merges were
+made in any repository. The constraint was respected: the only files written are this document
+and <code>PREREGISTERED-DECISIONS.md</code>, both untracked additions to the working tree.</p>
+<p>Graph asset pinned at SHA-256 <code>9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b</code>;
+repo at <code>de048bb3b34bf931b56fd741cb46c1334acdfb98</code>. Re-measurement must confirm both
+before comparing.</p>
+</footer>
+
+</body>
+</html>

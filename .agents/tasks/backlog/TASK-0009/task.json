@@ -1,0 +1,32 @@
+{
+  "id": "TASK-0009",
+  "title": "Four shipped tables exist in NO tracked schema",
+  "status": "backlog",
+  "priority": "critical",
+  "domain": "infra",
+  "category": "gap",
+  "created_at": "2026-08-07T00:00:00Z",
+  "created_by": "GLS-CONSOLIDATION",
+  "evidence": "GQ-010-BASELINE.html §3.3. person_person, organisation, organisation_content, person_organisation absent from schema/people_schema_v2.sql; 1,287,159 rows between them.",
+  "verified": false,
+  "target_agent": "",
+  "dependencies": [
+    "TASK-0001"
+  ],
+  "spec": {
+    "description": "The tracked schema is not the shipped schema. These four tables hold more rows than the entire tracked person table. Combined with the clean-checkout build failure this means the published graph is NOT REPRODUCIBLE from the published source by two independent causes, and GQ-010 criterion #6 scores zero.",
+    "context": "Pairs with TASK-0001 (Lane 5). Lane 5 fixes the path-resolution failure; this fixes the schema-completeness failure. Fixing only one still leaves the graph unreproducible. Measured 2026-08-07 by PG-BASELINE against the shipped graph-v2 asset: people_graph_v2.sqlite, 1,113,350,144 bytes, db SHA-256 9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b, at repo commit de048bb3b34bf931b56fd741cb46c1334acdfb98. Receipt: .agents/tasks/consolidation-source/GQ-010-BASELINE.html",
+    "acceptance_criteria": [
+      "All four tables are in the tracked schema",
+      "A clean checkout rebuilds a graph with the same table set as the shipped asset"
+    ]
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "seeded",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    }
+  ]
+}

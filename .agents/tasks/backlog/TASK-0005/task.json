@@ -13,7 +13,7 @@
   "dependencies": [],
   "spec": {
     "description": "Published counts (person=339,217, person_person=1,272,495, organisation=1,131) survive only as a prose summary. No query log, receipt or reproducible artifact backs them.",
-    "context": "Neither independent audit could re-count them. Red team: 'No production SQLite assets were opened. Dataset-wide counts and collision rates are therefore not claimed.' First-principles audit: 'Published row counts are therefore treated as repository claims, not independently re-counted observations', because its connector 'did not expose arbitrary SQL execution against the published 688 MB graph release asset'. Separately PGRT-002/003/009/016 establish person rows are not defensible as DISTINCT-HUMAN counts under name fusion, 0.98 attribute auto-accept and CJK label collapse to a comma. Row count and distinct-human count are different claims and must be reported separately.",
+    "context": "Neither independent audit could re-count them. Red team: 'No production SQLite assets were opened. Dataset-wide counts and collision rates are therefore not claimed.' First-principles audit: 'Published row counts are therefore treated as repository claims, not independently re-counted observations', because its connector 'did not expose arbitrary SQL execution against the published 688 MB graph release asset'. Separately PGRT-002/003/009/016 establish person rows are not defensible as DISTINCT-HUMAN counts under name fusion, 0.98 attribute auto-accept and CJK label collapse to a comma. Row count and distinct-human count are different claims and must be reported separately. RESOLVED by the GQ-010 baseline: 339,217 IS correct, verified directly against the shipped asset (db SHA-256 9938237a33277fe3...). It greps to nothing because it is stated in the graph-v2 RELEASE TITLE, not a tracked file. The Great Library record has been restored to verified:true. WHAT REMAINS: the 1,272,495 person_person rows are crates.io PACKAGE DEPENDENCIES at flat 0.95 confidence, not human relations (§3.3) - that half of the claim still needs correcting wherever it is cited.",
     "acceptance_criteria": [
       "The counting query is committed as a re-runnable receipt",
       "Row counts and the distinct-human question are reported separately",
@@ -26,6 +26,12 @@
       "action": "seeded",
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    },
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "amended",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Superseded in part by the GQ-010 baseline measured against the real 1.1GB shipped asset. See consolidation-source/GQ-010-BASELINE.html."
     }
   ]
 }

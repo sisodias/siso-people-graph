@@ -13,7 +13,7 @@
   "dependencies": [],
   "spec": {
     "description": "Accepted identity claims are inert: the whole identity pipeline currently has no effect on what a caller sees. Lane 6 had a complete 10-item work order and never pushed.",
-    "context": "ROOT CAUSE: loaders/ask.py queries person rows directly and never reads identity_claim or merged_into, so accepted claims and merges do not change results. The resolver must expose accepted versus proposed claim state and ambiguity honestly, and missing capabilities must be explicit in output rather than silently degraded. Related silent-failure evidence: who() uses people.person_search MATCH which raises 'no such column', and the app catches ANY SQLite error and falls back to a LIKE scan, so the query LOOKS like it works. Specs survive in TWO independent places, both on branch agent/people-graph-audit-record-20260806 of sisodias/great-library-of-siso: research/people-graph-program-record/prompts/parallel-slam.md and research/people-graph-program-record/prompts/dependency-ordered-superseded.md. Cite both and reconcile any difference rather than silently picking one. Canonical lane numbering is parallel-slam; see .docs/lane-numbering-map.html in the Great Library, and note the off-by-one A(n)===B(n+1).",
+    "context": "ROOT CAUSE: loaders/ask.py queries person rows directly and never reads identity_claim or merged_into, so accepted claims and merges do not change results. The resolver must expose accepted versus proposed claim state and ambiguity honestly, and missing capabilities must be explicit in output rather than silently degraded. Related silent-failure evidence: who() uses people.person_search MATCH which raises 'no such column', and the app catches ANY SQLite error and falls back to a LIKE scan, so the query LOOKS like it works. Specs survive in TWO independent places, both on branch agent/people-graph-audit-record-20260806 of sisodias/great-library-of-siso: research/people-graph-program-record/prompts/parallel-slam.md and research/people-graph-program-record/prompts/dependency-ordered-superseded.md. Cite both and reconcile any difference rather than silently picking one. Canonical lane numbering is parallel-slam; see .docs/lane-numbering-map.html in the Great Library, and note the off-by-one A(n)===B(n+1). MEASURED UPDATE: identity_claim holds ZERO rows (baseline §4.1), so wiring ask.py to read it is necessary but NOT sufficient - see TASK-0006. Also ask.py's FTS path silently falls back to a LIKE scan at 130x cost (§4.3) - see TASK-0011, a one-line fix in the same file.",
     "files_affected": [
       "loaders/ask.py"
     ],
@@ -30,6 +30,12 @@
       "action": "seeded",
       "by": "GLS-CONSOLIDATION",
       "notes": "Seeded from the 2026-08-07 estate consolidation. Durable rationale in .agents/tasks/consolidation-source/."
+    },
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "action": "amended",
+      "by": "GLS-CONSOLIDATION",
+      "notes": "Superseded in part by the GQ-010 baseline measured against the real 1.1GB shipped asset. See consolidation-source/GQ-010-BASELINE.html."
     }
   ]
 }
