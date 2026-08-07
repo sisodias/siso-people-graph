@@ -1,0 +1,409 @@
+[
+  {
+    "automatic_acceptance": false,
+    "candidate_id": "bridge:067a857db68ae1a162c9",
+    "conflicts": [],
+    "negative_evidence": [],
+    "note": "Literal publisher/author link; site ownership and direction must be reviewed.",
+    "positive_evidence": [
+      {
+        "identifier": {
+          "evidence": "https://feeds.example.test/bounded-show.xml#channel podcast:person[0]@href",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "feed-fixture-guid-001",
+        "subject": {
+          "kind": "unknown",
+          "label": "Alex Rivera",
+          "role_context": "host",
+          "source_id": "podcast_rss",
+          "source_native_id": "https://profiles.example.test/alex-rivera"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://feeds.example.test/bounded-show.xml#item-0 podcast:person[0]@href",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "episode-fixture-guid-001",
+        "subject": {
+          "kind": "unknown",
+          "label": "Alex Rivera",
+          "role_context": "host",
+          "source_id": "podcast_rss",
+          "source_native_id": "https://profiles.example.test/alex-rivera"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=9001 episode.persons[0].href",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "9101",
+        "subject": {
+          "kind": "unknown",
+          "label": "Alex Rivera",
+          "role_context": "host",
+          "source_id": "podcast_index_api",
+          "source_native_id": "https://profiles.example.test/alex-rivera"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://openlibrary.org/authors/OLFIXTUREA.json links[0].url",
+          "scheme": "same_as_url",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "subject",
+        "source_record": "/authors/OLFIXTUREA",
+        "subject": {
+          "kind": "person",
+          "label": "Alex Rivera",
+          "source_id": "open_library_api",
+          "source_native_id": "/authors/OLFIXTUREA"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://conference.example.test/schedule/export/schedule.json event.persons[0].links[0]",
+          "scheme": "same_as_url",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "talk-fixture-guid-001",
+        "subject": {
+          "kind": "unknown",
+          "label": "Alex Rivera",
+          "role_context": "speaker",
+          "source_id": "pretalx_schedule",
+          "source_native_id": "speaker-fixture-alex"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://alex.example.test/ JSON-LD sameAs[0]",
+          "scheme": "same_as_url",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "subject",
+        "source_record": "https://alex.example.test/#me",
+        "subject": {
+          "kind": "person",
+          "label": "Alex Rivera",
+          "source_id": "public_web_schema_org",
+          "source_native_id": "https://alex.example.test/#me"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://alex.example.test/ JSON-LD author[0] sameAs[0]",
+          "scheme": "same_as_url",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/alex-rivera"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "https://alex.example.test/writing/evidence-first",
+        "subject": {
+          "kind": "unknown",
+          "label": "Alex Rivera",
+          "role_context": "author",
+          "source_id": "public_web_schema_org",
+          "source_native_id": "https://alex.example.test/#me"
+        }
+      }
+    ],
+    "signal": {
+      "scheme": "same_as_url",
+      "type": "shared_explicit_link",
+      "value": "https://profiles.example.test/alex-rivera"
+    },
+    "status": "proposed",
+    "strength": "review_only",
+    "subjects": [
+      {
+        "kind": "person",
+        "label": "Alex Rivera",
+        "source_id": "open_library_api",
+        "source_native_id": "/authors/OLFIXTUREA"
+      },
+      {
+        "kind": "unknown",
+        "label": "Alex Rivera",
+        "role_context": "host",
+        "source_id": "podcast_index_api",
+        "source_native_id": "https://profiles.example.test/alex-rivera"
+      },
+      {
+        "kind": "unknown",
+        "label": "Alex Rivera",
+        "role_context": "host",
+        "source_id": "podcast_rss",
+        "source_native_id": "https://profiles.example.test/alex-rivera"
+      },
+      {
+        "kind": "unknown",
+        "label": "Alex Rivera",
+        "role_context": "speaker",
+        "source_id": "pretalx_schedule",
+        "source_native_id": "speaker-fixture-alex"
+      },
+      {
+        "kind": "unknown",
+        "label": "Alex Rivera",
+        "role_context": "author",
+        "source_id": "public_web_schema_org",
+        "source_native_id": "https://alex.example.test/#me"
+      }
+    ]
+  },
+  {
+    "automatic_acceptance": false,
+    "candidate_id": "bridge:275984b135c4e21dfa19",
+    "conflicts": [],
+    "negative_evidence": [],
+    "note": "Literal publisher/author link; site ownership and direction must be reviewed.",
+    "positive_evidence": [
+      {
+        "identifier": {
+          "evidence": "https://feeds.example.test/bounded-show.xml channel link",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://show.example.test/"
+        },
+        "record_context": "subject",
+        "source_record": "feed-fixture-guid-001",
+        "subject": {
+          "kind": "work",
+          "label": "Bounded Creators",
+          "source_id": "podcast_rss",
+          "source_native_id": "feed-fixture-guid-001"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=9001 feed.link",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://show.example.test/"
+        },
+        "record_context": "subject",
+        "source_record": "9001",
+        "subject": {
+          "kind": "work",
+          "label": "Bounded Creators",
+          "source_id": "podcast_index_api",
+          "source_native_id": "9001"
+        }
+      }
+    ],
+    "signal": {
+      "scheme": "same_as_url",
+      "type": "shared_explicit_link",
+      "value": "https://show.example.test/"
+    },
+    "status": "proposed",
+    "strength": "review_only",
+    "subjects": [
+      {
+        "kind": "work",
+        "label": "Bounded Creators",
+        "source_id": "podcast_index_api",
+        "source_native_id": "9001"
+      },
+      {
+        "kind": "work",
+        "label": "Bounded Creators",
+        "source_id": "podcast_rss",
+        "source_native_id": "feed-fixture-guid-001"
+      }
+    ]
+  },
+  {
+    "automatic_acceptance": false,
+    "candidate_id": "bridge:7feadcc8805332be61b1",
+    "conflicts": [],
+    "negative_evidence": [],
+    "note": "Literal publisher/author link; site ownership and direction must be reviewed.",
+    "positive_evidence": [
+      {
+        "identifier": {
+          "evidence": "https://feeds.example.test/bounded-show.xml#item-0 podcast:person[1]@href",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/priya-chen"
+        },
+        "record_context": "contribution[1]",
+        "source_record": "episode-fixture-guid-001",
+        "subject": {
+          "kind": "unknown",
+          "label": "Priya Chen",
+          "role_context": "guest",
+          "source_id": "podcast_rss",
+          "source_native_id": "https://profiles.example.test/priya-chen"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://api.podcastindex.org/api/1.0/episodes/byfeedid?id=9001 episode.persons[1].href",
+          "scheme": "official_website",
+          "scope": "global",
+          "stability": "unknown",
+          "uniqueness": "unknown",
+          "value": "https://profiles.example.test/priya-chen"
+        },
+        "record_context": "contribution[1]",
+        "source_record": "9101",
+        "subject": {
+          "kind": "unknown",
+          "label": "Priya Chen",
+          "role_context": "guest",
+          "source_id": "podcast_index_api",
+          "source_native_id": "https://profiles.example.test/priya-chen"
+        }
+      }
+    ],
+    "signal": {
+      "scheme": "same_as_url",
+      "type": "shared_explicit_link",
+      "value": "https://profiles.example.test/priya-chen"
+    },
+    "status": "proposed",
+    "strength": "review_only",
+    "subjects": [
+      {
+        "kind": "unknown",
+        "label": "Priya Chen",
+        "role_context": "guest",
+        "source_id": "podcast_index_api",
+        "source_native_id": "https://profiles.example.test/priya-chen"
+      },
+      {
+        "kind": "unknown",
+        "label": "Priya Chen",
+        "role_context": "guest",
+        "source_id": "podcast_rss",
+        "source_native_id": "https://profiles.example.test/priya-chen"
+      }
+    ]
+  },
+  {
+    "automatic_acceptance": false,
+    "candidate_id": "bridge:9a575f896e8aae081588",
+    "conflicts": [],
+    "negative_evidence": [],
+    "note": "High-confidence candidate; still requires identity-lane review.",
+    "positive_evidence": [
+      {
+        "identifier": {
+          "evidence": "https://api.crossref.org/works/10.5555/fixture.2026.1 author[0].ORCID",
+          "scheme": "orcid",
+          "scope": "global",
+          "stability": "stable",
+          "uniqueness": "unique",
+          "value": "0000-0002-1825-0097"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "10.5555/fixture.2026.1",
+        "subject": {
+          "kind": "unknown",
+          "label": "Priya Chen",
+          "role_context": "author",
+          "source_id": "crossref_rest_api",
+          "source_native_id": "orcid:0000-0002-1825-0097"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://api.openalex.org/authors/A5000000001 orcid",
+          "scheme": "orcid",
+          "scope": "global",
+          "stability": "stable",
+          "uniqueness": "unique",
+          "value": "0000-0002-1825-0097"
+        },
+        "record_context": "subject",
+        "source_record": "https://openalex.org/A5000000001",
+        "subject": {
+          "kind": "person",
+          "label": "Priya Chen",
+          "source_id": "openalex_api",
+          "source_native_id": "https://openalex.org/A5000000001"
+        }
+      },
+      {
+        "identifier": {
+          "evidence": "https://api.openalex.org/works/W5000000001 authorships[0].author.orcid",
+          "scheme": "orcid",
+          "scope": "global",
+          "stability": "stable",
+          "uniqueness": "unique",
+          "value": "0000-0002-1825-0097"
+        },
+        "record_context": "contribution[0]",
+        "source_record": "https://openalex.org/W5000000001",
+        "subject": {
+          "kind": "unknown",
+          "label": "Priya Chen",
+          "role_context": "author",
+          "source_id": "openalex_api",
+          "source_native_id": "https://openalex.org/A5000000001"
+        }
+      }
+    ],
+    "signal": {
+      "scheme": "orcid",
+      "type": "shared_authority_identifier",
+      "value": "0000-0002-1825-0097"
+    },
+    "status": "proposed",
+    "strength": "strong",
+    "subjects": [
+      {
+        "kind": "unknown",
+        "label": "Priya Chen",
+        "role_context": "author",
+        "source_id": "crossref_rest_api",
+        "source_native_id": "orcid:0000-0002-1825-0097"
+      },
+      {
+        "kind": "unknown",
+        "label": "Priya Chen",
+        "role_context": "author",
+        "source_id": "openalex_api",
+        "source_native_id": "https://openalex.org/A5000000001"
+      }
+    ]
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "scope": "fixture-only review labels; not a production precision estimate",
+  "reviews": [
+    {
+      "candidate_id": "fixture-review-authority-1",
+      "reviewed": true,
+      "decision": "accept",
+      "same_entity": true,
+      "positive_evidence": ["shared ORCID in Crossref and OpenAlex"],
+      "negative_evidence": [],
+      "conflicts": []
+    },
+    {
+      "candidate_id": "fixture-review-link-1",
+      "reviewed": true,
+      "decision": "accept",
+      "same_entity": true,
+      "positive_evidence": ["publisher-supplied identical profile URL"],
+      "negative_evidence": [],
+      "conflicts": []
+    },
+    {
+      "candidate_id": "fixture-review-link-2",
+      "reviewed": true,
+      "decision": "reject",
+      "same_entity": false,
+      "positive_evidence": ["same display name only"],
+      "negative_evidence": ["no shared authority ID or explicit link"],
+      "conflicts": ["name collision risk"]
+    },
+    {
+      "candidate_id": "fixture-review-account-1",
+      "reviewed": true,
+      "decision": "defer",
+      "same_entity": null,
+      "positive_evidence": ["channel title resembles creator label"],
+      "negative_evidence": ["channel is an account, not a human"],
+      "conflicts": ["account ownership unproven"]
+    }
+  ]
+}

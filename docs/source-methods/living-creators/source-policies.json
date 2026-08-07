@@ -1,0 +1,163 @@
+{
+  "policy_version": "living-creators-source-policy-0.1",
+  "sources": [
+    {
+      "attribution": "retain DOI, member/source metadata, endpoint, and retrieval receipt",
+      "deletion_update_method": "source-replace by DOI; preserve corrections/retractions and tombstones as observations",
+      "official_access": "Crossref REST API and public data files where applicable",
+      "official_docs": [
+        "https://www.crossref.org/documentation/retrieve-metadata/rest-api/",
+        "https://www.crossref.org/documentation/retrieve-metadata/rest-api/rest-api-metadata-license-information/",
+        "https://www.crossref.org/documentation/retrieve-metadata/rest-api/tips-and-tricks/"
+      ],
+      "payload_boundary": "do not persist abstracts or full text unless a separate licence permits it",
+      "quota_or_rate_limit": "use the polite pool/mailto, cache, back off, and obey current response headers",
+      "recommended_state": "pilot_now",
+      "refresh_rule": "refresh by DOI/update timestamp or pinned data-file snapshot",
+      "retention_boundary": "metadata facts are the default; field-level licences still govern supplied content",
+      "rights_state_default": "public_metadata",
+      "source_id": "crossref_rest_api",
+      "terms_revision": "Crossref REST retrieval and metadata-licensing guidance reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain Open Library author/work/edition keys and source locator",
+      "deletion_update_method": "replace by Open Library key; retain tombstone/provenance when a record disappears or redirects",
+      "official_access": "Open Library JSON APIs for bounded use; monthly data dumps for bulk work",
+      "official_docs": [
+        "https://openlibrary.org/developers/api",
+        "https://openlibrary.org/developers/dumps",
+        "https://openlibrary.org/help/faq/about"
+      ],
+      "payload_boundary": "no linked book payload in this adapter",
+      "quota_or_rate_limit": "bounded API use: identify the client; use current published limits; prefer dumps for bulk",
+      "recommended_state": "pilot_now",
+      "refresh_rule": "pin API retrieval or dump snapshot and replace source-native records on the next snapshot",
+      "retention_boundary": "bibliographic metadata only; rights for linked full text remain separate",
+      "rights_state_default": "public_metadata",
+      "source_id": "open_library_api",
+      "terms_revision": "Open Library developer API, dumps, and licensing guidance reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain OpenAlex entity IDs, snapshot/retrieval receipt, and linked authority IDs",
+      "deletion_update_method": "source-replace by OpenAlex ID and snapshot; retain redirects/tombstones and provenance",
+      "official_access": "OpenAlex API with a key for bounded calls; quarterly snapshot for bulk",
+      "official_docs": [
+        "https://docs.openalex.org/how-to-use-the-api/get-lists-of-entities/rate-limits-and-authentication",
+        "https://docs.openalex.org/download-all-data/openalex-snapshot",
+        "https://openalex.org/pricing"
+      ],
+      "payload_boundary": "no reconstructed abstract/full-text corpus in this pilot",
+      "quota_or_rate_limit": "API key and metered daily credits; use snapshots for reproducible bulk work",
+      "recommended_state": "pilot_now",
+      "refresh_rule": "pin quarterly snapshot or retrieval date; apply source-native updated-date replacement",
+      "retention_boundary": "open metadata observations; source-linked content rights remain separate",
+      "rights_state_default": "open_data",
+      "source_id": "openalex_api",
+      "terms_revision": "OpenAlex API authentication/pricing and snapshot documentation reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain note/profile IDs, invitation/venue context, licence, readers, and source endpoint",
+      "deletion_update_method": "honour readers/content changes and withdrawals; source-replace public fields and retain a non-public tombstone receipt",
+      "official_access": "OpenReview API v2 for public notes and profiles; respect readers/writers fields",
+      "official_docs": [
+        "https://docs.openreview.net/reference/api-v2",
+        "https://openreview.net/legal/terms"
+      ],
+      "payload_boundary": "no PDF/full text unless separately licensed",
+      "quota_or_rate_limit": "bounded API use with current server limits and backoff",
+      "recommended_state": "pilot_now",
+      "refresh_rule": "refresh by note/profile ID and modification time; keep revision lineage",
+      "retention_boundary": "public metadata only; comments/config may have different licences; private fields never enter fixtures",
+      "rights_state_default": "open_data",
+      "source_id": "openreview_api",
+      "terms_revision": "OpenReview Terms of Use last updated 2024-09-24; API v2 documentation reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain Podcast Index source/native IDs and API endpoint receipt",
+      "deletion_update_method": "purge expired/terminated API cache; use publisher RSS as the durable replay path when available",
+      "official_access": "authenticated Podcast Index API",
+      "official_docs": [
+        "https://github.com/Podcastindex-org/api-docs",
+        "https://github.com/Podcastindex-org/legal/blob/master/TERMS.md"
+      ],
+      "payload_boundary": "metadata/evidence pointers only; no audio or transcript corpus",
+      "quota_or_rate_limit": "credentialed access; obey response cache/rate headers and current API documentation",
+      "recommended_state": "discovery_only",
+      "refresh_rule": "API material is cache-header bounded; refresh only within current API terms",
+      "retention_boundary": "no permanent copy of API responses beyond the response cache boundary unless separately authorised",
+      "rights_state_default": "restricted",
+      "source_id": "podcast_index_api",
+      "terms_revision": "Podcast Index Terms of Service v1.1, 2021-03-02; reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain feed URL, publisher URL, GUID/native IDs, retrieval time, and literal field locators",
+      "deletion_update_method": "replace records by feed URL/GUID; do not infer deletion from a truncated feed alone; use explicit removal, 404/410, or publisher confirmation",
+      "official_access": "publisher-controlled RSS/Atom feed; Podcasting 2.0 namespace where present",
+      "official_docs": [
+        "https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md",
+        "https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/tags/person.md",
+        "https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/tags/transcript.md"
+      ],
+      "payload_boundary": "never acquire enclosure audio/video or transcript bodies without a separate rights gate",
+      "quota_or_rate_limit": "publisher-specific; use conditional GET and an identified user agent",
+      "recommended_state": "pilot_now",
+      "refresh_rule": "honour Cache-Control, ETag, Last-Modified, Retry-After, and publisher cadence",
+      "retention_boundary": "metadata and evidence pointers only under publisher terms; replayable raw feed only when those terms permit",
+      "rights_state_default": "public_metadata",
+      "source_id": "podcast_rss",
+      "terms_revision": "publisher feed terms are source-specific; Podcasting 2.0 namespace 1.0 reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain event URL, schedule version, event/talk/person GUIDs, and publisher locator",
+      "deletion_update_method": "compare schedule versions by stable event GUID; preserve cancellation/update lineage",
+      "official_access": "public pretalx schedule API/export for an event whose publisher exposes it",
+      "official_docs": [
+        "https://docs.pretalx.org/api/fundamentals/",
+        "https://docs.pretalx.org/api/resources/schedules/"
+      ],
+      "payload_boundary": "no recordings, slides, email-derived identifiers, or private proposal data",
+      "quota_or_rate_limit": "event-instance specific; use public endpoints only and back off",
+      "recommended_state": "pilot_now",
+      "refresh_rule": "pin schedule version; replace from latest published schedule only when deliberately requested",
+      "retention_boundary": "public schedule metadata under event-publisher terms; speaker bios/contact details are excluded",
+      "rights_state_default": "discovery_only",
+      "source_id": "pretalx_schedule",
+      "terms_revision": "event publisher terms are source-specific; pretalx public schedule API reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain page URL, retrieval receipt, JSON-LD node locator, and exact sameAs/identifier field",
+      "deletion_update_method": "remove/tombstone observations when the explicit page or sameAs assertion is removed or returns 404/410",
+      "official_access": "explicitly supplied public page with JSON-LD/schema.org metadata; no broad crawl",
+      "official_docs": [
+        "https://schema.org/sameAs",
+        "https://github.com/schemaorg/schemaorg"
+      ],
+      "payload_boundary": "no article/newsletter body, email address, personal notes, or inferred biography corpus",
+      "quota_or_rate_limit": "site-specific robots/rate policy; no authentication bypass",
+      "recommended_state": "discovery_only",
+      "refresh_rule": "re-fetch only under page terms and robots policy; content hash every supplied page",
+      "retention_boundary": "identifier/evidence receipts by default; raw HTML only when publisher terms permit",
+      "rights_state_default": "discovery_only",
+      "source_id": "public_web_schema_org",
+      "terms_revision": "page terms and robots policy are source-specific; schema.org sameAs reviewed 2026-08-06"
+    },
+    {
+      "attribution": "retain YouTube IDs and required YouTube attribution; do not imply endorsement",
+      "deletion_update_method": "re-query by stable video/channel ID; remove unavailable/deleted fields and tombstone source observation without deleting evidence history",
+      "official_access": "YouTube Data API v3 using an API key or OAuth where required",
+      "official_docs": [
+        "https://developers.google.com/youtube/terms/developer-policies",
+        "https://developers.google.com/youtube/terms/api-services-terms-of-service",
+        "https://developers.google.com/youtube/v3/getting-started"
+      ],
+      "payload_boundary": "no video, audio, transcript, description, tags, thumbnails, comments, or statistics in this pilot",
+      "quota_or_rate_limit": "project quota units and endpoint-specific costs; no quota circumvention",
+      "recommended_state": "research_more",
+      "refresh_rule": "refresh or delete stored API data within 30 days unless a current documented exception applies",
+      "retention_boundary": "source-separated refreshable metadata only; no cross-platform scoring or identity inference",
+      "rights_state_default": "restricted",
+      "source_id": "youtube_data_api",
+      "terms_revision": "YouTube Developer Policies updated 2026-05-04; data-storage policy update effective 2026-06-01"
+    }
+  ]
+}

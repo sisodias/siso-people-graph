@@ -1,0 +1,56 @@
+{
+  "channels": {
+    "kind": "youtube#channelListResponse",
+    "etag": "fixture-list-etag",
+    "items": [
+      {
+        "kind": "youtube#channel",
+        "etag": "fixture-channel-etag",
+        "id": "UCfixture001",
+        "snippet": {
+          "title": "Bounded Creators Video",
+          "description": "Not persisted by the adapter.",
+          "customUrl": "@boundedcreators",
+          "publishedAt": "2024-02-01T09:00:00Z",
+          "country": "US"
+        },
+        "statistics": {
+          "viewCount": "999999",
+          "subscriberCount": "50000"
+        }
+      }
+    ]
+  },
+  "videos": {
+    "kind": "youtube#videoListResponse",
+    "etag": "fixture-video-list-etag",
+    "items": [
+      {
+        "kind": "youtube#video",
+        "etag": "fixture-video-etag",
+        "id": "vid-fixture-001",
+        "snippet": {
+          "publishedAt": "2026-07-20T14:30:00Z",
+          "channelId": "UCfixture001",
+          "title": "Evidence-first creator graphs",
+          "description": "Not persisted by the adapter.",
+          "channelTitle": "Bounded Creators Video",
+          "tags": ["people graph", "provenance"],
+          "categoryId": "28",
+          "defaultLanguage": "en"
+        },
+        "contentDetails": {
+          "duration": "PT42M10S"
+        },
+        "status": {
+          "privacyStatus": "public",
+          "containsSyntheticMedia": false
+        },
+        "statistics": {
+          "viewCount": "10101",
+          "likeCount": "901"
+        }
+      }
+    ]
+  }
+}

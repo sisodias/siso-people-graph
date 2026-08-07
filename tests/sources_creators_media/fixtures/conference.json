@@ -1,0 +1,50 @@
+{
+  "schedule": {
+    "conference": {
+      "title": "Fixture Data Conference 2026",
+      "acronym": "fdc2026",
+      "start": "2026-09-10",
+      "end": "2026-09-11",
+      "timezone": "UTC",
+      "days": [
+        {
+          "index": 1,
+          "date": "2026-09-10",
+          "rooms": {
+            "Main Hall": [
+              {
+                "id": 42,
+                "guid": "talk-fixture-guid-001",
+                "slug": "evidence-first-creator-graphs",
+                "url": "https://conference.example.test/fdc2026/talk/fixture/",
+                "title": "Evidence-first creator graphs",
+                "type": "Talk",
+                "track": "Knowledge systems",
+                "language": "en",
+                "date": "2026-09-10",
+                "start": "10:00",
+                "duration": "00:45",
+                "abstract": "Not persisted by the adapter.",
+                "description": "Not persisted by the adapter.",
+                "persons": [
+                  {
+                    "id": 1001,
+                    "code": "speaker-fixture-alex",
+                    "public_name": "Alex Rivera",
+                    "biography": "Not persisted by the adapter.",
+                    "links": [
+                      {
+                        "url": "https://profiles.example.test/alex-rivera",
+                        "title": "Profile"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
