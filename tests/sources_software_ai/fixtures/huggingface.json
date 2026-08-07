@@ -1,0 +1,136 @@
+{
+  "source_id": "huggingface_hub",
+  "snapshot_id": "hf-api-fixture-2026-08-06",
+  "observed_at": "2026-08-06T01:00:00Z",
+  "retrieved_at": "2026-08-06T01:01:00Z",
+  "terms_revision": "https://huggingface.co/terms-of-service (effective 2022-09-15), retrieved 2026-08-06",
+  "rights_state": "public_metadata",
+  "accounts": [
+    {
+      "handle": "alice-ai",
+      "display_name": "Alice Example",
+      "kind": "account",
+      "metrics": {"followers": 5100},
+      "identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "101",
+          "scope": "source",
+          "stability": "stable",
+          "uniqueness": "unique",
+          "evidence": "Hugging Face profile verified website links to GitHub numeric account ID 101 in fixture receipt"
+        }
+      ]
+    },
+    {
+      "handle": "vector-labs",
+      "display_name": "Vector Labs",
+      "kind": "organisation",
+      "metrics": {"followers": 12000},
+      "identifiers": [
+        {
+          "scheme": "github_account_id",
+          "value": "202",
+          "scope": "source",
+          "stability": "stable",
+          "uniqueness": "unique",
+          "evidence": "Hugging Face organisation verified website links to GitHub organisation ID 202 in fixture receipt"
+        }
+      ]
+    }
+  ],
+  "repositories": [
+    {
+      "repo_type": "model",
+      "id": "vector-labs/vector-embed-small",
+      "owner": {"handle": "vector-labs", "kind": "organisation", "role": "repository_owner"},
+      "contributors": [
+        {"handle": "alice-ai", "role": "model_author"}
+      ],
+      "sha": "3333333333333333333333333333333333333333",
+      "license": "apache-2.0",
+      "private": false,
+      "gated": false,
+      "pipeline_tag": "feature-extraction",
+      "sdk": null,
+      "created_at": "2026-04-01T09:00:00Z",
+      "last_modified": "2026-08-04T18:00:00Z",
+      "metrics": {"downloads": 93000, "likes": 810},
+      "links": [
+        {
+          "predicate": "trained_on",
+          "repo_type": "dataset",
+          "id": "vector-labs/vector-corpus",
+          "evidence": "model card datasets field"
+        }
+      ],
+      "revisions": [
+        {
+          "sha": "3333333333333333333333333333333333333333",
+          "created_at": "2026-08-04T18:00:00Z"
+        }
+      ]
+    },
+    {
+      "repo_type": "dataset",
+      "id": "vector-labs/vector-corpus",
+      "owner": {"handle": "vector-labs", "kind": "organisation", "role": "dataset_publisher"},
+      "contributors": [
+        {"handle": "alice-ai", "role": "dataset_curator"}
+      ],
+      "sha": "4444444444444444444444444444444444444444",
+      "license": "cc-by-4.0",
+      "private": false,
+      "gated": false,
+      "pipeline_tag": null,
+      "sdk": null,
+      "created_at": "2026-03-10T09:00:00Z",
+      "last_modified": "2026-08-03T12:00:00Z",
+      "metrics": {"downloads": 210000, "likes": 460},
+      "links": [],
+      "revisions": [
+        {
+          "sha": "4444444444444444444444444444444444444444",
+          "created_at": "2026-08-03T12:00:00Z"
+        }
+      ]
+    },
+    {
+      "repo_type": "space",
+      "id": "alice-ai/vector-demo",
+      "owner": {"handle": "alice-ai", "kind": "account", "role": "space_owner"},
+      "contributors": [
+        {"handle": "bob-builds", "role": "app_contributor"}
+      ],
+      "sha": "5555555555555555555555555555555555555555",
+      "license": "apache-2.0",
+      "private": false,
+      "gated": false,
+      "pipeline_tag": null,
+      "sdk": "gradio",
+      "created_at": "2026-05-15T09:00:00Z",
+      "last_modified": "2026-08-05T20:00:00Z",
+      "metrics": {"likes": 270, "runs_30d": 78000},
+      "links": [
+        {
+          "predicate": "uses_model",
+          "repo_type": "model",
+          "id": "vector-labs/vector-embed-small",
+          "evidence": "Space README models field"
+        },
+        {
+          "predicate": "uses_dataset",
+          "repo_type": "dataset",
+          "id": "vector-labs/vector-corpus",
+          "evidence": "Space README datasets field"
+        }
+      ],
+      "revisions": [
+        {
+          "sha": "5555555555555555555555555555555555555555",
+          "created_at": "2026-08-05T20:00:00Z"
+        }
+      ]
+    }
+  ]
+}

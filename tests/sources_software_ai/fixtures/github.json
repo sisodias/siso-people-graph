@@ -1,0 +1,245 @@
+{
+  "sources": {
+    "github_rest": {
+      "snapshot_id": "fixture-github-rest-2026-08-06",
+      "observed_at": "2026-08-06T00:00:00Z",
+      "retrieved_at": "2026-08-06T00:05:00Z",
+      "terms_revision": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service (effective 2026-04-27)",
+      "rights_state": "public_metadata"
+    },
+    "gh_archive": {
+      "snapshot_id": "gharchive-2026-08-05-14",
+      "observed_at": "2026-08-05T14:59:59Z",
+      "retrieved_at": "2026-08-06T00:10:00Z",
+      "terms_revision": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service (effective 2026-04-27)",
+      "rights_state": "public_metadata"
+    }
+  },
+  "accounts": [
+    {
+      "id": 101,
+      "node_id": "MDQ6VXNlcjEwMQ==",
+      "login": "alice-ai",
+      "previous_logins": [
+        {
+          "login": "alice-old",
+          "valid_from": "2021-02-01T00:00:00Z",
+          "valid_to": "2026-02-14T12:00:00Z"
+        }
+      ],
+      "type": "User",
+      "name": "Alice Example",
+      "company": "Vector Labs",
+      "location": "Berlin",
+      "bio": "Maintains vector tooling and AI demos.",
+      "created_at": "2021-02-01T00:00:00Z",
+      "updated_at": "2026-08-05T17:00:00Z",
+      "followers": 4200,
+      "following": 88,
+      "public_repos": 54
+    },
+    {
+      "id": 202,
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjIwMg==",
+      "login": "vector-labs",
+      "previous_logins": [],
+      "type": "Organization",
+      "name": "Vector Labs",
+      "company": null,
+      "location": "Remote",
+      "bio": "Open tooling for vector search.",
+      "created_at": "2024-01-10T00:00:00Z",
+      "updated_at": "2026-08-05T18:00:00Z",
+      "followers": 8600,
+      "following": 0,
+      "public_repos": 31
+    },
+    {
+      "id": 303,
+      "node_id": "MDQ6VXNlcjMwMw==",
+      "login": "bob-builds",
+      "previous_logins": [],
+      "type": "User",
+      "name": "Bob Builder",
+      "company": "Independent",
+      "location": "Toronto",
+      "bio": "Rust and packaging maintainer.",
+      "created_at": "2018-05-20T00:00:00Z",
+      "updated_at": "2026-08-05T19:00:00Z",
+      "followers": 1900,
+      "following": 120,
+      "public_repos": 77
+    },
+    {
+      "id": 404,
+      "node_id": "MDQ6VXNlcjQwNA==",
+      "login": "ghost-maintainer",
+      "previous_logins": [],
+      "type": "User",
+      "name": "Ghost Maintainer",
+      "company": null,
+      "location": null,
+      "bio": null,
+      "created_at": "2014-03-02T00:00:00Z",
+      "updated_at": "2022-04-01T00:00:00Z",
+      "followers": 12,
+      "following": 0,
+      "public_repos": 3
+    }
+  ],
+  "repositories": [
+    {
+      "id": 1001,
+      "node_id": "MDEwOlJlcG9zaXRvcnkxMDAx",
+      "full_name": "alice-ai/vectorforge",
+      "description": "Vector indexing toolkit before organisation transfer.",
+      "owner": {"id": 101, "login": "alice-ai", "type": "User"},
+      "contributors": [
+        {"id": 303, "login": "bob-builds", "role": "contributor"}
+      ],
+      "transfers": [],
+      "dependencies": [
+        {
+          "purl": "pkg:pypi/numpy",
+          "name": "numpy",
+          "requirement": ">=2.0",
+          "environment": "runtime",
+          "evidence": "pyproject.toml dependency fixture"
+        }
+      ],
+      "swhids": [],
+      "license": "Apache-2.0",
+      "archived": false,
+      "abandoned": false,
+      "default_branch": "main",
+      "created_at": "2025-01-02T00:00:00Z",
+      "updated_at": "2026-01-15T09:00:00Z",
+      "pushed_at": "2026-01-15T08:59:00Z",
+      "observed_at": "2026-01-15T10:00:00Z",
+      "stars": 840,
+      "forks": 77,
+      "watchers": 21
+    },
+    {
+      "id": 1001,
+      "node_id": "MDEwOlJlcG9zaXRvcnkxMDAx",
+      "full_name": "vector-labs/vectorforge",
+      "description": "Vector indexing toolkit after organisation transfer.",
+      "owner": {"id": 202, "login": "vector-labs", "type": "Organization"},
+      "contributors": [
+        {"id": 101, "login": "alice-ai", "role": "maintainer"},
+        {"id": 303, "login": "bob-builds", "role": "contributor"}
+      ],
+      "transfers": [
+        {
+          "from_owner_id": 101,
+          "from_owner_login": "alice-ai",
+          "at": "2026-03-01T12:00:00Z",
+          "evidence": "repository transfer audit fixture"
+        }
+      ],
+      "dependencies": [
+        {
+          "purl": "pkg:pypi/numpy",
+          "name": "numpy",
+          "requirement": ">=2.1",
+          "environment": "runtime",
+          "evidence": "pyproject.toml dependency fixture"
+        },
+        {
+          "purl": "pkg:cargo/vector-core",
+          "name": "vector-core",
+          "requirement": "^0.4",
+          "environment": "native-extension",
+          "evidence": "Cargo.toml dependency fixture"
+        }
+      ],
+      "swhids": [
+        "swh:1:snp:1111111111111111111111111111111111111111"
+      ],
+      "license": "Apache-2.0",
+      "archived": false,
+      "abandoned": false,
+      "default_branch": "main",
+      "created_at": "2025-01-02T00:00:00Z",
+      "updated_at": "2026-08-05T21:00:00Z",
+      "pushed_at": "2026-08-05T20:58:00Z",
+      "observed_at": "2026-08-06T00:00:00Z",
+      "stars": 2900,
+      "forks": 220,
+      "watchers": 64
+    },
+    {
+      "id": 1002,
+      "node_id": "MDEwOlJlcG9zaXRvcnkxMDAy",
+      "full_name": "alice-ai/legacy-parser",
+      "description": "Unmaintained parser kept for historical consumers.",
+      "owner": {"id": 101, "login": "alice-ai", "type": "User"},
+      "contributors": [
+        {"id": 404, "login": "ghost-maintainer", "role": "former_maintainer"}
+      ],
+      "transfers": [],
+      "dependencies": [],
+      "swhids": [
+        "swh:1:rev:2222222222222222222222222222222222222222"
+      ],
+      "license": "MIT",
+      "archived": true,
+      "abandoned": true,
+      "default_branch": "main",
+      "created_at": "2019-02-03T00:00:00Z",
+      "updated_at": "2022-03-20T12:00:00Z",
+      "pushed_at": "2022-03-20T11:58:00Z",
+      "observed_at": "2026-08-06T00:00:00Z",
+      "stars": 130,
+      "forks": 19,
+      "watchers": 4
+    }
+  ],
+  "releases": [
+    {
+      "id": 9001,
+      "repository_id": 1001,
+      "repository_full_name": "vector-labs/vectorforge",
+      "tag_name": "v2.3.0",
+      "name": "VectorForge 2.3.0",
+      "author": {"id": 101, "login": "alice-ai"},
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2026-07-30T13:00:00Z",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": 9002,
+      "repository_id": 1002,
+      "repository_full_name": "alice-ai/legacy-parser",
+      "tag_name": "v0.9.1",
+      "name": "Legacy Parser 0.9.1",
+      "author": {"id": 404, "login": "ghost-maintainer"},
+      "draft": false,
+      "prerelease": false,
+      "published_at": "2022-03-20T11:00:00Z",
+      "license": "MIT"
+    }
+  ],
+  "events": [
+    {
+      "id": "E10001",
+      "type": "PushEvent",
+      "actor": {"id": 101, "login": "alice-ai"},
+      "repo": {"id": 1001, "name": "vector-labs/vectorforge"},
+      "public": true,
+      "created_at": "2026-08-05T14:05:00Z",
+      "payload_summary": {"ref": "refs/heads/main", "size": 3}
+    },
+    {
+      "id": "E10002",
+      "type": "MemberEvent",
+      "actor": {"id": 202, "login": "vector-labs"},
+      "repo": {"id": 1001, "name": "vector-labs/vectorforge"},
+      "public": true,
+      "created_at": "2026-08-05T14:15:00Z",
+      "payload_summary": {"action": "added", "member_id": 303}
+    }
+  ]
+}

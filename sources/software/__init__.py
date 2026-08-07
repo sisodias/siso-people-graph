@@ -1,0 +1,1 @@
+"""Software ecosystem observation adapters."""

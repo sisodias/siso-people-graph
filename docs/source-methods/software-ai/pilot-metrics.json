@@ -1,0 +1,200 @@
+{
+  "abandoned_works": 3,
+  "archived_works": 3,
+  "contribution_edges": 30,
+  "contribution_roles": {
+    "app_contributor": 2,
+    "contributor": 2,
+    "dataset_curator": 2,
+    "dataset_publisher": 2,
+    "former_maintainer": 1,
+    "maintainer": 5,
+    "model_author": 2,
+    "owner": 4,
+    "publisher": 1,
+    "release_publisher": 2,
+    "repository_owner": 5,
+    "space_owner": 2
+  },
+  "cross_platform_identity_evidence_receipts": 8,
+  "fixture_bytes": 21710,
+  "identifier_observations": 98,
+  "identifier_schemes": {
+    "crates_io_crate": 1,
+    "crates_user_id": 2,
+    "ecosystems_package_id": 3,
+    "git_commit_sha": 6,
+    "git_tag": 2,
+    "github_account_id": 21,
+    "github_event_id": 2,
+    "github_full_name": 3,
+    "github_login": 4,
+    "github_node_id": 7,
+    "github_release_id": 2,
+    "github_repository_id": 3,
+    "huggingface_handle": 14,
+    "huggingface_repo_id": 3,
+    "npm_maintainer": 3,
+    "purl": 10,
+    "pypi_maintainer": 1,
+    "pypi_project": 2,
+    "pypi_user": 3,
+    "sha256": 4,
+    "swhid": 2
+  },
+  "license_coverage": {
+    "eligible_works": 23,
+    "percent": 91.3,
+    "works_with_declared_license": 21
+  },
+  "metric_observations": 43,
+  "metric_version": "software-ai-pilot-0.1",
+  "network_calls": 0,
+  "pilot_mode": "offline_replayable_fixture",
+  "record_count": 31,
+  "records_by_source": {
+    "crates_io": 3,
+    "ecosystems_packages": 3,
+    "gh_archive": 2,
+    "github_rest": 9,
+    "huggingface_hub": 8,
+    "pypi": 4,
+    "software_heritage": 2
+  },
+  "relationship_edges": 35,
+  "relationship_types": {
+    "archived_as": 2,
+    "archives": 2,
+    "depends_on": 7,
+    "occurred_on": 2,
+    "performed_by": 2,
+    "renamed_from": 1,
+    "source_repository": 6,
+    "trained_on": 1,
+    "transferred_from": 1,
+    "uses_dataset": 1,
+    "uses_model": 1,
+    "version_of": 9
+  },
+  "rights_coverage": {
+    "percent": 100.0,
+    "records": 31,
+    "records_with_non_pending_terms_and_rights": 31
+  },
+  "source_conflict_count": 1,
+  "source_conflicts": [
+    {
+      "distinct_values": [
+        "Apache-2.0",
+        "MIT"
+      ],
+      "field": "license",
+      "observations": [
+        {
+          "source_id": "ecosystems_packages",
+          "value": "MIT"
+        },
+        {
+          "source_id": "pypi",
+          "value": "Apache-2.0"
+        }
+      ],
+      "resolution": "preserve_conflict_for_review",
+      "subject_native_id": "pkg:pypi/vectorforge"
+    }
+  ],
+  "source_cost_profiles": [
+    {
+      "acquisition": "bounded REST/GraphQL enrichment with conditional requests",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "high_at_scale",
+      "scale_recommendation": "Use numeric IDs from cohort manifests; batch GraphQL only where snapshots cannot answer.",
+      "source": "github_rest"
+    },
+    {
+      "acquisition": "hourly public event archives or BigQuery",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "low_for_temporal_events",
+      "scale_recommendation": "Use bounded time windows and retain event locators rather than replaying all history.",
+      "source": "gh_archive"
+    },
+    {
+      "acquisition": "normalized package/repository API and exports",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "low_to_medium",
+      "scale_recommendation": "Preferred first pass for npm and cross-registry dependency/maintainer coverage.",
+      "source": "ecosystems_packages"
+    },
+    {
+      "acquisition": "Index API for change detection plus per-project JSON only for selected cohort",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "medium",
+      "scale_recommendation": "Use serials and HTTP caching; do not infer ownership from author strings.",
+      "source": "pypi"
+    },
+    {
+      "acquisition": "Cargo sparse/git index plus bounded owner API lookups",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "low_for_versions_medium_for_owners",
+      "scale_recommendation": "Read checksums/dependencies from the index; reserve API calls for owner edges.",
+      "source": "crates_io"
+    },
+    {
+      "acquisition": "point lookups for known origins/SWHIDs",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "high_for_discovery_low_for_verification",
+      "scale_recommendation": "Verify known repositories and revisions; do not use the public API for bulk extraction.",
+      "source": "software_heritage"
+    },
+    {
+      "acquisition": "paginated public model/dataset/Space metadata plus revision heads",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "medium",
+      "scale_recommendation": "Scale metadata first; fetch cards selectively and keep gated/private content out of the pilot.",
+      "source": "huggingface_hub"
+    },
+    {
+      "acquisition": "deferred",
+      "network_calls_in_fixture_pilot": 0,
+      "relative_cost": "not_measured",
+      "scale_recommendation": "Use ecosyste.ms first; add direct registry deltas only after gap and terms review.",
+      "source": "npm_registry_direct"
+    }
+  ],
+  "source_count": 7,
+  "stable_unique_identifier_schemes": [
+    "crates_user_id",
+    "git_commit_sha",
+    "github_account_id",
+    "github_event_id",
+    "github_node_id",
+    "github_release_id",
+    "github_repository_id",
+    "purl",
+    "sha256",
+    "swhid"
+  ],
+  "stable_unique_identifiers": 36,
+  "subjects_by_kind": {
+    "account": 4,
+    "event": 2,
+    "organisation": 2,
+    "work": 23
+  },
+  "temporal_events": 2,
+  "temporal_relationships": 2,
+  "works_by_type": {
+    "ai_dataset": 1,
+    "ai_dataset_revision": 1,
+    "ai_model": 1,
+    "ai_model_revision": 1,
+    "ai_space": 1,
+    "ai_space_revision": 1,
+    "software_archive_revision": 1,
+    "software_archive_snapshot": 1,
+    "software_package": 6,
+    "software_package_release": 4,
+    "software_release": 2,
+    "software_repository": 3
+  }
+}
