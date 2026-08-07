@@ -230,6 +230,12 @@ class QueryEngine:
 
         by_id = {row[0]: row for row in rows}
         resolutions = self.resolver.resolve(list(by_id))
+        # Re-read resolver warnings AFTER resolving. Some are only discoverable
+        # by running (an unreadable identity_cluster, for instance), and the
+        # envelope was built before the query ran -- so a failure raised during
+        # resolution would otherwise never reach the caller.
+        for w in self.resolver.warnings():
+            r.warn(w)
 
         # Fold source rows into the person each decision says they are.
         clusters: dict[str, dict] = {}
@@ -294,6 +300,29 @@ class QueryEngine:
                 "Proposed identity claims touch this result and were NOT applied; "
                 "some rows shown separately may be the same person."
             )
+        for entry in clusters.values():
+            ident = entry["identity"]
+            for b in ident.get("refused_merges", ()):
+                r.identity.setdefault("refused", [])
+                if b not in r.identity["refused"]:
+                    r.identity["refused"].append(b)
+                r.gap(
+                    f"{b['person_a']} and {b['person_b']} are joined by "
+                    "person.merged_into but an identity_claim REJECTS the pair. "
+                    "The rejection wins; they are reported separately and the "
+                    "applied merge is stale."
+                )
+            for d in ident.get("decisions", ()):
+                if d.get("claim_status") == "proposed":
+                    r.gap(
+                        f"An applied merge ({d.get('from')} -> {d.get('to')}) has "
+                        "only a 'proposed' claim: no reviewer accepted it."
+                    )
+            if not ident.get("cluster_complete", True):
+                r.gap(
+                    "Identity expansion hit its pass limit: this person's cluster "
+                    "may be INCOMPLETE and further rows may belong to them."
+                )
         r.execution["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 2)
         return r.as_dict()
 

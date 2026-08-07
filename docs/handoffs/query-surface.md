@@ -151,14 +151,42 @@ something merged into" ahead of "a row that is not itself merged", so a chain
 live row was ignored. Liveness is now checked first. Recorded here because the
 same trap is available to anyone extending canonical selection.
 
-## Review status — read this before trusting the resolver
+## Review status — the review found six defects, and the headline claim was false
 
-An independent cold review of `resolver.py` was dispatched and **never
-returned**. It is not reflected here, so the resolver has not had a second pair
-of eyes. Treat that as an open risk on the most load-bearing file in the lane.
+An independent cold review of `resolver.py` returned **rethink** with six
+demonstrated defects. All six are fixed; each is now a permanent regression test
+in `tests/query_v3/test_review_findings.py`, verified to fail on the pre-fix
+commit `7957503` and pass after.
 
-The highest-value probes from that review brief were run directly instead, with
-executed evidence rather than reasoning:
+The most important one falsified this lane's headline claim. "Accepted identity
+decisions affect reads, **and only accepted ones do**" was **not true as
+originally shipped**: `person.merged_into` was applied without ever consulting
+the claim record, so a pair whose claim was *rejected* stayed merged.
+
+| # | severity | defect | fix |
+|---|---|---|---|
+| 1 | critical | applied merge trusted without checking the claim; rejected pairs stayed merged | a rejection now defeats a stale applied merge and is reported as `refused_merges`; an applied merge with only a *proposed* claim merges but is flagged as unreviewed |
+| 2 | high | expansion followed `merged_into` forward only, so searching the winner omitted rows merged into it — the same person returned different works depending on which name was typed | traversal now goes both directions |
+| 3 | high | the 8-pass expansion cap silently truncated valid clusters | the bound stays (an unbounded walk would traverse the corpus) but a truncated cluster now reports `cluster_complete: false` and a coverage gap |
+| 4 | medium | `from`/`to` echoed the schema's lexical `person_a < person_b` ordering, emitting decisions pointing *from* the live canonical row *to* the merged one | direction is assigned after canonical selection; pair-level decisions inside a transitive cluster say so explicitly |
+| 5 | high | detected `identity_cluster` rows were annotations only — a v3 cluster still returned two people | v3 cluster membership now folds rows into one person, as an accepted v2 claim does |
+| 6 | medium | a malformed `identity_cluster` was swallowed and read as "no clusters" | reported as `UNREADABLE`, with the underlying SQLite error |
+
+**Why the original suite missed all six.** The fixtures only ever built states
+where `merged_into` and `identity_claim` **agreed**. Under that assumption,
+trusting `merged_into` alone is indistinguishable from checking both, and every
+test passes. The review supplied the disagreeing states. The transferable lesson:
+a suite written by the code's own author inherits that author's beliefs about
+which states are possible, and those beliefs are exactly what needs attacking.
+
+Finding 6 deserves a specific note, because it is this lane's own defect class
+reappearing one schema version later: a swallowed `sqlite3.Error` making a
+failure look like a legitimate empty result. Fixing it also exposed an ordering
+bug — `warnings()` was read while building the envelope, before `resolve()` ran,
+so a failure raised *during* resolution never reached the caller. Warnings are
+now re-read after resolving.
+
+Probes run directly (before the review returned), all now permanent tests:
 
 | probe | result |
 |---|---|
@@ -174,11 +202,17 @@ executed evidence rather than reasoning:
 | union-find grouping | matches a reference transitive closure across 300 randomised trials, 0 mismatches |
 | `decisions[].from/to` direction | points at the canonical row (`gh:lovelace → bk:lovelace`), not the schema's stored `person_a < person_b` order |
 
-Every row above is now a permanent test rather than a one-off probe, so a
-regression on any of them fails the build. What remains genuinely unreviewed is
-*judgement*, not coverage: whether the resolver's canonical-selection policy is
-the right policy, and whether the v2/v3/none adapter split is the right seam.
-Those want a second opinion, not another test.
+Every row above is a permanent test, so a regression on any of them fails the
+build. The review confirmed these independently ("union-find roots all unified;
+bound hostile ID preserved person table; cycles/self-merge terminate; canonical
+liveness fix currently present and selected live row. No findings there.").
+
+What remains unreviewed is *judgement*, not coverage: whether canonical selection
+is the right policy, whether the v2/v3/none adapter split is the right seam, and
+whether merging on an applied-but-only-proposed claim is the right call — this
+build merges and flags it, on the reasoning that the read layer should reflect
+what the build did while making the absence of review visible. A reviewer could
+reasonably argue it should refuse instead.
 
 ## Safety properties
 
