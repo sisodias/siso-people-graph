@@ -32,9 +32,16 @@ Usage:
 """
 import argparse
 import json
+import os
 import sqlite3
 import sys
 import time
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from build_v3 import paths  # noqa: E402,F401
+
+LOADER_VERSION = "load_owners_into_people_graph/2"
+SOURCE_NAME = "github_identity"
 
 # Owner names that are obviously organisations. Not exhaustive -- a heuristic
 # for the clearest cases only. Everything else stays 'unknown' rather than being
@@ -50,10 +57,20 @@ def looks_organisational(login):
     return any(h in low for h in ORG_HINTS)
 
 
-def load(identity_db, graph_db, min_stars, limit, apply_changes):
+def load(identity_db, graph_db, min_stars, limit, apply_changes,
+         observed_at=None, snapshot=None, prune_stale=True):
+    """Load GitHub owners.
+
+    observed_at pins the timestamp so reruns are byte-stable; prune_stale
+    removes edges this source wrote previously that the current snapshot no
+    longer supports. Without pruning, a repo that was deleted, unstarred below
+    the threshold, or reclassified as a fork stays in the graph forever -- the
+    graph would then be the union of every snapshot ever loaded rather than a
+    representation of the current one.
+    """
     src = sqlite3.connect(f"file:{identity_db}?mode=ro", uri=True)
     g = sqlite3.connect(graph_db)
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    now = observed_at or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     # Existing people, by github login, so we ADD to a known person rather than
     # creating a twin. external_ids is the canonical join key for this.
@@ -111,6 +128,10 @@ def load(identity_db, graph_db, min_stars, limit, apply_changes):
             matched += 1
             continue
         pid = f"gh:{o['login']}"
+        # rank_score is no longer written. Summed stars went into the same
+        # column that holds a book author's work count and a model's 0-100
+        # rating, so the column had no unit and no meaning across origins.
+        # Stars are a popularity measurement; they are recorded as one below.
         new_people.append(
             (
                 pid,
@@ -119,11 +140,21 @@ def load(identity_db, graph_db, min_stars, limit, apply_changes):
                 "organisation" if looks_organisational(o["login"]) else "unknown",
                 "linked",
                 "github",
-                float(o["stars"]),
                 now,
             )
         )
-        new_extids.append((pid, "github_login", o["login"], 1.0, "github_identity"))
+        new_extids.append((pid, "github_login", o["login"], 1.0, SOURCE_NAME))
+
+    # Star and repo counts for EVERY owner in this snapshot, matched or new --
+    # a person who already existed still has a measurable star count, and the
+    # old code only ever scored the newly-created ones.
+    observations = []
+    for key, o in owners.items():
+        pid = known.get(key, f"gh:{o['login']}")
+        observations.append((pid, "github_stars_sum", float(o["stars"]),
+                             "stars", SOURCE_NAME, snapshot, now))
+        observations.append((pid, "github_repo_count", float(o["repos"]),
+                             "repos", SOURCE_NAME, snapshot, now))
 
     summary = {
         "repo_rows_considered": len(edges),
@@ -137,8 +168,8 @@ def load(identity_db, graph_db, min_stars, limit, apply_changes):
     if apply_changes:
         g.executemany(
             """INSERT OR IGNORE INTO person
-               (person_id,name,sort_name,kind,state,origin,rank_score,built_at)
-               VALUES (?,?,?,?,?,?,?,?)""",
+               (person_id,name,sort_name,kind,state,origin,built_at)
+               VALUES (?,?,?,?,?,?,?)""",
             new_people,
         )
         g.executemany(
@@ -146,13 +177,48 @@ def load(identity_db, graph_db, min_stars, limit, apply_changes):
                (person_id,platform,value,confidence,source) VALUES (?,?,?,?,?)""",
             new_extids,
         )
+
+        # Stale-edge pruning. Delete the edges THIS source previously wrote that
+        # the current snapshot does not contain, before inserting the current
+        # set. Scoped by source so we never touch another loader's rows: the
+        # v1 migration and the books loader own their own edges.
+        pruned = 0
+        if prune_stale:
+            current = {(e[0], e[2]) for e in edges}
+            existing_rows = g.execute(
+                "SELECT person_id, content_ref FROM person_content "
+                "WHERE domain='github' AND source=?", (SOURCE_NAME,)
+            ).fetchall()
+            stale = [r for r in existing_rows if (r[0], r[1]) not in current]
+            if stale:
+                g.executemany(
+                    "DELETE FROM person_content WHERE person_id=? AND "
+                    "content_ref=? AND domain='github' AND source=?",
+                    [(a, b, SOURCE_NAME) for a, b in stale],
+                )
+                pruned = len(stale)
+
+        # INSERT OR REPLACE, not OR IGNORE: a repo whose star count or
+        # description changed must UPDATE, not be silently skipped. With IGNORE
+        # the graph froze whatever it saw first and later snapshots were inert.
         g.executemany(
-            """INSERT OR IGNORE INTO person_content
+            """INSERT OR REPLACE INTO person_content
                (person_id,domain,content_ref,role,score,title,source,observed_at,
                 meta_json) VALUES (?,?,?,?,?,?,?,?,?)""",
             edges,
         )
+        # REPLACE on (person_id, metric, source): a rerun overwrites the same
+        # measurement rather than accumulating. This is the structural fix for
+        # the additive rank bug.
+        g.executemany(
+            """INSERT OR REPLACE INTO person_observation
+               (person_id,metric,value,unit,source,snapshot,observed_at)
+               VALUES (?,?,?,?,?,?,?)""",
+            observations,
+        )
         g.commit()
+        summary["pruned_stale_edges"] = pruned
+        summary["observations"] = len(observations)
         summary["people_after"] = g.execute(
             "SELECT COUNT(*) FROM person"
         ).fetchone()[0]
@@ -178,9 +244,17 @@ def main():
     ap.add_argument("--min-stars", type=int, default=0)
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--observed-at",
+                    help="fixed ISO8601 timestamp for reproducible builds")
+    ap.add_argument("--snapshot", help="source snapshot id, tied to the manifest")
+    ap.add_argument("--no-prune", action="store_true",
+                    help="keep edges this source wrote that the current "
+                         "snapshot no longer contains (not recommended)")
     a = ap.parse_args()
     t = time.time()
-    s = load(a.identity, a.graph, a.min_stars, a.limit, a.apply)
+    s = load(a.identity, a.graph, a.min_stars, a.limit, a.apply,
+             observed_at=a.observed_at, snapshot=a.snapshot,
+             prune_stale=not a.no_prune)
     s["elapsed_s"] = round(time.time() - t, 2)
     print(json.dumps(s, indent=2))
     return 0

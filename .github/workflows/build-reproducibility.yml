@@ -1,0 +1,102 @@
+# Offline reproducibility CI for the People Graph build.
+#
+# Everything here runs on generated fixtures: no network, no vault, no
+# production database, no secrets. That is deliberate -- a CI job that needed a
+# real corpus could not run on a fork or a clean checkout, which is precisely
+# the failure this lane exists to fix.
+#
+# The job that matters is `reproducibility`: two clean builds in separate
+# directories, compared by logical digest. If that ever goes red, the build has
+# regained a dependency on wall-clock time, run count, or iteration order.
+name: build-reproducibility
+
+on:
+  push:
+    paths:
+      - 'build_v3/**'
+      - 'loaders/build_people_graph_v2.py'
+      - 'loaders/load_owner_topics.py'
+      - 'loaders/load_owners_into_people_graph.py'
+      - 'schema/**'
+      - 'tests/build_v3/**'
+      - '.github/workflows/build-reproducibility.yml'
+  pull_request:
+    paths:
+      - 'build_v3/**'
+      - 'loaders/build_people_graph_v2.py'
+      - 'loaders/load_owner_topics.py'
+      - 'loaders/load_owners_into_people_graph.py'
+      - 'schema/**'
+      - 'tests/build_v3/**'
+      - '.github/workflows/build-reproducibility.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      # No pip install step: the build uses only the standard library. A build
+      # tool with no dependencies cannot break because of a dependency.
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests/build_v3 -t . -v
+
+  clean-checkout-build:
+    # The P0 regression gate. Runs the build from a directory that is NOT the
+    # repository root, which is what used to fail.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build from an unrelated working directory
+        run: |
+          mkdir -p "$RUNNER_TEMP/elsewhere"
+          cd "$RUNNER_TEMP/elsewhere"
+          python3 "$GITHUB_WORKSPACE/build_v3/build.py" --fixture \
+            --out-dir "$RUNNER_TEMP/elsewhere/out"
+      - name: Validation report
+        run: cat "$RUNNER_TEMP/elsewhere/out/validation.json"
+
+  reproducibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Two clean builds, compared
+        run: |
+          python3 build_v3/verify_reproducible.py --dir "$RUNNER_TEMP/repro" --keep \
+            | tee "$RUNNER_TEMP/reproducibility.json"
+      - name: Package a fixture release (never uploaded)
+        run: |
+          python3 build_v3/package.py \
+            --graph "$RUNNER_TEMP/repro/build-a/people_v2.sqlite" \
+            --out-dir "$RUNNER_TEMP/release" \
+            --name people-graph-fixture \
+            --manifests "$RUNNER_TEMP/repro/build-a/manifests" \
+            --built-at 2026-08-06T00:00:00Z
+      - name: Assert no data asset was committed
+        run: |
+          if git ls-files | grep -E '\.(sqlite|sqlite-wal|sqlite-shm|gz|zst)$'; then
+            echo "A data asset is tracked in git. The graph ships as a release asset."
+            exit 1
+          fi
+          echo "No tracked data assets."
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reproducibility-report
+          path: |
+            ${{ runner.temp }}/reproducibility.json
+            ${{ runner.temp }}/repro/build-a/validation.json
+            ${{ runner.temp }}/release/people-graph-fixture.receipt.json
+          retention-days: 14

@@ -26,28 +26,63 @@ import sqlite3
 import sys
 import time
 
-SCHEMA = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                      "people_schema_v2.sql")
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from build_v3 import paths  # noqa: E402
+
+LOADER_VERSION = "build_people_graph_v2/2"
+
+# Schema location is resolved through build_v3.paths rather than computed here.
+# The previous expression was dirname(__file__)/people_schema_v2.sql, i.e.
+# loaders/people_schema_v2.sql -- but the tracked file is schema/people_schema_v2.sql,
+# so a clean checkout raised FileNotFoundError before reading any input and the
+# build only ran in one untracked local layout. See build_v3/paths.py.
 
 
-def build(v1_db, people_db, books_db, out_db):
+def build(v1_db, people_db, books_db, out_db, observed_at=None,
+          books_snapshot=None, run_id=None):
+    """Build the v2 graph.
+
+    observed_at exists for reproducibility. The build previously stamped
+    time.gmtime() into person.built_at and every edge's observed_at, which made
+    two identical builds differ in every row and left logical reproducibility
+    unmeasurable. Callers that need a stable output pass a fixed value; the
+    default preserves the original behaviour for ad-hoc runs.
+    """
     if os.path.exists(out_db):
         os.remove(out_db)
 
+    schema = paths.require(paths.schema_v2(), "v2 schema")
     g = sqlite3.connect(out_db)
-    g.executescript(open(SCHEMA).read())
-    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    g.executescript(schema.read_text())
+    g.executescript(paths.require(
+        paths.REPO_ROOT / "build_v3" / "observations.sql",
+        "observations schema").read_text())
+    now = observed_at or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     g.execute(f"ATTACH DATABASE 'file:{v1_db}?mode=ro' AS v1", ())
     g.execute(f"ATTACH DATABASE 'file:{people_db}?mode=ro' AS bkp", ())
     g.execute(f"ATTACH DATABASE 'file:{books_db}?mode=ro' AS bk", ())
 
     # 1. People already in the canonical graph (github / youtube / registry).
+    #
+    # rank_score is NOT copied. v1's rank_score is a score under an older,
+    # unnamed scheme; carrying it into a column that three other loaders also
+    # write makes the column uninterpretable. It is preserved as a named
+    # observation below, where it keeps its provenance and can be compared
+    # against other measurements instead of being silently blended with them.
     g.execute(
         """INSERT OR IGNORE INTO person
-           (person_id,name,kind,state,origin,primary_tier,rank_score,built_at)
-           SELECT person_id,name,'human','linked',origin,primary_tier,
-                  rank_score,? FROM v1.person""",
+           (person_id,name,kind,state,origin,primary_tier,built_at)
+           SELECT person_id,name,'human','linked',origin,primary_tier,?
+           FROM v1.person""",
+        (now,),
+    )
+    g.execute(
+        """INSERT OR REPLACE INTO person_observation
+           (person_id,metric,value,unit,source,snapshot,observed_at)
+           SELECT person_id,'v1_rank_score',rank_score,'legacy_score',
+                  'v1_migration',NULL,?
+           FROM v1.person WHERE rank_score IS NOT NULL""",
         (now,),
     )
 
@@ -71,12 +106,22 @@ def build(v1_db, people_db, books_db, out_db):
             id_for_key[pk] = existing[nkey]
             continue
         pid = f"bk:{pk}"
+        # work_count was previously written into rank_score, where it sat
+        # alongside summed GitHub stars in the same column -- 71 (books written)
+        # and 30910 (stars received) are not comparable quantities. It is a
+        # measurement, so it is recorded as one, with its unit.
         g.execute(
             """INSERT OR IGNORE INTO person
-               (person_id,name,sort_name,kind,state,origin,rank_score,
+               (person_id,name,sort_name,kind,state,origin,
                 birth_year,death_year,built_at)
-               VALUES (?,?,?,'human','linked','books',?,?,?,?)""",
-            (pid, dn, dn, float(works), b, d, now),
+               VALUES (?,?,?,'human','linked','books',?,?,?)""",
+            (pid, dn, dn, b, d, now),
+        )
+        g.execute(
+            """INSERT OR REPLACE INTO person_observation
+               (person_id,metric,value,unit,source,snapshot,observed_at)
+               VALUES (?,'book_work_count',?,'works','books',?,?)""",
+            (pid, float(works or 0), books_snapshot, now),
         )
         existing[nkey] = pid
         id_for_key[pk] = pid
@@ -158,10 +203,30 @@ def build(v1_db, people_db, books_db, out_db):
         "SELECT person_id,name,'' FROM person"
     )
 
+    # Run metadata goes in build_run, never onto a canonical row. A build
+    # timestamp stored on a fact makes two identical builds differ, which would
+    # make logical reproducibility unmeasurable by construction. The digest
+    # excludes this table for exactly that reason.
+    if run_id:
+        g.execute(
+            """INSERT OR REPLACE INTO build_run
+               (run_id,started_at,finished_at,builder,schema_version,notes)
+               VALUES (?,?,?,?,?,?)""",
+            # finished_at follows `now` when the caller pinned a timestamp.
+            # Using wall-clock here regardless would make build_run differ
+            # between two otherwise-identical pinned builds -- harmless for the
+            # logical digest, which excludes this table, but it needlessly
+            # destroys byte-comparability of the run record itself.
+            (run_id, now, now, LOADER_VERSION, "people_schema_v2", ""),
+        )
+
     g.commit()
 
     summary = {
         "person": g.execute("SELECT COUNT(*) FROM person").fetchone()[0],
+        "person_observation": g.execute(
+            "SELECT COUNT(*) FROM person_observation"
+        ).fetchone()[0],
         "with_life_dates": g.execute(
             "SELECT COUNT(*) FROM person WHERE birth_year IS NOT NULL"
         ).fetchone()[0],
@@ -192,9 +257,15 @@ def main():
     ap.add_argument("--people", required=True)
     ap.add_argument("--books", required=True)
     ap.add_argument("--out", default="people_v2.sqlite")
+    ap.add_argument("--observed-at",
+                    help="fixed ISO8601 timestamp for reproducible builds; "
+                         "omit for wall-clock (non-reproducible) behaviour")
+    ap.add_argument("--books-snapshot", help="snapshot id of the books source")
+    ap.add_argument("--run-id", help="build run identifier, recorded in build_run")
     a = ap.parse_args()
     t = time.time()
-    s = build(a.v1, a.people, a.books, a.out)
+    s = build(a.v1, a.people, a.books, a.out, observed_at=a.observed_at,
+              books_snapshot=a.books_snapshot, run_id=a.run_id)
     s["elapsed_s"] = round(time.time() - t, 2)
     print(json.dumps(s, indent=2))
     return 0

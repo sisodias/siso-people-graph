@@ -195,6 +195,113 @@ CREATE TABLE IF NOT EXISTS person_topic (
 );
 CREATE INDEX IF NOT EXISTS ix_ptopic_topic ON person_topic(topic, scheme);
 
+-- ===========================================================================
+-- RECOVERED SCHEMA: the four tables that shipped without ever being tracked.
+--
+-- These are not new. They exist in the published graph-v2 release asset
+-- (people_graph_v2.sqlite, sha256 9938237a3327...) and held 1,287,159 rows
+-- there, yet appeared in NO tracked file on ANY branch of this repository.
+-- The DDL below is recovered verbatim from that asset's sqlite_master, so the
+-- tracked schema now describes the graph that actually shipped.
+--
+-- Why this block exists rather than a quiet CREATE TABLE: a table that lives in
+-- production and in no schema is precisely how a graph becomes unrebuildable.
+-- Recording the recovery, and the semantics, is the point.
+-- See docs/handoffs/schema-divergence.md for when and how this happened.
+-- ===========================================================================
+
+-- ---------------------------------------------------------------------------
+-- organisation : companies, projects and foundations, kept OUT of person.
+--
+-- The design reason is the one the README defends: conflating an institution
+-- with a human corrupts any question of the form "what does this person
+-- believe". 1,131 rows shipped.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS organisation (
+  org_id        TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  kind          TEXT NOT NULL DEFAULT 'unknown'
+                  CHECK (kind IN ('company','project','foundation','team','unknown')),
+  github_org_id TEXT,
+  state         TEXT NOT NULL DEFAULT 'tracked'
+                  CHECK (state IN ('tracked','linked','merged','disputed')),
+  source        TEXT NOT NULL,
+  observed_at   TEXT,
+  meta_json     TEXT NOT NULL DEFAULT '{}'
+);
+
+-- ---------------------------------------------------------------------------
+-- person_organisation : membership. Shipped EMPTY (0 rows) -- the table was
+-- created but nothing ever populated it, so "who works where" is currently
+-- unanswerable. Tracked so that stays visible rather than being rediscovered.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS person_organisation (
+  person_id   TEXT NOT NULL REFERENCES person(person_id) ON DELETE CASCADE,
+  org_id      TEXT NOT NULL REFERENCES organisation(org_id) ON DELETE CASCADE,
+  relation    TEXT NOT NULL,
+  started_at  TEXT,
+  ended_at    TEXT,
+  confidence  REAL NOT NULL DEFAULT 0.9,
+  source      TEXT NOT NULL,
+  observed_at TEXT,
+  meta_json   TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY (person_id, org_id, relation)
+);
+
+-- ---------------------------------------------------------------------------
+-- organisation_content : what an organisation produced. 13,533 rows shipped,
+-- every one from crates_io_teams.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS organisation_content (
+  org_id      TEXT NOT NULL REFERENCES organisation(org_id) ON DELETE CASCADE,
+  domain      TEXT NOT NULL,
+  content_ref TEXT NOT NULL,
+  role        TEXT,
+  source      TEXT NOT NULL,
+  observed_at TEXT,
+  meta_json   TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY (org_id, domain, content_ref, role)
+);
+
+-- ---------------------------------------------------------------------------
+-- person_person : edges between people. READ THE SEMANTICS BEFORE USING THIS.
+--
+-- 1,272,495 rows shipped, and the release title calls them "person-to-person
+-- edges". They are not social edges. Measured against the asset:
+--
+--     relation   = 'depends_on'                     (1,272,495 of 1,272,495)
+--     source     = 'crates_io_dependencies'         (1,272,495 of 1,272,495)
+--     confidence = 0.95 flat                        (min = max = 0.95)
+--
+-- Every row is a crates.io PACKAGE DEPENDENCY projected onto package owners.
+-- Package A depends on package B does not mean person A knows, has worked
+-- with, or has any relationship to person B. The flat confidence carries no
+-- discriminating information: it cannot rank, filter or separate anything.
+--
+-- This table therefore does NOT support "who knows whom", collaboration
+-- inference, or any social-graph feature. It supports exactly one honest
+-- question: whose packages sit upstream of whose. Anything more is the
+-- owner -> creator category collapse the consolidation plan names.
+--
+-- The column is `relation` precisely so a future genuine relation (co_author,
+-- co_maintainer) can coexist without inheriting this one's meaning. Filter on
+-- relation and source; never treat the table as homogeneous.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS person_person (
+  person_a    TEXT NOT NULL REFERENCES person(person_id) ON DELETE CASCADE,
+  person_b    TEXT NOT NULL REFERENCES person(person_id) ON DELETE CASCADE,
+  relation    TEXT NOT NULL,
+  direction   TEXT NOT NULL DEFAULT 'a_to_b',
+  weight      INTEGER NOT NULL DEFAULT 1,
+  confidence  REAL NOT NULL DEFAULT 0.9,
+  source      TEXT NOT NULL,
+  observed_at TEXT,
+  meta_json   TEXT NOT NULL DEFAULT '{}',
+  PRIMARY KEY (person_a, person_b, relation),
+  CHECK (person_a <> person_b)
+);
+CREATE INDEX IF NOT EXISTS ix_pperson_b ON person_person(person_b, relation);
+
 -- ---------------------------------------------------------------------------
 -- person_search : FTS over names.
 --
