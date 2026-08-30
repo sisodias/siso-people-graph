@@ -3,7 +3,13 @@
 One canonical graph of **people who produced something** — books, code, video —
 with their work, their topics, and when they lived.
 
-**280,708 people · 564,486 works · 2,050,629 topic edges · 253,815 platform identities**
+**339,217 people · 901,524 person↔content edges · 2,050,629 topic edges · 442,499 external identities**
+
+These are the verified `graph-v2` release counts from the shipped
+1,113,350,144-byte SQLite database (SHA-256
+`9938237a33277fe3a29a278d68c361a1f300d9060740cc2e917920157d9b919b`). The
+older 280,708-person figure described an earlier build and is not the current
+release baseline.
 
 ## Why this exists
 
@@ -21,11 +27,16 @@ high-value cases the graph exists to surface.
 
 | | |
 | --- | --- |
-| people | 280,708 (37,647 confirmed human, 7,329 organisations) |
+| people | 339,217 |
 | with life dates | 27,583 — BCE stored negative, so Plato is −428 |
-| content edges | github 463,230 · book 101,124 · youtube 132 |
+| person↔content edges | 901,524 |
 | topic edges | 2,050,629 across five separate vocabularies |
-| platform identities | 253,815 |
+| external identities | 442,499 |
+
+The release also contains 1,272,495 `person_person` rows, but they are
+dependency-derived projections from crates.io. They are not social,
+collaboration, or "who knows whom" relationships and must not be presented as
+such.
 
 Topic vocabularies are kept **separate, never merged**: `github_topic`
 (1,206,260), `gh_category` (309,716), `github_lang` (287,516), `lcsh` (167,585),
@@ -113,9 +124,11 @@ python3 loaders/enrich_owners.py --graph people_v2.sqlite --limit 4000
 `loaders/ask.py` is the query surface — an agent with a question does not need to
 know which database holds the answer.
 
-## Part of
+## Related systems
 
-The [SISO Foundry](https://github.com/sisodias/siso-foundry) — one
-domain-agnostic engine: scrape the content, scrape the people who make it, watch
-them over time, then research over the result. Books come from the
+SISO People Graph is an independent Research Work and repository. It depends
+on loader and source-discovery machinery in
+[SISO Foundry](https://github.com/sisodias/siso-foundry), but neither physical
+checkout placement nor that dependency makes the graph part of Foundry.
+Books come from the
 [SISO Book Library](https://github.com/sisodias/siso-book-library).
